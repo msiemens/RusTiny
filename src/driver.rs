@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 use std::rc::Rc;
 use ast::{Ident, Symbol};
-use util::Interner;
+use util::{Interner, PrettyPrinter};
 use front;
 
 
@@ -33,9 +33,9 @@ pub fn compile_input(source: String, input_file: String) {
 
     // Phase 1: Lexical & syntactical analysis
     let lexer = front::Lexer::new(&source, &input_file);
-    //println!("{:?}", lexer.tokenize());
     let mut parser = front::Parser::new(lexer);
     let ast = parser.parse();
+    PrettyPrinter::print(&ast);
 
     // Phase 2: Analysis passes (semantic checking, type checking)
     //  Semantic checks:

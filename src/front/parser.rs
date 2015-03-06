@@ -135,7 +135,7 @@ impl<'a> Parser<'a> {
     }
 
     fn parse_block(&mut self) -> Node<Block> {
-        println!("--- parsing a block");
+        debug!("--- parsing a block");
 
         self.expect(Token::LBrace);
 
@@ -164,14 +164,14 @@ impl<'a> Parser<'a> {
             }
 
             // Try parsing an expression
-            println!("--- parsing an expression");
+            debug!("--- parsing an expression");
 
             while self.eat(Token::Semicolon) {}
             if self.token == Token::RBrace { break }
 
             let maybe_expr = self.parse_expression();
 
-            println!("--- done parsing an expression");
+            debug!("--- done parsing an expression");
 
             if self.eat(Token::Semicolon) {
                 // It's actually a statement
@@ -187,7 +187,7 @@ impl<'a> Parser<'a> {
 
         self.expect(Token::RBrace);
 
-        println!("--- done parsing a block");
+        debug!("--- done parsing a block");
 
         Node::new(Block {
             stmts: stmts,
@@ -236,7 +236,7 @@ impl<'a> Parser<'a> {
                 self.bump();
                 Node::new(Expression::Break)
             },
-            _ => self.prett_parser(0)
+            _ => self.prett_parser(precedence)
         }
     }
 
@@ -351,6 +351,7 @@ impl<'a> Parser<'a> {
             Expression::Literal { val } => val,
             _ => panic!("shouldn't happen")
         };
+        self.expect(Token::Semicolon);
 
         Node::new(Symbol::Static {
             binding: Box::new(binding),
@@ -367,6 +368,7 @@ impl<'a> Parser<'a> {
             Expression::Literal { val } => val,
             _ => panic!("shouldn't happen")
         };
+        self.expect(Token::Semicolon);
 
         Node::new(Symbol::Constant {
             binding: Box::new(binding),

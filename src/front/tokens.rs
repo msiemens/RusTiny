@@ -31,8 +31,8 @@ pub enum Token {
 impl Token {
     pub fn ty(&self) -> TokenType {
         match *self {
-            Token::BinOp(op) => TokenType::BinOp(op),
-            Token::UnOp(op) => TokenType::UnOp,
+            Token::BinOp(op)    => TokenType::BinOp(op),
+            Token::UnOp(..)     => TokenType::UnOp,
             Token::LParen       => TokenType::LParen,
             Token::Eq           => TokenType::Eq,
 
