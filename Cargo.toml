@@ -1,16 +1,8 @@
 [package]
 
-name = "tiny-asm"
+name = "rustiny"
 version = "0.0.1"
 authors = ["Markus Siemens <siemens1993@gmail.com>"]
-
-[[bin]]
-name = "tiny"
-path = "src/main.rs"
-
-[[bin]]
-name = "rustiny"
-path = "src/compiler/main.rs"
 
 
 [profile.release]
@@ -24,5 +16,4 @@ docopt_macros = "*"
 env_logger = "*"
 lazy_static = "*"
 log = "*"
-rand = "*"
 rustc-serialize = "*"
