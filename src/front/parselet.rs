@@ -179,7 +179,7 @@ define_prefix!(GroupParselet:
         let expr = parser.parse_expression();
         parser.expect(Token::RParen);
 
-        expr
+        Node::new(Expression::Group(Box::new(expr)))
     }
 );
 

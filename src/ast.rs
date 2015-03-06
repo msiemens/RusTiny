@@ -25,6 +25,7 @@ impl FromStr for Type {
     }
 }
 
+
 pub enum Value {
     Bool(bool),
     Int(u32),
@@ -142,6 +143,7 @@ pub enum Expression {
         func: Box<Node<Expression>>,
         args: Vec<Node<Expression>>
     },
+    Group(Box<Node<Expression>>),
     Infix {
         op: BinOp,
         lhs: Box<Node<Expression>>,
@@ -200,6 +202,43 @@ impl Deref for Ident {
 // --- Debug implementations ----------------------------------------------------
 // FIXME: Replace with pretty printer
 
+impl<T: fmt::Debug> fmt::Debug for Node<T> {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{:?}", self.node)
+    }
+}
+
+impl fmt::Debug for Binding {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{:?}: {:?}", self.name, self.ty)
+    }
+}
+
+impl fmt::Debug for Type {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        use self::Type::*;
+
+        match *self {
+            Bool    => write!(f, "bool"),
+            Int     => write!(f, "int"),
+            Char    => write!(f, "char"),
+            Unit    => write!(f, "()")
+        }
+    }
+}
+
+impl fmt::Debug for Value {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        use self::Value::*;
+
+        match *self {
+            Bool(b) => write!(f, "{}", b),
+            Int(i)  => write!(f, "{}", i),
+            Char(c) => write!(f, "{}", c)
+        }
+    }
+}
+
 impl fmt::Debug for BinOp {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         use self::BinOp::*;
@@ -241,6 +280,6 @@ impl fmt::Debug for UnOp {
 
 impl fmt::Debug for Ident {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{:?}", driver::get_interner().get(*self))
+        write!(f, "{}", driver::get_interner().get(*self))
     }
 }

@@ -5,9 +5,11 @@ use std::old_io;
 use std::path::Path;
 
 pub use self::interner::Interner;
+pub use self::pretty::PrettyPrinter;
 
 
 mod interner;
+mod pretty;
 
 
 /// Read a file and return it's contents
