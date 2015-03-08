@@ -4,7 +4,7 @@ use std::io::Read;
 use std::old_io;
 use std::path::Path;
 
-pub use self::interner::Interner;
+pub use self::interner::get_interner;
 pub use self::pretty::PrettyPrinter;
 
 

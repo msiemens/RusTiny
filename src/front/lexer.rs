@@ -1,8 +1,9 @@
+/// The lexer: split the source into a stream of tokens
+
 use std::borrow::ToOwned;
 use ast::{BinOp, UnOp};
-use driver;
 use front::tokens::{Token, lookup_keyword};
-use util::fatal;
+use util::{fatal, get_interner};
 
 
 pub struct Lexer<'a> {
@@ -17,6 +18,9 @@ pub struct Lexer<'a> {
 }
 
 impl<'a> Lexer<'a> {
+    // --- Lexer: The public API ------------------------------------------------
+
+    /// Create a new lexer from a given string and file name
     pub fn new(source: &'a str, file: &'a str) -> Lexer<'a> {
         Lexer {
             source: source,
@@ -30,23 +34,59 @@ impl<'a> Lexer<'a> {
         }
     }
 
+    /// Get the next token
+    pub fn next_token(&mut self) -> Token {
+        if self.is_eof() {
+            Token::EOF
+        } else {
+            // Read the next token as long as the lexer requests us to do so
+            loop {
+                if let Some(token) = self.read_token() {
+                    return token;
+                }
+            }
+        }
+    }
+
+    /// Tokenize the string into a vector. Used for testing
+    #[allow(dead_code)]
+    pub fn tokenize(&mut self) -> Vec<Token> {
+        let mut tokens = vec![];
+
+        while !self.is_eof() {
+            debug!("Processing {:?}", self.curr);
+
+            if let Some(t) = self.read_token() {
+                tokens.push(t);
+            }
+
+            debug!("So far: {:?}", tokens)
+        }
+
+        tokens
+    }
+
     // --- Lexer: Helpers -------------------------------------------------------
 
+    /// Report a fatal error back to the user
     fn fatal(&self, msg: String) -> ! {
         fatal(msg, self.get_source())
     }
 
-
+    /// Are we done yet?
     fn is_eof(&self) -> bool {
         self.curr.is_none()
     }
 
+    /// Get the current source position we're at
+    // TODO: Return proper source locations
     pub fn get_source(&self) -> usize {
         self.lineno
     }
 
     // --- Lexer: Character processing ------------------------------------------
 
+    /// Move along to the next character
     fn bump(&mut self) {
         self.curr = self.nextch();
         self.pos += 1;
@@ -54,6 +94,7 @@ impl<'a> Lexer<'a> {
         debug!("Moved on to {:?}", self.curr)
     }
 
+    /// Take a look at the next character without consuming it
     fn nextch(&self) -> Option<char> {
         let mut new_pos = self.pos + 1;
 
@@ -72,22 +113,21 @@ impl<'a> Lexer<'a> {
         }
     }
 
-    fn curr_repr(&self) -> String {
+    /// An escaped representation of the current character
+    fn curr_escaped(&self) -> String {
         match self.curr {
             Some(c) => c.escape_default().collect(),
             None    => "EOF".to_owned()
         }
     }
 
+    /// Consume an expected character or report an error
     fn expect(&mut self, expect: char) {
         if self.curr != Some(expect) {
             // Build error message
-            let expect_str = match expect {
-                '\'' => String::from_str("quote"),
-                c    => format!("'{}'", c)
-            };
+            let expect_str = format!("`{}`", expect);
             let found_str = match self.curr {
-                Some(_) => format!("'{}'", self.curr_repr()),
+                Some(_) => format!("'{}'", self.curr_escaped()),
                 None    => String::from_str("EOF")
             };
 
@@ -95,11 +135,14 @@ impl<'a> Lexer<'a> {
                                expect_str, found_str))
         }
 
+        // Consume the current character
         self.bump();
     }
 
+    /// Collect & consume all consecutive characters into a string as long as a condition is true
     fn collect<F>(&mut self, cond: F) -> &'a str
-            where F: Fn(&char) -> bool {
+            where F: Fn(&char) -> bool
+    {
         let start = self.pos;
 
         debug!("start colleting");
@@ -108,16 +151,16 @@ impl<'a> Lexer<'a> {
             if cond(&c) {
                 self.bump();
             } else {
-                debug!("colleting finished");
                 break;
             }
         }
 
-        let end = self.pos;
+        debug!("colleting finished");
 
-        &self.source[start..end]
+        &self.source[start..self.pos]
     }
 
+    /// Consume all consecutive characters matching a condition
     fn eat_all<F>(&mut self, cond: F)
             where F: Fn(&char) -> bool {
         while let Some(c) = self.curr {
@@ -128,6 +171,7 @@ impl<'a> Lexer<'a> {
 
     // --- Lexer: Tokenizers ----------------------------------------------------
 
+    /// Tokenize an identifier
     fn tokenize_ident(&mut self) -> Token {
         debug!("Tokenizing an ident");
 
@@ -135,6 +179,7 @@ impl<'a> Lexer<'a> {
             c.is_alphabetic() || c.is_numeric() || *c == '_'
         });
 
+        // Check whether it's a keyword or an identifier
         if let Some(kw) = lookup_keyword(&ident) {
             Token::Keyword(kw)
         } else {
@@ -142,7 +187,8 @@ impl<'a> Lexer<'a> {
         }
     }
 
-    fn tokenize_digit(&mut self) -> Token {
+    /// Tokenize an integer
+    fn tokenize_integer(&mut self) -> Token {
         debug!("Tokenizing a digit");
 
         let integer_str = self.collect(|c| c.is_numeric());
@@ -154,6 +200,7 @@ impl<'a> Lexer<'a> {
         Token::Int(integer)
     }
 
+    /// Tokenize a character. Correctly handles escaped newlines and escaped single quotes
     fn tokenize_char(&mut self) -> Token {
         debug!("Tokenizing a char");
 
@@ -174,7 +221,7 @@ impl<'a> Lexer<'a> {
         } else {
             Token::Char(c)
         };
-        self.bump();
+        self.bump();  // Matched a (possibly escaped) character, move along
 
         // Match closing quote
         self.expect('\'');
@@ -187,157 +234,71 @@ impl<'a> Lexer<'a> {
     /// If `None` is returned, the current token is to be ignored and the
     /// lexer requests the reader to read the next token instead.
     fn read_token(&mut self) -> Option<Token> {
+        macro_rules! emit(
+            ($_self:ident, $( $ch:expr => $tok:pat , )* or $default:expr) => (
+                $_self.bump();
+                match $_self.curr() {
+                    $( Some($ch) => { $_self.bump(); $tok } , )*
+                    _ => $default
+                }
+            );
+
+            ($_self:ident, $token:pat) => (
+                $_self.bump();
+                $token
+            );
+        )
+
+        debug!("Tokenizing with current character = {}", self.curr_escaped());
+
         let c = match self.curr {
             Some(c) => c,
             None    => return Some(Token::EOF)
         };
 
         let token = match c {
-            // TODO: Comments & macro
-            // Binops
-            '+' => {
-                self.bump();
-                Token::BinOp(BinOp::Add)
-            },
-            '-' => {
-                self.bump();
-                if self.curr == Some('>') {
-                    self.bump();
-                    Token::RArrow
-                } else {
-                    Token::BinOp(BinOp::Sub)
-                }
-            },
-            '*' => {
-                self.bump();
-                if self.curr == Some('*') {
-                    self.bump();
-                    Token::BinOp(BinOp::Pow)
-                } else {
-                    Token::BinOp(BinOp::Mul)
-                }
-            },
-            '/' => {
-                self.bump();
-                if self.curr == Some('/') {
-                    self.eat_all(|c| *c != '\n');
-                    return None;
-                } else {
-                    Token::BinOp(BinOp::Div)
-                }
-            },
-            '%' => {
-                self.bump();
-                Token::BinOp(BinOp::Mod)
-            },
-            '&' => {
-                self.bump();
-                if self.curr == Some('&') {
-                    self.bump();
-                    Token::BinOp(BinOp::And)
-                } else {
-                    Token::BinOp(BinOp::BitAnd)
-                }
-            },
-            '|' => {
-                self.bump();
-                if self.curr == Some('|') {
-                    self.bump();
-                    Token::BinOp(BinOp::Or)
-                } else {
-                    Token::BinOp(BinOp::BitOr)
-                }
-            },
-            '^' => {
-                self.bump();
-                Token::BinOp(BinOp::BitXor)
-            },
-            '<' => {
-                self.bump();
-                match self.curr {
-                    Some('<') => { self.bump(); Token::BinOp(BinOp::Shl) },
-                    Some('=') => { self.bump(); Token::BinOp(BinOp::Le) },
-                    _ => Token::BinOp(BinOp::Lt)
-                }
-            },
-            '>' => {
-                self.bump();
-                match self.curr {
-                    Some('>') => { self.bump(); Token::BinOp(BinOp::Shr) },
-                    Some('=') => { self.bump(); Token::BinOp(BinOp::Ge) },
-                    _ => Token::BinOp(BinOp::Gt)
-                }
-            },
-            '=' => {
-                self.bump();
-                if self.curr == Some('=') {
-                    self.bump();
-                    Token::BinOp(BinOp::EqEq)
-                } else {
-                    Token::Eq
-                }
-            },
-            '!' => {
-                self.bump();
-                if self.curr == Some('=') {
-                    self.bump();
-                    Token::BinOp(BinOp::Ne)
-                } else {
-                    Token::UnOp(UnOp::Not)
-                }
-            },
-            '(' => { self.bump(); Token::LParen },
-            ')' => { self.bump(); Token::RParen },
-            '{' => { self.bump(); Token::LBrace },
-            '}' => { self.bump(); Token::RBrace },
-            ',' => { self.bump(); Token::Comma },
-            ':' => { self.bump(); Token::Colon },
-            ';' => { self.bump(); Token::Semicolon },
+            '+' => emit!(self, BinOp::Add),
+            '-' => emit!(self, '>' => Token::RArrow,
+                                _  => Token::BinOp(BinOp::Sub)),
+            '*' => emit!(self, '*' => Token::BinOp(BinOp::Pow),
+                                _  => Token::BinOp(BinOp::Mul)),
+            '/' => emit!(self, '/' => { self.eat_all(|c| *c != '\n'); return None;},
+                                _  => Token::BinOp(BinOp::Div)),
+            '%' => emit!(self, Token::BinOp(BinOp::Mod)),
+            '&' => emit!(self, '&' => Token::BinOp(BinOp::And),
+                                _  => Token::BinOp(BinOp::BitAnd)),
+            '|' => emit!(self, '|' => Token::BinOp(BinOp::Or),
+                                _  => Token::BinOp(BinOp::BitOr),
+            '^' => emit!(self, Token::BinOp(BinOp::BitXor)),
+            '<' => emit!(self, '<' => Token::BinOp(BinOp::Shl),
+                               '=' => Token::BinOp(BinOp::Le),
+                                _  => Token::BinOp(BinOp::Lt)),
+            '>' => emit!(self, '>' => Token::BinOp(BinOp::Shr),
+                               '=' => Token::BinOp(BinOp::Ge)),
+            '=' => emit!(self, '=' => Token::BinOp(BinOp::EqEq),
+                                _  => Token::BinOp(BinOp::Eq),
+            '!' => emit!(self, '=' => Token::BinOp(BinOp::Ne),
+                                _  => Token::UnOp(UnOp::Not),
+            '(' => emit!(self, Token::LParen),
+            ')' => emit!(self, Token::RParen),
+            '{' => emit!(self, Token::LBrace),
+            '}' => emit!(self, Token::RBrace),
+            ',' => emit!(self, Token::Comma),
+            ':' => emit!(self, Token::Colon),
+            ';' => emit!(self, Token::Semicolon),
             c if c.is_alphabetic()  => self.tokenize_ident(),
-            c if c.is_numeric()     => self.tokenize_digit(),
+            c if c.is_numeric()     => self.tokenize_integer(),
             '\''                    => self.tokenize_char(),
             c if c.is_whitespace() => {
+                // Skip whitespaces of any type
                 if c == '\n' { self.lineno += 1; }
 
                 self.bump();
                 return None;
             },
-            c => {
-                self.fatal(format!("unknown token: {}", c))
-                // UNKNOWN(format!("{}", c).into_string())
-            }
+            c => self.fatal(format!("unknown token: {}", c))
         };
 
         Some(token)
-    }
-
-    pub fn next_token(&mut self) -> Token {
-        if self.is_eof() {
-            Token::EOF
-        } else {
-            // Read the next token until it's not none
-            loop {
-                if let Some(token) = self.read_token() {
-                    return token;
-                }
-            }
-        }
-    }
-
-    #[allow(dead_code)]  // Used for tests
-    pub fn tokenize(&mut self) -> Vec<Token> {
-        let mut tokens = vec![];
-
-        while !self.is_eof() {
-            debug!("Processing {:?}", self.curr);
-
-            if let Some(t) = self.read_token() {
-                tokens.push(t);
-            }
-
-            debug!("So far: {:?}", tokens)
-        }
-
-        tokens
     }
 }

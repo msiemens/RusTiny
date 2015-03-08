@@ -5,11 +5,20 @@ use std::collections::HashMap;
 use std::fmt;
 use std::ops::Deref;
 use std::rc::Rc;
-use ast::Ident;
+use ast::{Ident, Symbol};
 
 
 // --- String interner ----------------------------------------------------------
 // Inspired by: http://doc.rust-lang.org/src/syntax/util/interner.rs.html
+
+/// Get a reference to the thread local interner
+pub fn get_interner() -> Rc<Interner> {
+    thread_local! {
+        static INTERNER: Rc<Interner> = Rc::new(Interner::new())
+    };
+
+    INTERNER.with(|o| o.clone())
+}
 
 #[derive(Clone, PartialEq, Hash, PartialOrd)]
 pub struct RcStr {

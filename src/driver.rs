@@ -1,30 +1,8 @@
-use std::collections::HashMap;
-use std::rc::Rc;
-use ast::{Ident, Symbol};
-use util::{Interner, PrettyPrinter};
+/// Coordinating all the steps of compilation: The Driver (tm)
+
+use util::{get_interner, PrettyPrinter};
 use front;
 
-
-type SymbolTable = HashMap<Ident, Symbol>;
-
-
-/// Get a reference to the thread local interner
-pub fn get_interner() -> Rc<Interner> {
-    thread_local! {
-        static INTERNER: Rc<Interner> = Rc::new(Interner::new())
-    };
-
-    INTERNER.with(|o| o.clone())
-}
-
-/// Get a reference to the thread local symbol table
-pub fn get_symbol_table() -> Rc<SymbolTable> {
-    thread_local! {
-        static SYMBOL_TABLE: Rc<HashMap<Ident, Symbol>> = Rc::new(HashMap::new())
-    };
-
-    SYMBOL_TABLE.with(|o| o.clone())
-}
 
 pub fn compile_input(source: String, input_file: String) {
     // --- Front end ------------------------------------------------------------
@@ -35,6 +13,8 @@ pub fn compile_input(source: String, input_file: String) {
     let lexer = front::Lexer::new(&source, &input_file);
     let mut parser = front::Parser::new(lexer);
     let ast = parser.parse();
+
+    // For debugging the lexer/parser:
     PrettyPrinter::print(&ast);
 
     // Phase 2: Analysis passes (semantic checking, type checking)
