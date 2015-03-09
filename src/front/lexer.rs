@@ -171,6 +171,11 @@ impl<'a> Lexer<'a> {
 
     // --- Lexer: Tokenizers ----------------------------------------------------
 
+    /// Skip over a comment string
+    fn skip_comment(&mut self) {
+        self.eat_all(|c| *c != '\n');
+    }
+
     /// Tokenize an identifier
     fn tokenize_ident(&mut self) -> Token {
         debug!("Tokenizing an ident");
@@ -183,7 +188,7 @@ impl<'a> Lexer<'a> {
         if let Some(kw) = lookup_keyword(&ident) {
             Token::Keyword(kw)
         } else {
-            Token::Ident(driver::get_interner().intern(ident))
+            Token::Ident(get_interner().intern(ident))
         }
     }
 
@@ -235,19 +240,23 @@ impl<'a> Lexer<'a> {
     /// lexer requests the reader to read the next token instead.
     fn read_token(&mut self) -> Option<Token> {
         macro_rules! emit(
-            ($_self:ident, $( $ch:expr => $tok:pat , )* or $default:expr) => (
-                $_self.bump();
-                match $_self.curr() {
-                    $( Some($ch) => { $_self.bump(); $tok } , )*
-                    _ => $default
+            ($_self:ident, $( next: $ch:expr => $tok:expr ),* ; default: $default:expr) => (
+                {
+                    $_self.bump();
+                    match $_self.curr {
+                        $( Some($ch) => { $_self.bump(); $tok } , )*
+                        _ => $default
+                    }
                 }
             );
 
-            ($_self:ident, $token:pat) => (
-                $_self.bump();
-                $token
+            ($_self:ident, $token:expr) => (
+                {
+                    $_self.bump();
+                    $token
+                }
             );
-        )
+        );
 
         debug!("Tokenizing with current character = {}", self.curr_escaped());
 
@@ -256,39 +265,62 @@ impl<'a> Lexer<'a> {
             None    => return Some(Token::EOF)
         };
 
-        let token = match c {
-            '+' => emit!(self, BinOp::Add),
-            '-' => emit!(self, '>' => Token::RArrow,
-                                _  => Token::BinOp(BinOp::Sub)),
-            '*' => emit!(self, '*' => Token::BinOp(BinOp::Pow),
-                                _  => Token::BinOp(BinOp::Mul)),
-            '/' => emit!(self, '/' => { self.eat_all(|c| *c != '\n'); return None;},
-                                _  => Token::BinOp(BinOp::Div)),
+        let token: Token = match c {
+            '+' => emit!(self, Token::BinOp(BinOp::Add)),
+
+            '-' => emit!(self, next: '>' => Token::RArrow;
+                               default: Token::BinOp(BinOp::Sub)),
+
+            '*' => emit!(self, next: '*' => Token::BinOp(BinOp::Pow);
+                               default: Token::BinOp(BinOp::Mul)),
+
+            '/' => emit!(self, next: '/' => { self.skip_comment(); return None };
+                               default: Token::BinOp(BinOp::Div)),
+
             '%' => emit!(self, Token::BinOp(BinOp::Mod)),
-            '&' => emit!(self, '&' => Token::BinOp(BinOp::And),
-                                _  => Token::BinOp(BinOp::BitAnd)),
-            '|' => emit!(self, '|' => Token::BinOp(BinOp::Or),
-                                _  => Token::BinOp(BinOp::BitOr),
+
+            '&' => emit!(self, next: '&' => Token::BinOp(BinOp::And);
+                               default: Token::BinOp(BinOp::BitAnd)),
+
+            '|' => emit!(self, next: '|' => Token::BinOp(BinOp::Or);
+                               default: Token::BinOp(BinOp::BitOr)),
+
             '^' => emit!(self, Token::BinOp(BinOp::BitXor)),
-            '<' => emit!(self, '<' => Token::BinOp(BinOp::Shl),
-                               '=' => Token::BinOp(BinOp::Le),
-                                _  => Token::BinOp(BinOp::Lt)),
-            '>' => emit!(self, '>' => Token::BinOp(BinOp::Shr),
-                               '=' => Token::BinOp(BinOp::Ge)),
-            '=' => emit!(self, '=' => Token::BinOp(BinOp::EqEq),
-                                _  => Token::BinOp(BinOp::Eq),
-            '!' => emit!(self, '=' => Token::BinOp(BinOp::Ne),
-                                _  => Token::UnOp(UnOp::Not),
+
+            '<' => emit!(self, next: '<' => Token::BinOp(BinOp::Shl),
+                               next: '=' => Token::BinOp(BinOp::Le);
+                               default: Token::BinOp(BinOp::Lt)),
+
+            '>' => emit!(self, next: '>' => Token::BinOp(BinOp::Shr),
+                               next: '=' => Token::BinOp(BinOp::Ge);
+                               default: Token::BinOp(BinOp::Gt)),
+
+            '=' => emit!(self, next: '=' => Token::BinOp(BinOp::EqEq);
+                               default: Token::Eq),
+
+            '!' => emit!(self, next: '=' => Token::BinOp(BinOp::Ne);
+                               default: Token::UnOp(UnOp::Not)),
+
             '(' => emit!(self, Token::LParen),
+
             ')' => emit!(self, Token::RParen),
+
             '{' => emit!(self, Token::LBrace),
+
             '}' => emit!(self, Token::RBrace),
+
             ',' => emit!(self, Token::Comma),
+
             ':' => emit!(self, Token::Colon),
+
             ';' => emit!(self, Token::Semicolon),
+
+            '\'' => self.tokenize_char(),
+
             c if c.is_alphabetic()  => self.tokenize_ident(),
-            c if c.is_numeric()     => self.tokenize_integer(),
-            '\''                    => self.tokenize_char(),
+
+            c if c.is_numeric() => self.tokenize_integer(),
+
             c if c.is_whitespace() => {
                 // Skip whitespaces of any type
                 if c == '\n' { self.lineno += 1; }

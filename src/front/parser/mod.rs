@@ -2,8 +2,11 @@ use std::collections::{HashMap, LinkedList};
 use ast::*;
 use front::Lexer;
 use front::tokens::{Token, Keyword};
-use front::parselet::PARSELET_MANAGER;
+use front::parser::parselet::PARSELET_MANAGER;
 use util::fatal;
+
+
+mod parselet;
 
 
 pub struct Parser<'a> {

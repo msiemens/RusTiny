@@ -2,7 +2,6 @@
 
 mod lexer;
 mod parser;
-mod parselet;
 mod tokens;
 
 pub use self::lexer::Lexer;

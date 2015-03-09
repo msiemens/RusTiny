@@ -1,7 +1,10 @@
 /// Coordinating all the steps of compilation: The Driver (tm)
 
-use util::{get_interner, PrettyPrinter};
+use util::PrettyPrinter;
 use front;
+
+
+pub use util::get_interner;
 
 
 pub fn compile_input(source: String, input_file: String) {

@@ -1,6 +1,6 @@
 use std::fmt;
 use ast::{BinOp, UnOp, Ident};
-use driver::get_interner;
+use driver;
 
 // --- List of tokens -----------------------------------------------------------
 
@@ -119,7 +119,7 @@ macro_rules! keywords(
         }
 
         pub fn intern_keywords() {
-            let interner = get_interner();
+            let interner = driver::get_interner();
             $( interner.intern($name); )*
         }
 

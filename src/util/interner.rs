@@ -5,7 +5,7 @@ use std::collections::HashMap;
 use std::fmt;
 use std::ops::Deref;
 use std::rc::Rc;
-use ast::{Ident, Symbol};
+use ast::Ident;
 
 
 // --- String interner ----------------------------------------------------------
