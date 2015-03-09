@@ -189,7 +189,7 @@ pub enum Statement {
 /// The difference to statements is that they aren't terminated by a semicolon
 /// and can be used in a very flexible way:
 ///
-/// ```
+/// ```ignore
 /// a = if a == 2 { 1 } else { 0 }
 /// ```
 pub enum Expression {

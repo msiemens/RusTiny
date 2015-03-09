@@ -7,7 +7,7 @@
 //!
 //! # The grammar (pseudo EBNF)
 //!
-//! ```
+//! ```ignore
 //! # AST
 //! program:        comment | (symbol comment?)*
 //! symbol:         function | static | constant | impl
@@ -124,7 +124,7 @@ impl<'a> Parser<'a> {
     /// Stop compiling because of an unexpected token
     fn unexpected_token(&self, expected: Option<&'static str>) -> ! {
         match expected {
-            Some(ex) => self.fatal(format!("unexpected token: `{:?}`, expected {:?}",
+            Some(ex) => self.fatal(format!("unexpected token: `{:?}`, expected {}",
                                    &self.token, ex)),
             None => self.fatal(format!("unexpected token: `{:?}`", &self.token))
         }

@@ -3,8 +3,6 @@
 #![feature(old_io)]
 #![feature(path)]
 
-#![allow(dead_code)]
-
 extern crate ansi_term;
 #[macro_use] extern crate lazy_static;
 #[macro_use] extern crate log;
