@@ -3,25 +3,28 @@
 //! Prints a parsed AST so that parsing it again would result in the same AST
 //! again.
 
+use std::io::Write;
 use ast::*;
 
 
-pub struct PrettyPrinter<'a> {
+pub struct PrettyPrinter<'a, W: 'a> {
     indent: u32,
-    program: &'a Program
+    program: &'a Program,
+    out: &'a mut W
 }
 
-impl<'a> PrettyPrinter<'a> {
-    pub fn print(program: &'a Program) {
+impl<'a, W: Write> PrettyPrinter<'a, W> {
+    pub fn print(program: &'a Program, out: &mut W) {
         PrettyPrinter {
             indent: 0,
-            program: program
+            program: program,
+            out: out
         }.print_program();
     }
 
     fn print_indent(&mut self) {
         for _ in 0..(self.indent * 4) {
-            print!(" ");
+            write!(&mut self.out, " ").ok();
         }
     }
 
@@ -46,11 +49,11 @@ impl<'a> PrettyPrinter<'a> {
     }
 
     fn print_static(&mut self, binding: &Binding, value: &Value) {
-        println!("static {:?} = {:?};", binding, value)
+        write!(self.out, "static {:?} = {:?};\n", binding, value).ok();
     }
 
     fn print_constant(&mut self, binding: &Binding, value: &Value) {
-        println!("const {:?} = {:?};", binding, value)
+        write!(self.out, "const {:?} = {:?};\n", binding, value).ok();
     }
 
     fn print_function(&mut self,
@@ -59,21 +62,21 @@ impl<'a> PrettyPrinter<'a> {
                       ret_ty: &Type,
                       body: &Block)
     {
-        println!("");
-        print!("fn {}({}) -> {:?} ",
+        write!(self.out, "\n").ok();
+        write!(&mut self.out, "fn {}({}) -> {:?} ",
                name,
                bindings
                   .iter()
                   .map(|b| format!("{:?}", b))
                   .collect::<Vec<_>>()
                   .connect(", "),
-               ret_ty);
+               ret_ty).ok();
         self.print_block(body)
     }
 
     fn print_block(&mut self, block: &Block) {
         //self.print_indent();
-        println!("{{");
+        write!(self.out, "{{\n").ok();
 
         self.indent += 1;
 
@@ -85,7 +88,7 @@ impl<'a> PrettyPrinter<'a> {
             Some(ref expr) => {
                 self.print_indent();
                 self.print_expression(expr);
-                println!("");
+                write!(self.out, "\n").ok();
             },
             None => {}
         }
@@ -93,7 +96,7 @@ impl<'a> PrettyPrinter<'a> {
         self.indent -= 1;
 
         self.print_indent();
-        print!("}}");
+        write!(&mut self.out, "}}").ok();
     }
 
     fn print_statement(&mut self, stmt: &Statement) {
@@ -101,13 +104,13 @@ impl<'a> PrettyPrinter<'a> {
 
         match *stmt {
             Statement::Declaration { ref binding, ref value } => {
-                print!("let {:?} = ", binding);
+                write!(&mut self.out, "let {:?} = ", binding).ok();
                 self.print_expression(value);
-                println!(";")
+                write!(self.out, ";\n").ok();
             },
             Statement::Expression { ref val } => {
                 self.print_expression(val);
-                println!(";")
+                write!(self.out, ";\n").ok();
             }
         }
     }
@@ -115,68 +118,68 @@ impl<'a> PrettyPrinter<'a> {
     fn print_expression(&mut self, expr: &Expression) {
         match *expr {
             Expression::Group(ref expr) => {
-                print!("(");
+                write!(&mut self.out, "(").ok();
                 self.print_expression(expr);
-                print!(")");
+                write!(&mut self.out, ")").ok();
             },
             Expression::Call { ref func, ref args } => {
                 self.print_expression(func);
-                print!("(");
+                write!(&mut self.out, "(").ok();
                 for arg in args {
                     self.print_expression(arg);
-                    print!(", ");
+                    write!(&mut self.out, ", ").ok();
                 }
-                print!(")");
+                write!(&mut self.out, ")").ok();
             },
             Expression::Infix { ref op, ref lhs, ref rhs } => {
                 self.print_expression(lhs);
-                print!(" {:?} ", op);
+                write!(&mut self.out, " {:?} ", op).ok();
                 self.print_expression(rhs);
             },
             Expression::Prefix { ref op, ref item } => {
-                print!("{:?}", op);
+                write!(&mut self.out, "{:?}", op).ok();
                 self.print_expression(item);
             },
             Expression::Literal { ref val } => {
-                print!("{:?}", val);
+                write!(&mut self.out, "{:?}", val).ok();
             },
             Expression::Variable { ref name } => {
-                print!("{:?}", name);
+                write!(&mut self.out, "{:?}", name).ok();
             },
             Expression::If { ref cond, ref conseq, ref altern } => {
-                print!("if ");
+                write!(&mut self.out, "if ").ok();
                 self.print_expression(cond);
-                print!(" ");
+                write!(&mut self.out, " ").ok();
                 self.print_block(conseq);
                 match *altern {
                     Some(ref b) => {
-                        print!(" else ");
+                        write!(&mut self.out, " else ").ok();
                         self.print_block(b);
                     },
                     None => {}
                 }
             },
             Expression::While { ref cond, ref body } => {
-                print!("while ");
+                write!(&mut self.out, "while ").ok();
                 self.print_expression(cond);
-                print!(" ");
+                write!(&mut self.out, " ").ok();
                 self.print_block(body);
             },
             Expression::Assign { ref lhs, ref rhs } => {
                 self.print_expression(lhs);
-                print!(" = ");
+                write!(&mut self.out, " = ").ok();
                 self.print_expression(rhs);
             },
             Expression::AssignOp { ref op, ref lhs, ref rhs } => {
                 self.print_expression(lhs);
-                print!(" {:?}= ", op);
+                write!(&mut self.out, " {:?}= ", op).ok();
                 self.print_expression(rhs);
             },
             Expression::Break => {
-                print!("break");
+                write!(&mut self.out, "break").ok();
             },
             Expression::Return { ref val } => {
-                print!("return ");
+                write!(&mut self.out, "return ").ok();
 
                 match *val {
                     Some(ref expr) => self.print_expression(expr),

@@ -1,5 +1,6 @@
 /// Coordinating all the steps of compilation: The Driver (tm)
 
+use std::io;
 use util::PrettyPrinter;
 use front;
 
@@ -18,7 +19,7 @@ pub fn compile_input(source: String, input_file: String) {
     let ast = parser.parse();
 
     // For debugging the lexer/parser:
-    PrettyPrinter::print(&ast);
+    PrettyPrinter::print(&ast, &mut io::stdout());
 
     // Phase 2: Analysis passes (semantic checking, type checking)
     //  Semantic checks:
