@@ -75,9 +75,10 @@ impl ParseletManager {
 
         // Prefix parselets
         self.register_literal(TokenType::Literal);
-        self.register_prefix(TokenType::Ident,  IdentParselet);
-        self.register_prefix(TokenType::UnOp,   PrefixOperatorParselet);
-        self.register_prefix(TokenType::LParen, GroupParselet);
+        self.register_prefix(TokenType::Ident,              IdentParselet);
+        self.register_prefix(TokenType::UnOp,               PrefixOperatorParselet);
+        self.register_prefix(TokenType::BinOp(BinOp::Sub),  PrefixOperatorParselet);
+        self.register_prefix(TokenType::LParen,             GroupParselet);
 
         // Infix parselets
         self.register_binop(TokenType::BinOp(BinOp::Add),    Precedence::Sum,      Left);

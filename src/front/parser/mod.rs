@@ -76,8 +76,8 @@ use front::parser::parselet::PARSELET_MANAGER;
 use util::fatal;
 
 
-// Parselets for the Pratt parser
-mod parselet;
+mod parselet;  // Parselets for the Pratt parser
+mod test;
 
 
 pub struct Parser<'a> {
