@@ -4,17 +4,6 @@ name = "rustiny"
 version = "0.0.1"
 authors = ["Markus Siemens <siemens1993@gmail.com>"]
 
-
-[[bin]]
-name = "rustiny"
-test = false
-doc = false
-
-[[bin]]
-name = "pprint"
-test = false
-doc = false
-
 [profile.release]
 opt-level = 3
 lto = true
