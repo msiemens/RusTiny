@@ -42,8 +42,7 @@ impl<'a, W: Write> PrettyPrinter<'a, W> {
                 ref name,
                 ref bindings,
                 ref ret_ty,
-                ref body,
-                local_vars: _
+                ref body
             } => self.print_function(&name, &bindings, ret_ty, &body)
         }
     }

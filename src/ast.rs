@@ -140,8 +140,7 @@ pub enum Symbol {
         name: Ident,
         bindings: Vec<Node<Binding>>,
         ret_ty: Type,
-        body: Box<Node<Block>>,
-        local_vars: HashMap<Ident, Type>  // TODO: Store variables associated with a `Block` instead
+        body: Box<Node<Block>>
     },
 
     /// A static value (can be modified at runtime)
@@ -161,7 +160,9 @@ pub enum Symbol {
 /// A block of statements (e.g. function body, if body, ...)
 pub struct Block {
     pub stmts: Vec<Node<Statement>>,
-    pub expr: Option<Box<Node<Expression>>>  // FIXME: Use a Unit expr instead?
+    pub expr: Option<Box<Node<Expression>>>,  // FIXME: Use a Unit expr instead?
+    pub vars: HashMap<Ident, Type>,
+    pub parent: Option<NodeId>
 }
 
 

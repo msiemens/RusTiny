@@ -287,7 +287,9 @@ impl<'a> Parser<'a> {
 
         Node::new(Block {
             stmts: stmts,
-            expr: expr.map(|e| Box::new(e))
+            expr: expr.map(|e| Box::new(e)),
+            vars: HashMap::new(),
+            parent: None
         })
     }
 
@@ -461,8 +463,7 @@ impl<'a> Parser<'a> {
             name: ident,
             bindings: bindings,
             ret_ty: ret_ty,
-            body: Box::new(body),
-            local_vars: HashMap::new()
+            body: Box::new(body)
         })
     }
 
