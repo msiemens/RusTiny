@@ -70,11 +70,10 @@
 
 use std::collections::HashMap;
 use ast::*;
-use driver::get_codemap;
+use driver::{get_session, fatal};
 use front::Lexer;
 use front::tokens::{Token, Keyword};
 use front::parser::parselet::PARSELET_MANAGER;
-use util::fatal;
 
 
 mod parselet;  // Parselets for the Pratt parser
@@ -122,7 +121,7 @@ impl<'a> Parser<'a> {
 
     /// Stop compiling because of a fatal error
     fn fatal(&self, msg: String) -> ! {
-        fatal(msg, get_codemap().resolve(self.span.pos));
+        fatal(msg, get_session().codemap.resolve(self.span.pos));
     }
 
     /// Stop compiling because of an unexpected token

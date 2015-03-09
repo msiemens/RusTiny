@@ -14,16 +14,6 @@ use std::rc::Rc;
 use ast::Ident;
 
 
-/// Get a reference to the thread local interner
-pub fn get_interner() -> Rc<Interner> {
-    thread_local! {
-        static INTERNER: Rc<Interner> = Rc::new(Interner::new())
-    };
-
-    INTERNER.with(|o| o.clone())
-}
-
-
 /// An interned string
 #[derive(Clone, PartialEq, Hash, PartialOrd)]
 pub struct InternedString {

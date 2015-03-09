@@ -1,15 +1,4 @@
 use std::cell::RefCell;
-use std::rc::Rc;
-
-
-/// Get a reference to the thread local codemap
-pub fn get_codemap() -> Rc<Codemap> {
-    thread_local! {
-        static CODEMAP: Rc<Codemap> = Rc::new(Codemap::new())
-    };
-
-    CODEMAP.with(|o| o.clone())
-}
 
 
 /// A source location (used for error reporting)

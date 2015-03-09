@@ -1,16 +1,9 @@
-use ansi_term::Colour::{Red, Yellow};
 use std::fs::File;
 use std::io::Read;
-use std::old_io;
 use std::path::Path;
 
-pub use self::interner::get_interner;
 pub use self::pretty::PrettyPrinter;
-pub use self::codemap::{Loc, get_codemap};
 
-
-mod codemap;
-mod interner;
 mod pretty;
 
 
@@ -28,43 +21,4 @@ pub fn read_file(input_path: &str) -> String {
     };
 
     contents
-}
-
-
-// --- Warnings and errors ------------------------------------------------------
-
-#[macro_export]
-macro_rules! fatal(
-    ($msg:expr, $($args:expr),* ; $stmt:expr) => {
-        {
-            use assembler::util::fatal;
-            fatal(format!($msg, $($args),*), &$stmt.location)
-        }
-    };
-
-    ($msg:expr ; $stmt:expr) => {
-        {
-            use std::borrow::ToOwned;
-            ::assembler::util::fatal($msg.to_owned(), &$stmt.location)
-        }
-    };
-);
-
-pub fn fatal(msg: String, source: Loc) -> ! {
-    println!("{} in line {}:{}: {}", Red.paint("Error"), source.line, source.col, msg);
-
-    old_io::stdio::set_stderr(Box::new(old_io::util::NullWriter));
-    panic!();
-}
-
-
-#[macro_export]
-macro_rules! warn(
-    ($msg:expr, $($args:expr),* ; $stmt:expr ) => {
-        ::assembler::util::warn(format!($msg, $($args),*), &$stmt.location)
-    }
-);
-
-pub fn warn(msg: String, source: Loc) {
-    println!("{} in line {}:{}: {}", Yellow.paint("Warning"), source.line, source.col, msg);
 }

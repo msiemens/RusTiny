@@ -1,11 +1,37 @@
 /// Coordinating all the steps of compilation: The Driver (tm)
 
 use std::io;
+use std::rc::Rc;
 use util::PrettyPrinter;
 use front;
+use self::codemap::Codemap;
+use self::interner::Interner;
+
+pub use self::error::{fatal, warn};
 
 
-pub use util::{get_interner, get_codemap};
+pub mod codemap;
+mod error;
+mod interner;
+
+
+pub struct Session {
+    pub codemap: Codemap,
+    pub interner: Interner
+}
+
+
+/// Get a reference to the thread local session object
+pub fn get_session() -> Rc<Session> {
+    thread_local! {
+        static SESSION: Rc<Session> = Rc::new(Session {
+            codemap: Codemap::new(),
+            interner: Interner::new()
+        })
+    };
+
+    SESSION.with(|o| o.clone())
+}
 
 
 pub fn compile_input(source: String, input_file: String) {

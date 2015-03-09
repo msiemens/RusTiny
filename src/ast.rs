@@ -8,7 +8,7 @@ use std::fmt;
 use std::mem;
 use std::ops::{Add, Deref};
 use std::str::FromStr;
-use driver;
+use driver::get_session;
 
 
 // --- Types and Values ---------------------------------------------------------
@@ -312,8 +312,7 @@ impl Deref for Ident {
     type Target = str;
 
     fn deref<'a>(&'a self) -> &'a str {
-        let interner = driver::get_interner();
-        unsafe { mem::transmute(&*interner.resolve(*self)) }
+        unsafe { mem::transmute(&*get_session().interner.resolve(*self)) }
     }
 }
 
@@ -404,6 +403,6 @@ impl fmt::Debug for UnOp {
 
 impl fmt::Debug for Ident {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{}", driver::get_interner().resolve(*self))
+        write!(f, "{}", get_session().interner.resolve(*self))
     }
 }
