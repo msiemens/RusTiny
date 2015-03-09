@@ -164,7 +164,7 @@ define_prefix!(IdentParselet:
             _ => parser.unexpected_token(Some("an identifier"))
         };
 
-        Node::new(Expression::Variable { name: ident })
+        Node::new(Expression::Variable { name: ident }, parser.span)
     }
 );
 
@@ -180,12 +180,14 @@ define_prefix!(LiteralParselet:
 
         Node::new(Expression::Literal {
             val: value
-        })
+        }, parser.span)
     }
 );
 
 define_prefix!(PrefixOperatorParselet:
     fn parse(parser, token) -> Node<Expression> {
+        let lo = parser.span;
+
         let operand = parser.parse_expression();
         let op = match token {
             Token::UnOp(op) => op,
@@ -193,16 +195,19 @@ define_prefix!(PrefixOperatorParselet:
             _ => parser.unexpected_token(Some("an unary operator"))
         };
 
-        Node::new(Expression::Prefix { op: op, item: Box::new(operand) })
+        let hi = operand.span;
+        Node::new(Expression::Prefix { op: op, item: Box::new(operand) }, lo + hi)
     }
 );
 
 define_prefix!(GroupParselet:
     fn parse(parser, token) -> Node<Expression> {
+        let lo = parser.span;
+
         let expr = parser.parse_expression();
         parser.expect(Token::RParen);
 
-        Node::new(Expression::Group(Box::new(expr)))
+        Node::new(Expression::Group(Box::new(expr)), lo + parser.span)
     }
 );
 
@@ -225,6 +230,8 @@ impl InfixParselet for BinaryOperatorParselet {
     fn parse(&self, parser: &mut Parser, left: Node<Expression>, token: Token) -> Node<Expression> {
         use self::Associativity::*;
 
+        let lo = left.span;
+
         let op = match token {
             Token::BinOp(op) => op,
             _ => parser.unexpected_token(Some("a binary operator"))
@@ -235,18 +242,22 @@ impl InfixParselet for BinaryOperatorParselet {
         if parser.token == Token::Eq {
             parser.bump();
             let right = parser.parse_expression_with_precedence(precedence);
+
+            let hi = right.span;
             Node::new(Expression::AssignOp {
                 op: op,
                 lhs: Box::new(left),
                 rhs: Box::new(right)
-            })
+            }, lo + hi)
         } else {
             let right = parser.parse_expression_with_precedence(precedence);
+
+            let hi = right.span;
             Node::new(Expression::Infix {
                 op: op,
                 lhs: Box::new(left),
                 rhs: Box::new(right)
-            })
+            }, lo + hi)
         }
     }
 
@@ -260,12 +271,15 @@ pub struct AssignParselet;
 
 impl InfixParselet for AssignParselet {
     fn parse(&self, parser: &mut Parser, left: Node<Expression>, token: Token) -> Node<Expression> {
+        let lo = left.span;
+
         let right = parser.parse_expression();
 
+        let hi = right.span;
         Node::new(Expression::Assign {
             lhs: Box::new(left),
             rhs: Box::new(right)
-        })
+        }, lo + hi)
     }
 
     fn name(&self) -> &'static str { "AssignParselet" }
@@ -278,6 +292,7 @@ pub struct CallParselet;
 
 impl InfixParselet for CallParselet {
     fn parse(&self, parser: &mut Parser, left: Node<Expression>, token: Token) -> Node<Expression> {
+        let lo = left.span;
         let mut args = vec![];
 
         while parser.token != Token::RParen {
@@ -292,7 +307,7 @@ impl InfixParselet for CallParselet {
         Node::new(Expression::Call {
             func: Box::new(left),
             args: args
-        })
+        }, lo + parser.span)
     }
 
     fn name(&self) -> &'static str { "CallParselet" }

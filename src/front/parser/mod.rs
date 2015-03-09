@@ -70,6 +70,7 @@
 
 use std::collections::HashMap;
 use ast::*;
+use driver::get_codemap;
 use front::Lexer;
 use front::tokens::{Token, Keyword};
 use front::parser::parselet::PARSELET_MANAGER;
@@ -81,8 +82,8 @@ mod test;
 
 
 pub struct Parser<'a> {
-    location: usize,
     token: Token,
+    span: Span,
     lexer: Lexer<'a>,
 }
 
@@ -91,9 +92,12 @@ impl<'a> Parser<'a> {
 
     /// Create a new parser instance
     pub fn new(mut lx: Lexer<'a>) -> Parser<'a> {
+        // Initialize with first token
+        let first_token = lx.next_token();
+
         Parser {
-            token: lx.next_token(),  // Initialize with first token
-            location: lx.get_source(),
+            token: first_token.value,
+            span: first_token.span,
             lexer: lx
         }
     }
@@ -118,7 +122,7 @@ impl<'a> Parser<'a> {
 
     /// Stop compiling because of a fatal error
     fn fatal(&self, msg: String) -> ! {
-        fatal(msg, self.location);
+        fatal(msg, get_codemap().resolve(self.span.pos));
     }
 
     /// Stop compiling because of an unexpected token
@@ -134,7 +138,9 @@ impl<'a> Parser<'a> {
 
     /// Move along to the next token
     fn bump(&mut self) {
-        self.token = self.lexer.next_token();
+        let next_token = self.lexer.next_token();
+        self.token = next_token.value;
+        self.span = next_token.span;
     }
 
     /// Try consuming a token, return `true` on succes
@@ -178,7 +184,7 @@ impl<'a> Parser<'a> {
 
         Node::new(Expression::Literal {
             val: value
-        })
+        }, self.span)
     }
 
     /// Parse a builitin type
@@ -196,6 +202,7 @@ impl<'a> Parser<'a> {
     /// Parse a binding
     fn parse_binding(&mut self) -> Node<Binding> {
         // Grammar: IDENT COLON TYPE
+        let lo = self.span;
 
         let name = self.parse_ident();
         self.expect(Token::Colon);
@@ -204,12 +211,13 @@ impl<'a> Parser<'a> {
         Node::new(Binding {
             ty: ty,
             name: name
-        })
+        }, lo + self.span)
     }
 
     /// Parse a block of expressions
     fn parse_block(&mut self) -> Node<Block> {
         // Grammar: LBRACE (statement SEMICOLON)* expr? RBRACE
+        let lo = self.span;
 
         // Blocks are funny things in Rust. They contain:
         // - a list of semicolon-separated statements,
@@ -235,20 +243,22 @@ impl<'a> Parser<'a> {
                 // If and While expressions can appear as statements ...
                 // ... without a trainling semicolon!
                 Token::Keyword(Keyword::If) => {
+                    let lo = self.span;
                     let if_expr = self.parse_if();
 
                     stmts.push(Node::new(Statement::Expression {
                         val: Box::new(if_expr)
-                    }));
+                    }, lo + self.span));
                     continue
                 },
 
                 Token::Keyword(Keyword::While) => {
+                    let lo = self.span;
                     let while_expr = self.parse_while();
 
                     stmts.push(Node::new(Statement::Expression {
                         val: Box::new(while_expr)
-                    }));
+                    }, lo + self.span));
                     continue
                 },
 
@@ -266,6 +276,7 @@ impl<'a> Parser<'a> {
 
             // Parse the expression
             debug!("parsing an expression");
+            let lo = self.span;
             let maybe_expr = self.parse_expression();
             debug!("done parsing an expression");
 
@@ -273,7 +284,7 @@ impl<'a> Parser<'a> {
                 // It's actually a statement
                 stmts.push(Node::new(Statement::Expression {
                     val: Box::new(maybe_expr)
-                }));
+                }, lo + self.span));
             } else {
                 // It's the last expr
                 expr = Some(maybe_expr);
@@ -290,13 +301,14 @@ impl<'a> Parser<'a> {
             expr: expr.map(|e| Box::new(e)),
             vars: HashMap::new(),
             parent: None
-        })
+        }, lo + self.span)
     }
 
     // --- Parsing: Statements --------------------------------------------------
 
     fn parse_declaration(&mut self) -> Node<Statement> {
         // Grammar: k_let binding EQ expression
+        let lo = self.span;
 
         self.expect(Token::Keyword(Keyword::Let));
 
@@ -311,7 +323,7 @@ impl<'a> Parser<'a> {
         Node::new(Statement::Declaration {
             binding: Box::new(binding),
             value: Box::new(value)
-        })
+        }, lo + self.span)
     }
 
     // --- Parsing: Expressions -------------------------------------------------
@@ -328,6 +340,8 @@ impl<'a> Parser<'a> {
             Token::Keyword(Keyword::If) => self.parse_if(),
             Token::Keyword(Keyword::While) => self.parse_while(),
             Token::Keyword(Keyword::Return) => {
+                let lo = self.span;
+
                 self.bump();
                 // Parse the return value
                 let val = if let Token::RBrace = self.token {
@@ -338,11 +352,14 @@ impl<'a> Parser<'a> {
 
                 Node::new(Expression::Return {
                     val: val.map(|e| Box::new(e))
-                })
+                }, lo + self.span)
             },
             Token::Keyword(Keyword::Break) => {
+                let lo = self.span;
+
                 self.bump();
-                Node::new(Expression::Break)
+
+                Node::new(Expression::Break, lo + self.span)
             },
             _ => self.pratt_parser(precedence)
         }
@@ -396,6 +413,7 @@ impl<'a> Parser<'a> {
 
     fn parse_if(&mut self) -> Node<Expression> {
         // Grammar: k_if expression block (k_else block)?
+        let lo = self.span;
 
         self.expect(Token::Keyword(Keyword::If));
 
@@ -411,11 +429,12 @@ impl<'a> Parser<'a> {
             cond: Box::new(cond),
             conseq: Box::new(conseq),
             altern: altern.map(|b| Box::new(b))
-        })
+        }, lo + self.span)
     }
 
     fn parse_while(&mut self) -> Node<Expression> {
         // Grammar: k_while expression block
+        let lo = self.span;
 
         self.expect(Token::Keyword(Keyword::While));
         let cond = self.parse_expression();
@@ -424,13 +443,14 @@ impl<'a> Parser<'a> {
         Node::new(Expression::While {
             cond: Box::new(cond),
             body: Box::new(body)
-        })
+        }, lo + self.span)
     }
 
     // --- Parsing: Symbols -----------------------------------------------------
 
     fn parse_fn(&mut self) -> Node<Symbol> {
         // Grammar:  k_fn IDENT LPAREN (binding COMMA)* binding? RPAREN (RARROW TYPE)? block
+        let lo = self.span;
 
         // Parse `fn <name>`
         self.expect(Token::Keyword(Keyword::Fn));
@@ -464,11 +484,12 @@ impl<'a> Parser<'a> {
             bindings: bindings,
             ret_ty: ret_ty,
             body: Box::new(body)
-        })
+        }, lo + self.span)
     }
 
     fn parse_static(&mut self) -> Node<Symbol> {
         // Grammar: k_static binding EQ literal
+        let lo = self.span;
 
         self.expect(Token::Keyword(Keyword::Static));
 
@@ -486,11 +507,12 @@ impl<'a> Parser<'a> {
         Node::new(Symbol::Static {
             binding: Box::new(binding),
             value: value
-        })
+        }, lo + self.span)
     }
 
     fn parse_const(&mut self) -> Node<Symbol> {
         // Grammar: k_const binding EQ literal
+        let lo = self.span;
 
         self.expect(Token::Keyword(Keyword::Const));
 
@@ -508,7 +530,7 @@ impl<'a> Parser<'a> {
         Node::new(Symbol::Constant {
             binding: Box::new(binding),
             value: value
-        })
+        }, lo + self.span)
     }
 
     fn parse_symbol(&mut self) -> Node<Symbol> {

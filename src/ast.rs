@@ -6,7 +6,7 @@
 use std::collections::HashMap;
 use std::fmt;
 use std::mem;
-use std::ops::Deref;
+use std::ops::{Add, Deref};
 use std::str::FromStr;
 use driver;
 
@@ -100,6 +100,40 @@ pub enum BinOp {
 //       which can't be expressed without indirection (Box<T> in this case).
 //       Introduces a lot of indirection, but does the job anyway.
 
+pub type NodeId = u32;
+
+
+pub struct Span {
+    pub pos: u32,
+    pub len: u32
+}
+
+impl Copy for Span {}
+
+impl Add for Span {
+    type Output = Span;
+
+    fn add(self, rhs: Span) -> Span {
+        Span {
+            pos: self.pos,
+            len: rhs.pos + rhs.len - self.pos
+        }
+    }
+}
+
+
+pub struct Spanned<T> {
+    pub value: T,
+    pub span: Span
+}
+
+impl<T> Spanned<T> {
+    pub fn new(t: T, lo: u32, hi: u32) -> Spanned<T> {
+        Spanned { value: t, span: Span { pos: lo, len: hi - lo } }
+    }
+}
+
+
 /// A node in the AST
 ///
 /// Will eventually contain additional information about the node's source location
@@ -107,11 +141,12 @@ pub enum BinOp {
 // TODO: Add span & id
 pub struct Node<T> {
     node: T,
+    pub span: Span
 }
 
 impl<T> Node<T> {
-    pub fn new(t: T) -> Node<T> {
-        Node { node: t }
+    pub fn new(t: T, s: Span) -> Node<T> {
+        Node { node: t, span: s }
     }
 
     pub fn unwrap(self) -> T {
@@ -284,6 +319,12 @@ impl Deref for Ident {
 
 
 // --- Debug implementations ----------------------------------------------------
+
+impl<T: fmt::Debug> fmt::Debug for Spanned<T> {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{:?}", self.value)
+    }
+}
 
 impl<T: fmt::Debug> fmt::Debug for Node<T> {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {

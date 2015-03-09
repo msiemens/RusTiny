@@ -5,7 +5,7 @@ use util::PrettyPrinter;
 use front;
 
 
-pub use util::get_interner;
+pub use util::{get_interner, get_codemap};
 
 
 pub fn compile_input(source: String, input_file: String) {

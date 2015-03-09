@@ -1,3 +1,5 @@
+#![cfg(test)]
+
 use ast::*;
 use front::{Lexer, Parser};
 

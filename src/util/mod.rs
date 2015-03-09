@@ -6,8 +6,10 @@ use std::path::Path;
 
 pub use self::interner::get_interner;
 pub use self::pretty::PrettyPrinter;
+pub use self::codemap::{Loc, get_codemap};
 
 
+mod codemap;
 mod interner;
 mod pretty;
 
@@ -48,8 +50,8 @@ macro_rules! fatal(
     };
 );
 
-pub fn fatal(msg: String, source: usize) -> ! {
-    println!("{} in line {}: {}", Red.paint("Error"), source, msg);
+pub fn fatal(msg: String, source: Loc) -> ! {
+    println!("{} in line {}:{}: {}", Red.paint("Error"), source.line, source.col, msg);
 
     old_io::stdio::set_stderr(Box::new(old_io::util::NullWriter));
     panic!();
@@ -63,6 +65,6 @@ macro_rules! warn(
     }
 );
 
-pub fn warn(msg: String, source: usize) {
-    println!("{} in line {}: {}", Yellow.paint("Warning"), source, msg);
+pub fn warn(msg: String, source: Loc) {
+    println!("{} in line {}:{}: {}", Yellow.paint("Warning"), source.line, source.col, msg);
 }

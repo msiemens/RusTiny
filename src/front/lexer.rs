@@ -1,9 +1,10 @@
 /// The lexer: split the source into a stream of tokens
 
 use std::borrow::ToOwned;
-use ast::{BinOp, UnOp};
+use ast::{BinOp, UnOp, Spanned};
+use driver::{get_codemap, get_interner};
 use front::tokens::{Token, lookup_keyword};
-use util::{fatal, get_interner};
+use util::{Loc, fatal};
 
 
 pub struct Lexer<'a> {
@@ -35,9 +36,9 @@ impl<'a> Lexer<'a> {
     }
 
     /// Get the next token
-    pub fn next_token(&mut self) -> Token {
+    pub fn next_token(&mut self) -> Spanned<Token> {
         if self.is_eof() {
-            Token::EOF
+            Spanned::new(Token::EOF, self.pos as u32, self.pos as u32)
         } else {
             // Read the next token as long as the lexer requests us to do so
             loop {
@@ -50,7 +51,7 @@ impl<'a> Lexer<'a> {
 
     /// Tokenize the string into a vector. Used for testing
     #[allow(dead_code)]
-    pub fn tokenize(&mut self) -> Vec<Token> {
+    pub fn tokenize(&mut self) -> Vec<Spanned<Token>> {
         let mut tokens = vec![];
 
         while !self.is_eof() {
@@ -79,9 +80,11 @@ impl<'a> Lexer<'a> {
     }
 
     /// Get the current source position we're at
-    // TODO: Return proper source locations
-    pub fn get_source(&self) -> usize {
-        self.lineno
+    pub fn get_source(&self) -> Loc {
+        Loc {
+            line: self.lineno as u32,
+            col: 0  // FIXME: Column number resolution
+        }
     }
 
     // --- Lexer: Character processing ------------------------------------------
@@ -238,7 +241,9 @@ impl<'a> Lexer<'a> {
     ///
     /// If `None` is returned, the current token is to be ignored and the
     /// lexer requests the reader to read the next token instead.
-    fn read_token(&mut self) -> Option<Token> {
+    ///
+    /// Precondition: self.curr is not None
+    fn read_token(&mut self) -> Option<Spanned<Token>> {
         macro_rules! emit(
             ($_self:ident, $( next: $ch:expr => $tok:expr ),* ; default: $default:expr) => (
                 {
@@ -260,10 +265,8 @@ impl<'a> Lexer<'a> {
 
         debug!("Tokenizing with current character = {}", self.curr_escaped());
 
-        let c = match self.curr {
-            Some(c) => c,
-            None    => return Some(Token::EOF)
-        };
+        let c = self.curr.unwrap();
+        let lo = self.pos;
 
         let token: Token = match c {
             '+' => emit!(self, Token::BinOp(BinOp::Add)),
@@ -323,7 +326,10 @@ impl<'a> Lexer<'a> {
 
             c if c.is_whitespace() => {
                 // Skip whitespaces of any type
-                if c == '\n' { self.lineno += 1; }
+                if c == '\n' {
+                    self.lineno += 1;
+                    get_codemap().new_line(self.pos as u32)
+                }
 
                 self.bump();
                 return None;
@@ -331,6 +337,6 @@ impl<'a> Lexer<'a> {
             c => self.fatal(format!("unknown token: {}", c))
         };
 
-        Some(token)
+        Some(Spanned::new(token, lo as u32, self.pos as u32))
     }
 }
