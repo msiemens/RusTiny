@@ -1,32 +1,19 @@
-#![feature(collections)]
-#![feature(io)]
-#![feature(old_io)]
-#![feature(path)]
+//! The main executable: Start the compilation
+
 #![feature(plugin)]
 #![plugin(docopt_macros)]
 
-#![allow(dead_code)]
-
-extern crate ansi_term;
 extern crate docopt;
 extern crate env_logger;
 extern crate "rustc-serialize" as rustc_serialize;
-#[macro_use] extern crate lazy_static;
-#[macro_use] extern crate log;
-
-mod ast;
-mod front;
-mod middle;
-mod back;
-mod driver;
-mod util;
+extern crate rustiny;
 
 use docopt::Docopt;
-use util::read_file;
+use rustiny::util::read_file;
 
 docopt!(Args derive Debug, "
-Usage: tinyc [options] <input>
-       tinyc --help
+Usage: rustiny [options] <input>
+       rustiny --help
 
 Options:
     -o <output>     Write output to <output>
@@ -45,5 +32,5 @@ fn main() {
     let source = read_file(&args.arg_input);
 
     // Start compilation
-    driver::compile_input(source, args.arg_input);
+    rustiny::driver::compile_input(source, args.arg_input);
 }
