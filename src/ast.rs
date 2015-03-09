@@ -260,8 +260,8 @@ pub enum Expression {
     /// Break out of a loop
     Break,
 
-    //For  // There is currently no for loop! Rust uses `for x in iterator`, but as
-           // RusTiny doesn't have iterators (or structs for that matter), that
+    //For  // There is currently no `for` loop! Rust uses `for x in iterator`, but
+           // as RusTiny doesn't have iterators (or structs for that matter), that
            // wouldn't make much sense. Having a classical C-style for loop on the
            // other hand would be useful but can be abused much more...
 }
@@ -277,7 +277,7 @@ impl Deref for Ident {
 
     fn deref<'a>(&'a self) -> &'a str {
         let interner = driver::get_interner();
-        unsafe { mem::transmute(&*interner.get(*self)) }
+        unsafe { mem::transmute(&*interner.resolve(*self)) }
     }
 }
 
@@ -362,6 +362,6 @@ impl fmt::Debug for UnOp {
 
 impl fmt::Debug for Ident {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{}", driver::get_interner().get(*self))
+        write!(f, "{}", driver::get_interner().resolve(*self))
     }
 }

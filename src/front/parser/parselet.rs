@@ -1,14 +1,19 @@
+//! Parselets for the Pratt parser
+// FIXME: More documentation
+
 use std::collections::HashMap;
 use ast::*;
 use front::tokens::{Token, TokenType, Keyword};
 use front::parser::Parser;
 
 
+/// The associativity of an infix operator
 enum Associativity {
     Left,
     Right
 }
 
+/// RusTiny operator precedence
 enum Precedence {
     Call        = 13,
     Prefix      = 12,
@@ -25,7 +30,17 @@ enum Precedence {
     Assignment  = 1
 }
 
+impl Precedence {
+    fn val(self) -> u32 {
+        self as u32
+    }
+}
 
+
+/// The global parselet manager
+///
+/// It's a global mutable static, because making it a member of the Parse struct
+/// would introduce borrowing issues.
 lazy_static! {
     pub static ref PARSELET_MANAGER: ParseletManager = ParseletManager::new();
 }
@@ -44,14 +59,17 @@ impl ParseletManager {
         }.init()
     }
 
+    /// Look up the prefix parselet for a token
     pub fn lookup_prefix(&self, token: Token) -> Option<&PrefixParselet> {
         self.prefix.get(&token.ty()).map(|p| &**p)
     }
 
+    /// Look up the infix parselet for a token
     pub fn lookup_infix(&self, token: Token) -> Option<&InfixParselet> {
         self.infix.get(&token.ty()).map(|p| &**p)
     }
 
+    /// Initialize the parselet tables
     fn init(mut self) -> Self {
         use self::Associativity::*;
 
@@ -91,7 +109,9 @@ impl ParseletManager {
         self.prefix.insert(t, Box::new(LiteralParselet));
     }
 
-    fn register_prefix<P: PrefixParselet + Sync + 'static>(&mut self, t: TokenType, p: P) {
+    fn register_prefix<P>(&mut self, t: TokenType, p: P) where
+        P: PrefixParselet + Sync + 'static
+    {
         self.prefix.insert(t, Box::new(p));
     }
 
@@ -101,12 +121,14 @@ impl ParseletManager {
                       assoc: Associativity)
     {
         self.infix.insert(t, Box::new(BinaryOperatorParselet {
-            preced: precedence as u32,
+            preced: precedence.val(),
             assoc: assoc
         }));
     }
 
-    fn register_infix<P: InfixParselet + Sync + 'static>(&mut self, t: TokenType, p: P) {
+    fn register_infix<P>(&mut self, t: TokenType, p: P) where
+        P: InfixParselet + Sync + 'static
+    {
         self.infix.insert(t, Box::new(p));
     }
 }
@@ -247,7 +269,7 @@ impl InfixParselet for AssignParselet {
 
     fn name(&self) -> &'static str { "AssignParselet" }
 
-    fn precedence(&self) -> u32 { Precedence::Assignment as u32 }
+    fn precedence(&self) -> u32 { Precedence::Assignment.val() }
 }
 
 
@@ -274,5 +296,5 @@ impl InfixParselet for CallParselet {
 
     fn name(&self) -> &'static str { "CallParselet" }
 
-    fn precedence(&self) -> u32 { Precedence::Call as u32 }
+    fn precedence(&self) -> u32 { Precedence::Call.val() }
 }

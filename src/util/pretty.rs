@@ -1,3 +1,8 @@
+//! A pretty printer
+//!
+//! Prints a parsed AST so that parsing it again would result in the same AST
+//! again.
+
 use ast::*;
 
 

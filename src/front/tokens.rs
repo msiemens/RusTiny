@@ -118,11 +118,13 @@ macro_rules! keywords(
             }
         }
 
+        /// Load all keywords into the interner
         pub fn intern_keywords() {
             let interner = driver::get_interner();
             $( interner.intern($name); )*
         }
 
+        /// Get the keyword a string represents, if possible
         pub fn lookup_keyword(s: &str) -> Option<Keyword> {
             use self::Keyword::*;
 
