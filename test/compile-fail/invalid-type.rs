@@ -1,0 +1,1 @@
+fn a() -> i {}  //! ERROR(1:13): unexpected token: `{`, expected a type
