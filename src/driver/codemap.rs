@@ -10,7 +10,7 @@ use std::cell::RefCell;
 pub struct Loc {
     /// The (1-based) line number
     pub line: u32,
-    /// The (0-based) column offset
+    /// The (1-based) column offset
     pub col: u32
 }
 
@@ -46,7 +46,29 @@ impl Codemap {
 
         Loc {
             line: line as u32 + 1,
-            col: char_pos - offset
+            col: char_pos - offset + 1
         }
+    }
+}
+
+
+mod test {
+    use super::Codemap;
+
+    #[test]
+    fn test_basic() {
+        let cm = Codemap::new();
+        cm.new_line(16);
+        let loc = cm.resolve(31);
+        assert_eq!(loc.line, 2);
+        assert_eq!(loc.col, 16);
+    }
+
+    #[test]
+    fn test_first_line() {
+        let cm = Codemap::new();
+        let loc = cm.resolve(31);
+        assert_eq!(loc.line, 1);
+        assert_eq!(loc.col, 32);
     }
 }

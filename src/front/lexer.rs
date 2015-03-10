@@ -263,7 +263,8 @@ impl<'a> Lexer<'a> {
             );
         );
 
-        debug!("Tokenizing with current character = {}", self.curr_escaped());
+        debug!("Tokenizing with current character = `{}` at {}",
+                 self.curr_escaped(), self.pos);
 
         let c = self.curr.unwrap();
         let lo = self.pos;
@@ -328,7 +329,7 @@ impl<'a> Lexer<'a> {
                 // Skip whitespaces of any type
                 if c == '\n' {
                     self.lineno += 1;
-                    session().codemap.new_line(self.pos as u32)
+                    session().codemap.new_line(self.pos as u32 + 1)
                 }
 
                 self.bump();
@@ -336,6 +337,8 @@ impl<'a> Lexer<'a> {
             },
             c => self.fatal(format!("unknown token: {}", c))
         };
+
+        debug!("Token: {:?}", token);
 
         Some(Spanned::new(token, lo as u32, self.pos as u32))
     }
