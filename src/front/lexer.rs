@@ -2,7 +2,7 @@
 
 use std::borrow::ToOwned;
 use ast::{BinOp, UnOp, Spanned};
-use driver::{get_session, fatal};
+use driver::{session, fatal};
 use driver::codemap::Loc;
 use front::tokens::{Token, lookup_keyword};
 
@@ -191,7 +191,7 @@ impl<'a> Lexer<'a> {
         if let Some(kw) = lookup_keyword(&ident) {
             Token::Keyword(kw)
         } else {
-            Token::Ident(get_session().interner.intern(ident))
+            Token::Ident(session().interner.intern(ident))
         }
     }
 
@@ -328,7 +328,7 @@ impl<'a> Lexer<'a> {
                 // Skip whitespaces of any type
                 if c == '\n' {
                     self.lineno += 1;
-                    get_session().codemap.new_line(self.pos as u32)
+                    session().codemap.new_line(self.pos as u32)
                 }
 
                 self.bump();

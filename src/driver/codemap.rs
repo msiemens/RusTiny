@@ -1,3 +1,8 @@
+//! The codemap
+//!
+//! The codemap allows to map source locations (Spans) to the original line
+//! and column number.
+
 use std::cell::RefCell;
 
 
@@ -11,11 +16,12 @@ pub struct Loc {
 
 
 pub struct Codemap {
-    // Mapping lineno -> start index
+    /// Mapping of the line number to the start index
     lines: RefCell<Vec<u32>>
 }
 
 impl Codemap {
+    /// Create a new Codemap instance
     pub fn new() -> Codemap {
         let mut lines = Vec::new();
         lines.push(0);
@@ -23,14 +29,14 @@ impl Codemap {
         Codemap { lines: RefCell::new(lines) }
     }
 
+    /// Register the beginning of a new line at a given offset
     pub fn new_line(&self, char_pos: u32) {
         self.lines.borrow_mut().push(char_pos)
     }
 
+    /// Get the source location of an offset
     pub fn resolve(&self, char_pos: u32) -> Loc {
         let lines = self.lines.borrow();
-        println!("lines: {:?}", lines);
-        println!("pos: {:?}", char_pos);
 
         let line = lines
             .iter()

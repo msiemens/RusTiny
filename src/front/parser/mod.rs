@@ -70,7 +70,7 @@
 
 use std::collections::HashMap;
 use ast::*;
-use driver::{get_session, fatal};
+use driver::{session, fatal};
 use front::Lexer;
 use front::tokens::{Token, Keyword};
 use front::parser::parselet::PARSELET_MANAGER;
@@ -121,7 +121,7 @@ impl<'a> Parser<'a> {
 
     /// Stop compiling because of a fatal error
     fn fatal(&self, msg: String) -> ! {
-        fatal(msg, get_session().codemap.resolve(self.span.pos));
+        fatal(msg, session().codemap.resolve(self.span.pos));
     }
 
     /// Stop compiling because of an unexpected token

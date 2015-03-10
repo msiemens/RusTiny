@@ -1,4 +1,4 @@
-//! Parse a file and pretty print the AST
+//! Parse a file and print the tokens
 
 extern crate env_logger;
 extern crate rustiny;

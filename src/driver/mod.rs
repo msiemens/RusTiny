@@ -15,6 +15,10 @@ mod error;
 mod interner;
 
 
+/// The current compiling session
+///
+/// Every member has to use interior mutability so the current session can be
+/// stored in the thread local storage.
 pub struct Session {
     pub codemap: Codemap,
     pub interner: Interner
@@ -22,7 +26,7 @@ pub struct Session {
 
 
 /// Get a reference to the thread local session object
-pub fn get_session() -> Rc<Session> {
+pub fn session() -> Rc<Session> {
     thread_local! {
         static SESSION: Rc<Session> = Rc::new(Session {
             codemap: Codemap::new(),

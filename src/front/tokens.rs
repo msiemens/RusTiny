@@ -120,7 +120,7 @@ macro_rules! keywords(
 
         /// Load all keywords into the interner
         pub fn intern_keywords() {
-            $( driver::get_session().interner.intern($name); )*
+            $( driver::session().interner.intern($name); )*
         }
 
         /// Get the keyword a string represents, if possible
