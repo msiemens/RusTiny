@@ -84,7 +84,6 @@ def compile_file(filename: Path) -> CompileResult:
 
 def parse_errors(output: str):
     errors = []
-    stderr = []
 
     for line in output.splitlines():
         match = re.match('Error in line (?P<line>\d+):(?P<col>\d+): ?'
@@ -98,9 +97,7 @@ def parse_errors(output: str):
             errors.append(CompilerError(match.groupdict()))
             continue
 
-        stderr.append(line)
-
-    return errors, stderr
+    return errors
 
 
 def parse_expectations(filename: Path):
@@ -145,7 +142,7 @@ def tests_compile_fail():
                                        'compiling succeeded'))
         else:
             # Verify errors
-            errors, stderr = parse_errors(cresult.output)
+            errors = parse_errors(cresult.output)
             unexpected_errors = set(errors) - set(expectations)
             missing_errors = set(expectations) - set(errors)
 
@@ -155,7 +152,7 @@ def tests_compile_fail():
                 session.failure(FailedTest(test_name,
                                            unexpected_errors,
                                            missing_errors,
-                                           '\n'.join(stderr),
+                                           cresult.output,
                                            None))
 
 
@@ -167,13 +164,13 @@ def tests_run_pass():
         cresult = compile_file(test)
 
         # Verify errors
-        errors, stderr = parse_errors(cresult.output)
+        errors = parse_errors(cresult.output)
 
         if not errors and cresult.exit_code == 0:
             session.success()
         else:
             session.failure(FailedTest(test_name, errors, None,
-                                       '\n'.join(stderr), None))
+                                       cresult.output, None))
 
 
 def print_results():
