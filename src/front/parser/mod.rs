@@ -238,7 +238,7 @@ impl<'a> Parser<'a> {
         self.expect(Token::LBrace);
 
         let mut stmts = vec![];
-        let mut expr = None;
+        let mut expr = Node::new(Expression::Unit, EMPTY_SPAN);
 
         // Parse all statements
         loop {
@@ -296,7 +296,7 @@ impl<'a> Parser<'a> {
                 }, lo + self.span));
             } else {
                 // It's the last expr
-                expr = Some(maybe_expr);
+                expr = maybe_expr;
                 break;
             }
         }
@@ -307,7 +307,7 @@ impl<'a> Parser<'a> {
 
         Node::new(Block {
             stmts: stmts,
-            expr: expr.map(|e| Box::new(e))
+            expr: Box::new(expr)
         }, lo + self.span)
     }
 
@@ -354,13 +354,13 @@ impl<'a> Parser<'a> {
                 self.bump();
                 // Parse the return value
                 let val = if let Token::RBrace = self.token {
-                    None
+                    Node::new(Expression::Unit, EMPTY_SPAN)
                 } else {
-                    Some(self.parse_expression())
+                    self.parse_expression()
                 };
 
                 Node::new(Expression::Return {
-                    val: val.map(|e| Box::new(e))
+                    val: Box::new(val)
                 }, lo + self.span)
             },
             Token::Keyword(Keyword::Break) => {

@@ -83,13 +83,11 @@ impl<'a, W: Write> PrettyPrinter<'a, W> {
             self.print_statement(&stmt);
         }
 
-        match block.expr {
-            Some(ref expr) => {
-                self.print_indent();
-                self.print_expression(expr);
-                write!(self.out, "\n").ok();
-            },
-            None => {}
+        if let Expression::Unit = **block.expr {}
+        else {
+            self.print_indent();
+            self.print_expression(&**block.expr);
+            write!(self.out, "\n").ok();
         }
 
         self.indent -= 1;
@@ -179,11 +177,10 @@ impl<'a, W: Write> PrettyPrinter<'a, W> {
             },
             Expression::Return { ref val } => {
                 write!(&mut self.out, "return ").ok();
-
-                match *val {
-                    Some(ref expr) => self.print_expression(expr),
-                    None => {}
-                }
+                self.print_expression(val);
+            },
+            Expression::Unit => {
+                write!(&mut self.out, "()").ok();
             }
         }
     }

@@ -122,6 +122,8 @@ impl Add for Span {
     }
 }
 
+pub const EMPTY_SPAN: Span = Span { pos: 0, len: 0 };
+
 
 pub struct Spanned<T> {
     pub value: T,
@@ -228,8 +230,9 @@ impl Symbol {
                     name: (*name).clone(),
                     bindings: (*bindings).clone(),
                     ret_ty: *ret_ty,
-                    body: Box::new(Node::new(Block { stmts: vec![], expr: None },
-                                             Span { pos: 0, len: 0 }))
+                    body: Box::new(Node::new(Block { stmts: vec![],
+                                                     expr: Box::new(Node::new(Expression::Unit, EMPTY_SPAN)) },
+                                             EMPTY_SPAN))
                 }
             }
         }
@@ -241,7 +244,7 @@ impl Symbol {
 #[derive(Clone)]
 pub struct Block {
     pub stmts: Vec<Node<Statement>>,
-    pub expr: Option<Box<Node<Expression>>>,  // FIXME: Use a Unit expr instead?
+    pub expr: Box<Node<Expression>>
 }
 
 
@@ -301,7 +304,7 @@ pub enum Expression {
 
     /// Exit the function with an optional return value
     Return {
-        val: Option<Box<Node<Expression>>>
+        val: Box<Node<Expression>>
     },
 
     /// A function call
@@ -347,6 +350,9 @@ pub enum Expression {
            // as RusTiny doesn't have iterators (or structs for that matter), that
            // wouldn't make much sense. Having a classical C-style for loop on the
            // other hand would be useful but can be abused much more...
+
+    /// An expression without any content
+    Unit
 }
 
 

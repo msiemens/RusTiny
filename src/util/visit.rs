@@ -86,9 +86,7 @@ pub fn walk_block<'v, V>(visitor: &mut V, block: &'v Node<Block>)
         visitor.visit_statement(&*stmt);
     }
 
-    if let Some(ref expr) = block.expr {
-        visitor.visit_expression(&*expr);
-    }
+    visitor.visit_expression(&*block.expr);
 }
 
 
@@ -119,9 +117,7 @@ pub fn walk_expression<'v, V>(visitor: &mut V, expr: &'v Node<Expression>)
             visitor.visit_expression(&*rhs);
         },
         Expression::Return { ref val } => {
-            if let Some(ref val) = *val {
-                visitor.visit_expression(&*val);
-            }
+            visitor.visit_expression(&*val);
         },
         Expression::Call { ref func, ref args } => {
             visitor.visit_expression(&*func);
@@ -148,6 +144,7 @@ pub fn walk_expression<'v, V>(visitor: &mut V, expr: &'v Node<Expression>)
             visitor.visit_expression(&*cond);
             visitor.visit_block(&*body);
         },
-        Expression::Break => {}
+        Expression::Break => {},
+        Expression::Unit => {}
     }
 }
