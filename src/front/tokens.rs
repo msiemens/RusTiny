@@ -1,3 +1,5 @@
+//! All tokens that RusTiny understands
+
 use std::fmt;
 use ast::{BinOp, UnOp, Ident};
 use driver;

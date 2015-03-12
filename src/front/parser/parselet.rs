@@ -16,7 +16,7 @@ enum Associativity {
 /// RusTiny operator precedence
 enum Precedence {
     Call        = 13,
-    Prefix      = 12,
+    //Prefix      = 12,
     Exponent    = 11,
     Product     = 10,
     Sum         = 9,
@@ -138,17 +138,17 @@ impl ParseletManager {
 // --- Prefix Parselets ---------------------------------------------------------
 
 pub trait PrefixParselet {
-    fn parse(&self, parser: &mut Parser, token: Token) -> Node<Expression>;
+    fn parse(&self, parser: &mut Parser, token: Token, span: Span) -> Node<Expression>;
     fn name(&self) -> &'static str;
 }
 
 macro_rules! define_prefix(
-    ($name:ident: fn parse($parser:ident, $token:ident) -> Node<Expression> $body:block) => {
+    ($name:ident: fn parse($parser:ident, $token:ident, $span:ident) -> Node<Expression> $body:block) => {
         pub struct $name;
 
         impl PrefixParselet for $name {
             #[allow(unused_variables)]
-            fn parse(&self, $parser: &mut Parser, $token: Token) -> Node<Expression> {
+            fn parse(&self, $parser: &mut Parser, $token: Token, $span: Span) -> Node<Expression> {
                 $body
             }
 
@@ -158,18 +158,18 @@ macro_rules! define_prefix(
 );
 
 define_prefix!(IdentParselet:
-    fn parse(parser, token) -> Node<Expression> {
+    fn parse(parser, token, span) -> Node<Expression> {
         let ident = match token {
-            Token::Ident(id) => id,
+            Token::Ident(id) => Node::new(id, span),
             _ => parser.unexpected_token(Some("an identifier"))
         };
 
-        Node::new(Expression::Variable { name: ident }, parser.span)
+        Node::new(Expression::Variable { name: ident }, span)
     }
 );
 
 define_prefix!(LiteralParselet:
-    fn parse(parser, token) -> Node<Expression> {
+    fn parse(parser, token, span) -> Node<Expression> {
         let value = match token {
             Token::Int(i) => Value::Int(i),
             Token::Char(c) => Value::Char(c),
@@ -180,13 +180,13 @@ define_prefix!(LiteralParselet:
 
         Node::new(Expression::Literal {
             val: value
-        }, parser.span)
+        }, span)
     }
 );
 
 define_prefix!(PrefixOperatorParselet:
-    fn parse(parser, token) -> Node<Expression> {
-        let lo = parser.span;
+    fn parse(parser, token, span) -> Node<Expression> {
+        let lo = span;
 
         let operand = parser.parse_expression();
         let op = match token {
@@ -201,8 +201,8 @@ define_prefix!(PrefixOperatorParselet:
 );
 
 define_prefix!(GroupParselet:
-    fn parse(parser, token) -> Node<Expression> {
-        let lo = parser.span;
+    fn parse(parser, token, span) -> Node<Expression> {
+        let lo = span;
 
         let expr = parser.parse_expression();
         parser.expect(Token::RParen);
@@ -215,7 +215,7 @@ define_prefix!(GroupParselet:
 // --- Infix Parselets ----------------------------------------------------------
 
 pub trait InfixParselet {
-    fn parse(&self, parser: &mut Parser, left: Node<Expression>, token: Token) -> Node<Expression>;
+    fn parse(&self, parser: &mut Parser, left: Node<Expression>, token: Token, span: Span) -> Node<Expression>;
     fn precedence(&self) -> u32;
     fn name(&self) -> &'static str;
 }
@@ -227,7 +227,7 @@ pub struct BinaryOperatorParselet {
 }
 
 impl InfixParselet for BinaryOperatorParselet {
-    fn parse(&self, parser: &mut Parser, left: Node<Expression>, token: Token) -> Node<Expression> {
+    fn parse(&self, parser: &mut Parser, left: Node<Expression>, token: Token, _: Span) -> Node<Expression> {
         use self::Associativity::*;
 
         let lo = left.span;
@@ -270,7 +270,7 @@ impl InfixParselet for BinaryOperatorParselet {
 pub struct AssignParselet;
 
 impl InfixParselet for AssignParselet {
-    fn parse(&self, parser: &mut Parser, left: Node<Expression>, token: Token) -> Node<Expression> {
+    fn parse(&self, parser: &mut Parser, left: Node<Expression>, _: Token, _: Span) -> Node<Expression> {
         let lo = left.span;
 
         let right = parser.parse_expression();
@@ -291,7 +291,7 @@ impl InfixParselet for AssignParselet {
 pub struct CallParselet;
 
 impl InfixParselet for CallParselet {
-    fn parse(&self, parser: &mut Parser, left: Node<Expression>, token: Token) -> Node<Expression> {
+    fn parse(&self, parser: &mut Parser, left: Node<Expression>, _: Token, _: Span) -> Node<Expression> {
         let lo = left.span;
         let mut args = vec![];
 

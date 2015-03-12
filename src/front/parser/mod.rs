@@ -68,9 +68,8 @@
 //! CHAR:       '\'' ( [a-z] | [A-Z] | '\n' ) '\''
 //! ```
 
-use std::collections::HashMap;
 use ast::*;
-use driver::{session, fatal};
+use driver::fatal_at;
 use front::Lexer;
 use front::tokens::{Token, Keyword};
 use front::parser::parselet::PARSELET_MANAGER;
@@ -121,7 +120,7 @@ impl<'a> Parser<'a> {
 
     /// Stop compiling because of a fatal error
     fn fatal(&self, msg: String) -> ! {
-        fatal(msg, session().codemap.resolve(self.span.pos));
+        fatal_at(msg, self.span);
     }
 
     /// Stop compiling because of an unexpected token
@@ -137,9 +136,13 @@ impl<'a> Parser<'a> {
 
     /// Move along to the next token
     fn bump(&mut self) {
+        debug!("asking the lexer for the next token");
+
         let next_token = self.lexer.next_token();
         self.token = next_token.value;
         self.span = next_token.span;
+
+        debug!("token: `{:?}`, span: {:?}`", self.token, self.span);
     }
 
     /// Try consuming a token, return `true` on succes
@@ -162,18 +165,22 @@ impl<'a> Parser<'a> {
     // --- Parse tokens ---------------------------------------------------------
 
     /// Parse an identifier
-    fn parse_ident(&mut self) -> Ident {
+    fn parse_ident(&mut self) -> Node<Ident> {
+        debug!("parsing an ident");
+
         let ident = match self.token {
             Token::Ident(id) => id,
             _ => self.unexpected_token(Some("an identifier"))
         };
         self.bump();
 
-        ident
+        Node::new(ident, self.span)
     }
 
     /// Parse a literal
     fn parse_literal(&mut self) -> Node<Expression> {
+        debug!("parsing a literal");
+
         let value = match self.token {
             Token::Int(i) => Value::Int(i),
             Token::Char(c) => Value::Char(c),
@@ -188,6 +195,8 @@ impl<'a> Parser<'a> {
 
     /// Parse a builitin type
     fn parse_type(&mut self) -> Type {
+        debug!("parsing a type");
+
         let ident = self.parse_ident();
         let ty: Result<Type, ()> = (*ident).parse();
         match ty {
@@ -201,6 +210,7 @@ impl<'a> Parser<'a> {
     /// Parse a binding
     fn parse_binding(&mut self) -> Node<Binding> {
         // Grammar: IDENT COLON TYPE
+        debug!("parsing a binding");
         let lo = self.span;
 
         let name = self.parse_ident();
@@ -297,9 +307,7 @@ impl<'a> Parser<'a> {
 
         Node::new(Block {
             stmts: stmts,
-            expr: expr.map(|e| Box::new(e)),
-            vars: HashMap::new(),
-            parent: None
+            expr: expr.map(|e| Box::new(e))
         }, lo + self.span)
     }
 
@@ -307,6 +315,7 @@ impl<'a> Parser<'a> {
 
     fn parse_declaration(&mut self) -> Node<Statement> {
         // Grammar: k_let binding EQ expression
+        debug!("parsing a declaration");
         let lo = self.span;
 
         self.expect(Token::Keyword(Keyword::Let));
@@ -330,6 +339,7 @@ impl<'a> Parser<'a> {
 
     /// Parse an arbitrary expression
     fn parse_expression(&mut self) -> Node<Expression> {
+        debug!("parsing an expression");
         self.parse_expression_with_precedence(0)
     }
 
@@ -387,8 +397,9 @@ impl<'a> Parser<'a> {
 
         // Parse the prefix expression
         let token = self.token;
+        let span = self.span;
         self.bump();
-        let mut left = pparselet.parse(self, token);
+        let mut left = pparselet.parse(self, token, span);
 
         debug!("prefix: done");
 
@@ -401,8 +412,9 @@ impl<'a> Parser<'a> {
 
             // Parse the infix expression
             let token = self.token;
+            let span = self.span;
             self.bump();
-            left = iparselet.parse(self, left, token);
+            left = iparselet.parse(self, left, token, span);
 
             debug!("infix: done");
         }
@@ -412,6 +424,7 @@ impl<'a> Parser<'a> {
 
     fn parse_if(&mut self) -> Node<Expression> {
         // Grammar: k_if expression block (k_else block)?
+        debug!("parsing an if");
         let lo = self.span;
 
         self.expect(Token::Keyword(Keyword::If));
@@ -433,6 +446,7 @@ impl<'a> Parser<'a> {
 
     fn parse_while(&mut self) -> Node<Expression> {
         // Grammar: k_while expression block
+        debug!("parsing a while");
         let lo = self.span;
 
         self.expect(Token::Keyword(Keyword::While));
@@ -449,6 +463,7 @@ impl<'a> Parser<'a> {
 
     fn parse_fn(&mut self) -> Node<Symbol> {
         // Grammar:  k_fn IDENT LPAREN (binding COMMA)* binding? RPAREN (RARROW TYPE)? block
+        debug!("parsing a fn");
         let lo = self.span;
 
         // Parse `fn <name>`
@@ -488,6 +503,7 @@ impl<'a> Parser<'a> {
 
     fn parse_static(&mut self) -> Node<Symbol> {
         // Grammar: k_static binding EQ literal
+        debug!("parsing a static");
         let lo = self.span;
 
         self.expect(Token::Keyword(Keyword::Static));
@@ -511,6 +527,7 @@ impl<'a> Parser<'a> {
 
     fn parse_const(&mut self) -> Node<Symbol> {
         // Grammar: k_const binding EQ literal
+        debug!("parsing a const");
         let lo = self.span;
 
         self.expect(Token::Keyword(Keyword::Const));
@@ -534,12 +551,13 @@ impl<'a> Parser<'a> {
 
     fn parse_symbol(&mut self) -> Node<Symbol> {
         // Grammar: function | static | constant | impl
+        debug!("parsing a symbol");
 
         let symbol = match self.token {
             Token::Keyword(Keyword::Fn) => self.parse_fn(),
             Token::Keyword(Keyword::Static) => self.parse_static(),
             Token::Keyword(Keyword::Const) => self.parse_const(),
-            Token::Keyword(Keyword::Impl) => unimplemented!(),  // TODO: Implement
+            //Token::Keyword(Keyword::Impl) => unimplemented!(),  // TODO: Implement
 
             _ => self.unexpected_token(Some("a symbol"))
         };

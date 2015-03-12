@@ -2,6 +2,7 @@
 #![feature(io)]
 #![feature(old_io)]
 #![feature(path)]
+#![feature(std_misc)]
 
 extern crate ansi_term;
 #[macro_use] extern crate lazy_static;

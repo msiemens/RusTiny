@@ -1,0 +1,1 @@
+const NAME: int = +;  //! ERROR(1:19): unexpected token: `+`, expected a literal

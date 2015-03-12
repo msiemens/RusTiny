@@ -124,7 +124,13 @@ def parse_expectations(filename: Path):
 
 # --- Compile a file ----------------------------------------------------------
 
-def tests_compiler_unit():
+def collect_tests(name):
+    for cat in (TEST_DIR / name).iterdir():
+        for test in (TEST_DIR / cat).iterdir():
+            yield cat.parts[-1], test
+
+
+def tests_compiler():
     try:
         subprocess.check_call(['cargo', 'test'], cwd=str(RUSTINY_DIR))
     except subprocess.CalledProcessError:
@@ -133,9 +139,11 @@ def tests_compiler_unit():
 
 
 def tests_compile_fail():
-    for test in (TEST_DIR / 'compile-fail').iterdir():
+    cprint('Running compile-fail tests...', 'blue')
+
+    for category, test in collect_tests('compile-fail'):
         test_name = test.parts[-1]
-        print('Testing {} ... '.format(test_name), end='')
+        print('Testing {}/{} ... '.format(category, test_name), end='')
 
         expectations = parse_expectations(test)
         cresult = compile_file(test)
@@ -160,9 +168,11 @@ def tests_compile_fail():
 
 
 def tests_run_pass():
-    for test in (TEST_DIR / 'run-pass').iterdir():
+    cprint('Running run-pass tests...', 'blue')
+
+    for category, test in collect_tests('run-pass'):
         test_name = test.parts[-1]
-        print('Testing {} ... '.format(test_name), end='')
+        print('Testing {}/{} ... '.format(category, test_name), end='')
 
         cresult = compile_file(test)
 
@@ -223,10 +233,10 @@ if __name__ == '__main__':
     refresh_compiler()
 
     cprint('Running compiler unit tests...', 'blue')
-    tests_compiler_unit()
+    tests_compiler()
 
-    cprint('Running integration tests...', 'blue')
     tests_compile_fail()
+    print()
     tests_run_pass()
 
     print_results()

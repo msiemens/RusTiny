@@ -1,15 +1,14 @@
-/// The lexer: split the source into a stream of tokens
+//! The lexer: split the source into a stream of tokens
 
 use std::borrow::ToOwned;
 use ast::{BinOp, UnOp, Spanned};
-use driver::{session, fatal};
+use driver::{session, fatal_at};
 use driver::codemap::Loc;
 use front::tokens::{Token, lookup_keyword};
 
 
 pub struct Lexer<'a> {
     source: &'a str,
-    file: &'a str,
     len: usize,
 
     pos: usize,
@@ -22,10 +21,10 @@ impl<'a> Lexer<'a> {
     // --- Lexer: The public API ------------------------------------------------
 
     /// Create a new lexer from a given string and file name
+    #[allow(unused_variables)]
     pub fn new(source: &'a str, file: &'a str) -> Lexer<'a> {
         Lexer {
             source: source,
-            file: file,
             len: source.len(),
 
             pos: 0,
@@ -37,16 +36,14 @@ impl<'a> Lexer<'a> {
 
     /// Get the next token
     pub fn next_token(&mut self) -> Spanned<Token> {
-        if self.is_eof() {
-            Spanned::new(Token::EOF, self.pos as u32, self.pos as u32)
-        } else {
+        while !self.is_eof() {
             // Read the next token as long as the lexer requests us to do so
-            loop {
-                if let Some(token) = self.read_token() {
-                    return token;
-                }
+            if let Some(token) = self.read_token() {
+                return token;
             }
         }
+
+        Spanned::new(Token::EOF, self.pos as u32, self.pos as u32)
     }
 
     /// Tokenize the string into a vector. Used for testing
@@ -71,7 +68,7 @@ impl<'a> Lexer<'a> {
 
     /// Report a fatal error back to the user
     fn fatal(&self, msg: String) -> ! {
-        fatal(msg, self.get_source())
+        fatal_at(msg, self.get_source())
     }
 
     /// Are we done yet?
@@ -92,22 +89,27 @@ impl<'a> Lexer<'a> {
     /// Move along to the next character
     fn bump(&mut self) {
         self.curr = self.nextch();
-        self.pos += 1;
+        self.pos = self.nextch_index();
 
         debug!("Moved on to {:?}", self.curr)
     }
 
-    /// Take a look at the next character without consuming it
-    fn nextch(&self) -> Option<char> {
-        let mut new_pos = self.pos + 1;
-
+    fn nextch_index(&self) -> usize {
         // When encountering multi-byte UTF-8, we may stop in the middle
         // of it. Fast forward till we see the next actual char or EOF
 
+        let mut new_pos = self.pos + 1;
         while !self.source.is_char_boundary(new_pos)
                 && self.pos < self.len {
             new_pos += 1;
         }
+
+        new_pos
+    }
+
+    /// Take a look at the next character without consuming it
+    fn nextch(&self) -> Option<char> {
+        let new_pos = self.nextch_index();
 
         if new_pos < self.len {
             Some(self.source.char_at(new_pos))
@@ -181,7 +183,7 @@ impl<'a> Lexer<'a> {
 
     /// Tokenize an identifier
     fn tokenize_ident(&mut self) -> Token {
-        debug!("Tokenizing an ident");
+        debug!("tokenizing an ident");
 
         let ident = self.collect(|c| {
             c.is_alphabetic() || c.is_numeric() || *c == '_'
@@ -197,7 +199,7 @@ impl<'a> Lexer<'a> {
 
     /// Tokenize an integer
     fn tokenize_integer(&mut self) -> Token {
-        debug!("Tokenizing a digit");
+        debug!("tokenizing a digit");
 
         let integer_str = self.collect(|c| c.is_numeric());
         let integer     = match integer_str.parse() {
@@ -210,7 +212,7 @@ impl<'a> Lexer<'a> {
 
     /// Tokenize a character. Correctly handles escaped newlines and escaped single quotes
     fn tokenize_char(&mut self) -> Token {
-        debug!("Tokenizing a char");
+        debug!("tokenizing a char");
 
         self.bump();  // '\'' matched, move on
 
@@ -263,7 +265,7 @@ impl<'a> Lexer<'a> {
             );
         );
 
-        debug!("Tokenizing with current character = `{}` at {}",
+        debug!("tokenizing with current character = `{}` at {}",
                  self.curr_escaped(), self.pos);
 
         let c = self.curr.unwrap();
@@ -329,16 +331,17 @@ impl<'a> Lexer<'a> {
                 // Skip whitespaces of any type
                 if c == '\n' {
                     self.lineno += 1;
-                    session().codemap.new_line(self.pos as u32 + 1)
+                    let offset = if self.nextch() == Some('\r') { 2 } else { 1 };
+                    session().codemap.new_line(self.pos as u32 + offset)
                 }
 
                 self.bump();
                 return None;
             },
-            c => self.fatal(format!("unknown token: {}", c))
+            c => self.fatal(format!("unexpected character: `{}`", c))
         };
 
-        debug!("Token: {:?}", token);
+        debug!("emitted token: `{:?}`", token);
 
         Some(Spanned::new(token, lo as u32, self.pos as u32))
     }

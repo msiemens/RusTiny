@@ -7,6 +7,7 @@ use std::cell::RefCell;
 
 
 /// A source location (used for error reporting)
+#[derive(Copy)]
 pub struct Loc {
     /// The (1-based) line number
     pub line: u32,
@@ -30,45 +31,43 @@ impl Codemap {
     }
 
     /// Register the beginning of a new line at a given offset
-    pub fn new_line(&self, char_pos: u32) {
-        self.lines.borrow_mut().push(char_pos)
+    /// N.B. offset is 1-based
+    pub fn new_line(&self, offset: u32) {
+        self.lines.borrow_mut().push(offset - 1)
     }
 
     /// Get the source location of an offset
+    /// N.B. char_pos is 0-based!
     pub fn resolve(&self, char_pos: u32) -> Loc {
         let lines = self.lines.borrow();
 
+        debug!("char_pos: {:?}", char_pos);
+        debug!("lines: {:?}", lines);
+
         let line = lines
             .iter()
-            .position(|p| *p >= char_pos)
-            .unwrap_or(lines.len() - 1);
+            .position(|p| *p >= char_pos)  // The first line where offset >= char_pos
+            .unwrap_or(lines.len()) - 1;
+
+        if line == 0 {
+            return Loc {
+                line: 1,
+                col: char_pos + 1
+            }
+        }
+
         let offset = lines[line];
+
+        debug!("line: {:?}", line);
+        debug!("offset: {:?}", offset);
+
+        debug_assert!(char_pos >= offset,
+                      "char_pos ({}) >= offset ({})\nlines: {:?}\nline:{}",
+                      char_pos, offset, lines, line);
 
         Loc {
             line: line as u32 + 1,
-            col: char_pos - offset + 1
+            col: char_pos - offset
         }
-    }
-}
-
-
-mod test {
-    use super::Codemap;
-
-    #[test]
-    fn test_basic() {
-        let cm = Codemap::new();
-        cm.new_line(16);
-        let loc = cm.resolve(31);
-        assert_eq!(loc.line, 2);
-        assert_eq!(loc.col, 16);
-    }
-
-    #[test]
-    fn test_first_line() {
-        let cm = Codemap::new();
-        let loc = cm.resolve(31);
-        assert_eq!(loc.line, 1);
-        assert_eq!(loc.col, 32);
     }
 }

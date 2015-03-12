@@ -32,7 +32,7 @@ fn operator_precedence_call_prefix() {
     assert_eq!(args.len(), 0);
 
     let name = ast_assert!(Expression::Variable { name } == ***func);
-    assert_eq!(&**name, "a");
+    assert_eq!(&***name, "a");
 }
 
 
