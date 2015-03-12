@@ -4,6 +4,11 @@ name = "rustiny"
 version = "0.0.1"
 authors = ["Markus Siemens <siemens1993@gmail.com>"]
 
+[[bin]]
+name = "rustiny"
+doc = false
+test = false
+
 [profile.release]
 opt-level = 3
 lto = true
