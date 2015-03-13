@@ -1,8 +1,12 @@
 //! Error reporting
 
+// IDEA: Cache errors in the session and have an abort_if_errors() that
+//       is called every now and then.
+// IDEA: Show the source line and underline the offending token
+
 use std::io::{self, Write};
 use std::old_io;
-use ansi_term::Colour::{Red, Yellow};
+use ansi_term::Colour::Red;
 use ast::{Node, Span};
 use driver;
 use driver::codemap::Loc;
@@ -46,17 +50,8 @@ fn print_error(stderr: &mut io::Stderr) {
     }
 }
 
-/// Helper for printing the `Warning` string
-/// If stderr is not redirected, the string will be colored
-fn print_warning(stderr: &mut io::Stderr) {
-    if !stderr_is_redirected() {
-        write!(stderr, "{}", Yellow.paint("Warning")).ok();
-    } else {
-        write!(stderr, "Error").ok();
-    }
-}
-
 /// Report a fatal error
+// FIXME: Add a macro with format!(...)
 pub fn fatal(msg: String) -> ! {
     let mut stderr = io::stderr();
 
@@ -66,6 +61,7 @@ pub fn fatal(msg: String) -> ! {
     old_io::stdio::set_stderr(Box::new(old_io::util::NullWriter));
     panic!();
 }
+
 
 /// Report a fatal error at a source location
 pub fn fatal_at<L: HasSourceLocation>(msg: String, loc: L) -> ! {
@@ -80,7 +76,18 @@ pub fn fatal_at<L: HasSourceLocation>(msg: String, loc: L) -> ! {
     panic!();
 }
 
+
 /*
+/// Helper for printing the `Warning` string
+/// If stderr is not redirected, the string will be colored
+fn print_warning(stderr: &mut io::Stderr) {
+    if !stderr_is_redirected() {
+        write!(stderr, "{}", Yellow.paint("Warning")).ok();
+    } else {
+        write!(stderr, "Error").ok();
+    }
+}
+
 /// Report a warning
 pub fn warn<L: HasSourceLocation>(msg: String, loc: L) {
     let mut stderr = io::stderr();
@@ -90,7 +97,7 @@ pub fn warn<L: HasSourceLocation>(msg: String, loc: L) {
     print_warning(&mut stderr);
     writeln!(&mut stderr, ": {}", msg).ok();
 }
-*/
+
 
 /// Report a warning at a source location
 pub fn warn_at<L: HasSourceLocation>(msg: String, loc: L) {
@@ -101,3 +108,4 @@ pub fn warn_at<L: HasSourceLocation>(msg: String, loc: L) {
     print_warning(&mut stderr);
     writeln!(&mut stderr, " in line {}:{}: {}", source.line, source.col, msg).ok();
 }
+*/

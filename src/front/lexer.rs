@@ -2,7 +2,7 @@
 
 use std::borrow::ToOwned;
 use ast::{BinOp, UnOp, Spanned};
-use driver::{session, fatal_at};
+use driver::session;
 use driver::codemap::Loc;
 use front::tokens::{Token, lookup_keyword};
 
@@ -21,8 +21,7 @@ impl<'a> Lexer<'a> {
     // --- Lexer: The public API ------------------------------------------------
 
     /// Create a new lexer from a given string and file name
-    #[allow(unused_variables)]
-    pub fn new(source: &'a str, file: &'a str) -> Lexer<'a> {
+    pub fn new(source: &'a str, _: &'a str) -> Lexer<'a> {
         Lexer {
             source: source,
             len: source.len(),
@@ -47,7 +46,8 @@ impl<'a> Lexer<'a> {
     }
 
     /// Tokenize the string into a vector. Used for testing
-    #[allow(dead_code)]
+    /*
+    // FIXME: Can this be removed?
     pub fn tokenize(&mut self) -> Vec<Spanned<Token>> {
         let mut tokens = vec![];
 
@@ -63,12 +63,13 @@ impl<'a> Lexer<'a> {
 
         tokens
     }
+    */
 
     // --- Lexer: Helpers -------------------------------------------------------
 
     /// Report a fatal error back to the user
     fn fatal(&self, msg: String) -> ! {
-        fatal_at(msg, self.get_source())
+        fatal_at!(msg; self.get_source())
     }
 
     /// Are we done yet?

@@ -69,7 +69,6 @@
 //! ```
 
 use ast::*;
-use driver::fatal_at;
 use front::Lexer;
 use front::tokens::{Token, Keyword};
 use front::parser::parselet::PARSELET_MANAGER;
@@ -120,7 +119,7 @@ impl<'a> Parser<'a> {
 
     /// Stop compiling because of a fatal error
     fn fatal(&self, msg: String) -> ! {
-        fatal_at(msg, self.span);
+        fatal_at!(msg; self.span);
     }
 
     /// Stop compiling because of an unexpected token

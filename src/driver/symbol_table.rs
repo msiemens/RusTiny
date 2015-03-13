@@ -1,102 +1,97 @@
-//! The symbol table
+//! The symbol & scopes table
 //!
-//! Stores all symbols and variables along with type information
+//! # Motivation
+//!
+//! ## Symbol table
+//!
+//! In RusTiny a symbol is either a function, a constant or a static variable.
+//! The symbol table maps a symbol's name to its value.
+//!
+//! ## Scopes table
+//!
+//! A scope is the part of the program where a variable is valid. Each block
+//! (= `{ ... }`) introduces a new scope, where variables can be declared.
+//! The program can use all variables in the current scope and its parent scopes.
+//!
+//! To make that work we need to keep track of all variables declared in a scope
+//! and the of the scope's parent (if there is one). Considering that, we use
+//! a hashmap that associates a block's node id with the scope it creates.
+//!
+//! The actual scope is implemented by `BlockScope`. It stores the variables
+//! declared in this scope and optionally the ID of the parent scope.
 
 use std::collections::HashMap;
-use std::collections::hash_state::HashState;
-use std::collections::hash_map::Entry;
-use std::hash::Hash;
 use ast::*;
-
-
-
-trait TryInsert<K, V> {
-    fn try_insert(&mut self, k: K, v: V) -> Result<(), ()>;
-}
-
-impl<K, V, S> TryInsert<K, V> for HashMap<K, V, S>
-        where K: Eq + Hash, S: HashState {
-    fn try_insert(&mut self, k: K, v: V) -> Result<(), ()> {
-        match self.entry(k) {
-            Entry::Occupied(_) => Err(()),
-            Entry::Vacant(entry) => {
-                entry.insert(v);
-                Ok(())
-            }
-        }
-    }
-}
+use util::TryInsert;
 
 
 pub struct SymbolTable {
-    blocks: HashMap<NodeId, ScopeId>,
-    scopes: HashMap<ScopeId, BlockScope>,
+    scopes: HashMap<NodeId, BlockScope>,
     symbols: HashMap<Ident, Symbol>,
 }
 
 impl<'a> SymbolTable {
     pub fn new() -> SymbolTable {
         SymbolTable {
-            blocks: HashMap::new(),
             scopes: HashMap::new(),
             symbols: HashMap::new(),
         }
     }
 
-    pub fn register_symbol(&mut self, name: Ident, symbol: Symbol) -> bool {
-        self.symbols.insert(name, symbol).is_some()
+    /// Register a new symbol
+    pub fn register_symbol(&mut self, name: Ident, symbol: Symbol) -> Result<(), &'static str> {
+        self.symbols.try_insert(name, symbol)
+            .map_err(|()| "the symbol already exists")
     }
 
-    pub fn register_block(&mut self, nid: NodeId, scope: ScopeId) -> Result<(), ()> {
-        try!(self.blocks.try_insert(nid, scope));
-        try!(self.scopes.try_insert(scope, BlockScope::new(scope)));
-        Ok(())
+    /// Register a new scope
+    pub fn register_scope(&mut self, scope: NodeId) -> Result<(), &'static str> {
+        self.scopes.try_insert(scope, BlockScope::new())
+            .map_err(|()| "the block's node id is not unique")
     }
 
-    // Precond: scope exists
-    pub fn register_variable(&mut self, scope: ScopeId, binding: &Binding) -> Result<(), ()> {
+    /// Register a variable in a scope
+    ///
+    /// # Panics
+    ///
+    /// Panics when the scope doesn't exist
+    pub fn register_variable(&mut self, scope: NodeId, binding: &Binding) -> Result<(), &'static str> {
         self.scopes[scope].vars.try_insert(*binding.name, binding.ty)
-    }
-
-    // Precond: scope exists
-    pub fn set_scope_parent(&mut self, scope: ScopeId, parent: ScopeId) {
-        self.scopes[scope].parent = Some(parent)
+            .map_err(|()| "the variable already exists")
     }
 
 
-    // Precond: scope exists
-    pub fn lookup_variable(&self, scope: ScopeId, name: &Ident) -> Option<&Type> {
+    /// Look up the type of a variable
+    ///
+    /// # Panics
+    ///
+    /// Panics when the scope doesn't exist
+    pub fn lookup_variable(&self, scope: NodeId, name: &Ident) -> Option<&Type> {
         self.scopes[scope].vars.get(name)
     }
 
+    /// Look up a symbol
     pub fn lookup_symbol(&self, name: &Ident) -> Option<&Symbol> {
         self.symbols.get(name)
     }
 
 
-    // Precond: scope exists
-    pub fn parent_scope(&self, scope: ScopeId) -> Option<ScopeId> {
+    /// Set the parent of a scope
+    ///
+    /// # Panics
+    ///
+    /// Panics when the scope doesn't exist
+    pub fn set_parent_scope(&mut self, scope: NodeId, parent: NodeId) {
+        self.scopes[scope].parent = Some(parent)
+    }
+
+    /// Get the parent scope of a scope
+    ///
+    /// # Panics
+    ///
+    /// Panics when the scope doesn't exist
+    pub fn parent_scope(&self, scope: NodeId) -> Option<NodeId> {
         self.scopes[scope].parent
-    }
-
-
-    pub fn get_scope(&self, scope: ScopeId) -> &BlockScope {
-        &self.scopes[scope]
-    }
-
-    pub fn get_symbol(&self, name: Ident) -> &Symbol {
-        &self.symbols[name]
-    }
-
-
-    pub fn symbol_exists(&self, name: Ident) -> bool {
-        self.symbols.contains_key(&name)
-    }
-
-    pub fn print_scopes(&self) {
-        for scope in self.scopes.values() {
-            println!("Scope: {:?}", scope);
-        }
     }
 }
 
@@ -104,15 +99,13 @@ impl<'a> SymbolTable {
 #[derive(Debug)]
 pub struct BlockScope {
     pub vars: HashMap<Ident, Type>,
-    pub id: ScopeId,
-    pub parent: Option<ScopeId>
+    pub parent: Option<NodeId>
 }
 
 impl BlockScope {
-    pub fn new(id: ScopeId) -> BlockScope {
+    pub fn new() -> BlockScope {
         BlockScope {
             vars: HashMap::new(),
-            id: id,
             parent: None
         }
     }

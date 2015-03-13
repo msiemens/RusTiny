@@ -1,7 +1,23 @@
 //! The codemap
 //!
-//! The codemap allows to map source locations (Spans) to the original line
-//! and column number.
+//! # Motivation
+//!
+//! The parser annotates Nodes with `Span`s that map into the source file.
+//! This is handy for error reporting, e.g. mentioning the source line
+//! or showing a snippet of the offending code. The codemap allows to
+//! get the source location of a Span by keeping track of all newlines.
+//!
+//! Should RusTiny get support for modules, the codemap would be responsible
+//! to resolve the file name, too.
+//!
+//! # Implementation notes
+//!
+//! The implementation is currently a bit messey. It's not really clear to me
+//! what exactly `Codemap::lines` stores and which offset is 0-based and
+//! which one is 1-based. But hey, it works!
+
+// TODO: Clear up 0-based vs 1-based offsets
+// TODO: Let the codemap own the source string
 
 use std::cell::RefCell;
 
@@ -47,8 +63,9 @@ impl Codemap {
         let line = lines
             .iter()
             .position(|p| *p >= char_pos)  // The first line where offset >= char_pos
-            .unwrap_or(lines.len()) - 1;
+            .unwrap_or(lines.len()) - 1;   // Go back one line
 
+        // FIXME: That seems *very* hacky. Can we do better?
         if line == 0 {
             return Loc {
                 line: 1,

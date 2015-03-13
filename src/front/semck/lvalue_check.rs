@@ -1,7 +1,14 @@
 //! Make sure the left-hand side of all assignments are variables
+//!
+//! For example, this program wouldn't compile:
+//!
+//! ```ignore
+//! fn foo() {
+//!     1 = false;
+//! }
+//! ```
 
 use ast::*;
-use driver::fatal_at;
 use util::visit::*;
 
 
@@ -14,7 +21,9 @@ impl LValueCheck {
 
     fn check_expr(&self, expr: &Node<Expression>) {
         if let Expression::Variable { .. } = **expr {
-            fatal_at(format!("left-hand side of assignment is not a variable"), expr);
+            return  // Everything's okay
+        } else {
+            fatal_at!("left-hand side of assignment is not a variable"; expr);
         }
     }
 }
@@ -24,12 +33,12 @@ impl<'v> Visitor<'v> for LValueCheck {
         match **expr {
             Expression::Assign { ref lhs, .. } => self.check_expr(lhs),
             Expression::AssignOp { ref lhs, .. } => self.check_expr(lhs),
-            _ => {}
+            _ => { walk_expression(self, expr) }
         }
     }
 }
 
-pub fn run(program: &mut Program) {
+pub fn run(program: &Program) {
     let mut visitor = LValueCheck::new();
     walk_program(&mut visitor, program);
 }

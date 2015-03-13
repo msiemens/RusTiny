@@ -1,10 +1,19 @@
 //! An AST walker
 //!
-//! Allows it to walk different parts of the AST without rewriting the whole
-//! logic over and over again. Uses the Visitor pattern. To continue walking
-//! the AST, the corresponding `walk_*` method should be called at the end
-//! of `visit_*`. Walks all nodes in-order (implementations are allowed to
-//! rely on it!).
+//! # Motivation
+//!
+//! A common operation in a compiler is to walk through different parts of the
+//! AST. We don't want to re-write the whole logic over and over again.
+//! The AST walker extracts this logic making it simple to walk the AST.
+//!
+//! # Implementation notes
+//!
+//! We traverse the tree in a pre-order fasion (the node first, then its children).
+//! In particular, we visit all children as defined in the source. Implementations
+//! are allowed to rely on this property!
+//!
+//! To continue walking the AST after visiting a node, the appropriate `walk_*`
+//! method should be called at the end of `visit_*`.
 
 use ast::*;
 
@@ -19,11 +28,11 @@ pub trait Visitor<'v> : Sized {
     }
 
     fn visit_ident(&mut self, _: &'v Node<Ident>) {
-        // Nothing to do
+        // Nothing to do, it's a leaf node
     }
 
     fn visit_type(&mut self, _: &'v Type) {
-        // Nothing to do
+        // Nothing to do, it's a leaf node
     }
 
     fn visit_block(&mut self, b: &'v Node<Block>) {
@@ -54,11 +63,9 @@ pub fn walk_symbol<'v, V>(visitor: &mut V, symbol: &'v Node<Symbol>)
     match **symbol {
         Symbol::Static { ref binding, .. } => {
             visitor.visit_binding(&*binding);
-            //visitor.visit_value(&*value);
         },
         Symbol::Constant { ref binding, .. } => {
             visitor.visit_binding(&*binding);
-            //visitor.visit_value(&*value);
         },
         Symbol::Function { ref name, ref bindings, ref ret_ty, ref body } => {
             visitor.visit_ident(&*name);

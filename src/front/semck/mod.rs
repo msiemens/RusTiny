@@ -12,11 +12,13 @@ mod scope_table_builder;
 mod symbol_table_builder;
 
 
-pub fn check(program: &mut Program) {
+pub fn run(program: &Program) -> SymbolTable {
     let mut symbol_table = SymbolTable::new();
 
     main_presence_check::run(program);
     lvalue_check::run(program);
     symbol_table_builder::run(program, &mut symbol_table);
     scope_table_builder::run(program, &mut symbol_table);
+
+    symbol_table
 }

@@ -1,3 +1,24 @@
+"""
+The RusTiny test runner.
+
+Test layout:
+
+    tests/
+        compile-fail/   # Tests that shouldn't compile
+            [category]/
+                [test].rs
+        run-pass/       # Tests that *should* compile
+            [category]/
+                [test].rs
+
+`compile-fail` tests can tell the test runner which error they expect by
+using special comments:
+
+    //! ERROR([line]:[col]): [ERROR MESSAGE]
+    //! ERROR: [ERROR MESSAGE]
+
+"""
+
 from collections import namedtuple
 from pathlib import Path
 import subprocess
@@ -11,7 +32,7 @@ from termcolor import cprint, colored
 colorama.init()
 
 RUSTINY_DIR = Path(__file__).resolve().parents[1]
-TEST_DIR = RUSTINY_DIR / 'test'
+TEST_DIR = RUSTINY_DIR / 'tests'
 COMPILER = RUSTINY_DIR / 'target' / 'debug' / 'rustiny'
 
 

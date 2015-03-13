@@ -1,8 +1,21 @@
 //! The string interner
 //!
-//! Inspired by: http://doc.rust-lang.org/src/syntax/util/interner.rs.html
-//! Stores strings in a thread local hashmap and assigns an ID to them
-//! for easier use.
+//! # Motivation
+//!
+//! In a RusTiny source file, many strings are repeated often (`fn`, variable names).
+//! Instead of having these in memory multiple times (e.g. one `fn` per function),
+//! we store them in a string intern pool and use a unique ID instead.
+//!
+//! One could say that the Ident (which stores the string ID) acts as a pointer
+//! into the intern pool, which isn't far from the truth.
+//!
+//! An important effect of string interning is that interned strings are immutable.
+//! However, I've didn't need to mutate interned strings up to now.
+//!
+//! # Implementation notes
+//!
+//! The implementation is adapted from https://github.com/rust-lang/rust/blob/79dd393a4f144fa5e6f81c720c782de3175810d7/src/libsyntax/util/interner.rs
+//! Strings are stored in the thread local storage.
 
 use std::borrow::Borrow;
 use std::cell::RefCell;
@@ -50,10 +63,12 @@ impl fmt::Display for InternedString {
     }
 }
 
+// Needed for indexing a HashMap<InternedString, _> by a &str
 impl Borrow<str> for InternedString {
     fn borrow(&self) -> &str { &self.string[..] }
 }
 
+// *interned_string becomes a &str
 impl Deref for InternedString {
     type Target = str;
 
@@ -76,15 +91,19 @@ impl Interner {
         }
     }
 
-    /// Intern a string and return the new identifier
+    /// Intern a string (if not already interned) and return its identifier
+    ///
+    /// N.B. This should be the only place where `Ident`s are created
     pub fn intern(&self, val: &str) -> Ident {
         let mut map = self.map.borrow_mut();
         let mut vec = self.vec.borrow_mut();
 
         if let Some(&idx) = map.get(val) {
+            // String is already stored
             return idx;
         }
 
+        // Intern the string and return its Ident
         let idx = Ident(vec.len());
         let val = InternedString::new(val);
         map.insert(val.clone(), idx);
@@ -94,6 +113,10 @@ impl Interner {
     }
 
     /// Get the string value of an identifier
+    ///
+    /// # Panics
+    ///
+    /// Panics if the Ident does not exist
     pub fn resolve(&self, ident: Ident) -> InternedString {
         let Ident(idx) = ident;
         self.vec.borrow()[idx].clone()

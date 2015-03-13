@@ -2,7 +2,6 @@
 
 use std::borrow::ToOwned;
 use ast::*;
-use driver::fatal;
 use util::visit::*;
 
 
@@ -28,11 +27,11 @@ impl<'v> Visitor<'v> for MainPresenceCheck {
     }
 }
 
-pub fn run(program: &mut Program) {
+pub fn run(program: &Program) {
     let mut visitor = MainPresenceCheck::new();
     walk_program(&mut visitor, program);
 
     if !visitor.main_present {
-        fatal("main function not found".to_owned());
+        fatal!("main function not found");
     }
 }
