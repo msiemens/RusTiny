@@ -20,6 +20,31 @@ impl<'a> ScopeTableBuilder<'a> {
         }
     }
 
+    fn init_function_scope(&mut self, scope: NodeId) {
+        let current_symbol = self.current_symbol
+            .expect("current symbol is None");
+        let bindings;
+
+        {
+            // Get the function's arguments
+            let symbol = self.sytbl.lookup_symbol(&current_symbol)
+                .expect("current symbol is not registered");
+
+            bindings = if let Symbol::Function { ref bindings, .. } = *symbol {
+                bindings.clone()
+            } else {
+                panic!("current symbol is not a function");  // shouldn't happen
+            };
+        }
+
+        // Register arguments in scope table
+        for binding in bindings {
+            self.sytbl.register_variable(scope, &binding).unwrap_or_else(|_| {
+                fatal_at!("multiple parameters with name: `{:?}`", binding.name; &binding.name);
+            });
+        }
+    }
+
     fn resolve_call(&self, expr: &Node<Expression>) {
         // Get function name
         let name = if let Expression::Variable { ref name } = **expr {
@@ -37,20 +62,17 @@ impl<'a> ScopeTableBuilder<'a> {
 
         // Verify the symbol is a function
         if let Symbol::Function { .. } = *symbol {
-            return
+            return  // Everything's okay
         } else {
             fatal_at!("cannot call non-function"; expr)
         }
     }
 
     fn resolve_variable(&self, name: &Node<Ident>) {
-        // First, look in the current block and its parents
         let mut current_scope = self.current_scope
             .expect("resolving a variable without a containing scope");
-        let current_symbol = self.current_symbol
-            .expect("current symbol is None");
 
-        // Look in function arguments
+        // First, look in the current block and its parents
         loop {
             if let Some(_) = self.sytbl.lookup_variable(current_scope, name) {
                 return  // Everything's okay
@@ -60,24 +82,8 @@ impl<'a> ScopeTableBuilder<'a> {
                 // Continue searching in the parent scope
                 current_scope = parent
             } else {
-                // No more parent scopes, search in arguments
-                break
+                break  // No more parent scopes, search in statics/consts
             }
-        }
-
-        // Look up in function arguments
-        let symbol = self.sytbl.lookup_symbol(&current_symbol)
-            .expect("current symbol is not registered");
-        if let Symbol::Function { ref bindings, .. } = *symbol {
-
-            for binding in bindings {
-                if *binding.name == **name {
-                    return  // Everything's okay
-                }
-            }
-
-        } else {
-            panic!("current symbol is not a function");  // shouldn't happen
         }
 
         // Look up in static/const symbols
@@ -96,8 +102,7 @@ impl<'a> ScopeTableBuilder<'a> {
             .expect("resolving a declaration without a containing scope");
 
         self.sytbl.register_variable(scope, binding)
-            .map_err(|_| fatal_at!("cannot redeclare `{:?}`", binding.name; binding))
-            .unwrap();
+            .unwrap_or_else(|_| fatal_at!("cannot redeclare `{:?}`", binding.name; binding));
     }
 }
 
@@ -116,6 +121,9 @@ impl<'v> Visitor<'v> for ScopeTableBuilder<'v> {
         // Set the parent if present
         if let Some(parent) = self.current_scope {
             self.sytbl.set_parent_scope(block.id, parent);
+        } else {
+            // Top-level block of a function -> insert args into symbol table
+            self.init_function_scope(block.id);
         }
 
         // Set the current scope (needed in visit_statement/expression)

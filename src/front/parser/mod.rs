@@ -167,19 +167,21 @@ impl<'a> Parser<'a> {
     fn parse_ident(&mut self) -> Node<Ident> {
         debug!("parsing an ident");
 
+        let span = self.span;
         let ident = match self.token {
             Token::Ident(id) => id,
             _ => self.unexpected_token(Some("an identifier"))
         };
         self.bump();
 
-        Node::new(ident, self.span)
+        Node::new(ident, span)
     }
 
     /// Parse a literal
     fn parse_literal(&mut self) -> Node<Expression> {
         debug!("parsing a literal");
 
+        let span = self.span;
         let value = match self.token {
             Token::Int(i) => Value::Int(i),
             Token::Char(c) => Value::Char(c),
@@ -189,7 +191,7 @@ impl<'a> Parser<'a> {
 
         Node::new(Expression::Literal {
             val: value
-        }, self.span)
+        }, span)
     }
 
     /// Parse a builitin type
