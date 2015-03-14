@@ -4,9 +4,9 @@
 //       is called every now and then.
 // IDEA: Show the source line and underline the offending token
 
-use std::io::{self, Write};
-use std::old_io;
 use ansi_term::Colour::Red;
+use std::io::{self, Write};
+use term;
 use ast::{Node, Span};
 use driver;
 use driver::codemap::Loc;
@@ -36,14 +36,19 @@ impl HasSourceLocation for Loc {
 
 
 /// Helper that checks whether stderr is redirected
-fn stderr_is_redirected() -> bool {
-    !old_io::stdio::stderr_raw().isatty()
+fn colors_enabled() -> bool {
+    let stderr = term::stderr();
+
+    stderr.map_or(false, |t| {
+        t.supports_attr(term::Attr::ForegroundColor(term::color::RED))
+        && t.supports_attr(term::Attr::ForegroundColor(term::color::YELLOW))
+    })
 }
 
 /// Helper for printing the `Error` string
 /// If stderr is not redirected, the string will be colored
 fn print_error(stderr: &mut io::Stderr) {
-    if !stderr_is_redirected() {
+    if !colors_enabled() {
         write!(stderr, "{}", Red.paint("Error")).ok();
     } else {
         write!(stderr, "Error").ok();
@@ -58,7 +63,8 @@ pub fn fatal(msg: String) -> ! {
     print_error(&mut stderr);
     writeln!(&mut stderr, ": {}", msg).ok();
 
-    old_io::stdio::set_stderr(Box::new(old_io::util::NullWriter));
+    // The Rust compiler uses this to abort execution
+    io::set_panic(Box::new(io::sink()));
     panic!();
 }
 
@@ -72,7 +78,7 @@ pub fn fatal_at<L: HasSourceLocation>(msg: String, loc: L) -> ! {
     print_error(&mut stderr);
     writeln!(&mut stderr, " in line {}:{}: {}", source.line, source.col, msg).ok();
 
-    old_io::stdio::set_stderr(Box::new(old_io::util::NullWriter));
+    io::set_panic(Box::new(io::sink()));
     panic!();
 }
 
@@ -81,7 +87,7 @@ pub fn fatal_at<L: HasSourceLocation>(msg: String, loc: L) -> ! {
 /// Helper for printing the `Warning` string
 /// If stderr is not redirected, the string will be colored
 fn print_warning(stderr: &mut io::Stderr) {
-    if !stderr_is_redirected() {
+    if !colors_enabled() {
         write!(stderr, "{}", Yellow.paint("Warning")).ok();
     } else {
         write!(stderr, "Error").ok();
