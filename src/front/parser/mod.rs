@@ -69,6 +69,7 @@
 //! ```
 
 use ast::*;
+use driver::session;
 use front::Lexer;
 use front::tokens::{Token, Keyword};
 use front::parser::parselet::PARSELET_MANAGER;
@@ -120,14 +121,15 @@ impl<'a> Parser<'a> {
     /// Stop compiling because of a fatal error
     fn fatal(&self, msg: String) -> ! {
         fatal_at!(msg; self.span);
+        session().abort()
     }
 
     /// Stop compiling because of an unexpected token
     fn unexpected_token(&self, expected: Option<&'static str>) -> ! {
         match expected {
-            Some(ex) => self.fatal(format!("unexpected token: `{:?}`, expected {}",
+            Some(ex) => self.fatal(format!("unexpected token: `{}`, expected {}",
                                    &self.token, ex)),
-            None => self.fatal(format!("unexpected token: `{:?}`", &self.token))
+            None => self.fatal(format!("unexpected token: `{}`", &self.token))
         }
     }
 
@@ -157,7 +159,7 @@ impl<'a> Parser<'a> {
     /// Try consuming a token, quit with a fatal error otherwise
     fn expect(&mut self, tok: Token) {
         if !self.eat(tok) {
-            self.fatal(format!("expected `{:?}`, found `{:?}`", tok, self.token))
+            self.fatal(format!("expected `{}`, found `{}`", tok, self.token))
         }
     }
 
@@ -185,6 +187,8 @@ impl<'a> Parser<'a> {
         let value = match self.token {
             Token::Int(i) => Value::Int(i),
             Token::Char(c) => Value::Char(c),
+            Token::Keyword(Keyword::True) => Value::Bool(true),
+            Token::Keyword(Keyword::False) => Value::Bool(false),
             _ => self.unexpected_token(Some("a literal"))
         };
         self.bump();
@@ -239,7 +243,7 @@ impl<'a> Parser<'a> {
         self.expect(Token::LBrace);
 
         let mut stmts = vec![];
-        let mut expr = Node::new(Expression::Unit, EMPTY_SPAN);
+        let mut expr = None;
 
         // Parse all statements
         loop {
@@ -297,10 +301,12 @@ impl<'a> Parser<'a> {
                 }, lo + self.span));
             } else {
                 // It's the last expr
-                expr = maybe_expr;
+                expr = Some(maybe_expr);
                 break;
             }
         }
+
+        let expr = expr.unwrap_or(Node::new(Expression::Unit, self.span));
 
         self.expect(Token::RBrace);
 
@@ -354,8 +360,8 @@ impl<'a> Parser<'a> {
 
                 self.bump();
                 // Parse the return value
-                let val = if let Token::RBrace = self.token {
-                    Node::new(Expression::Unit, EMPTY_SPAN)
+                let val = if self.token == Token::RBrace || self.token == Token::Semicolon {
+                    Node::new(Expression::Unit, self.span)
                 } else {
                     self.parse_expression()
                 };
@@ -513,16 +519,13 @@ impl<'a> Parser<'a> {
 
         self.expect(Token::Eq);
 
-        let value = match self.parse_literal().unwrap() {
-            Expression::Literal { val } => val,
-            _ => panic!("shouldn't happen")
-        };
+        let value = self.parse_literal();
 
         self.expect(Token::Semicolon);
 
         Node::new(Symbol::Static {
             binding: Box::new(binding),
-            value: value
+            value: Box::new(value)
         }, lo + self.span)
     }
 
@@ -537,16 +540,13 @@ impl<'a> Parser<'a> {
 
         self.expect(Token::Eq);
 
-        let value = match self.parse_literal().unwrap() {
-            Expression::Literal { val } => val,
-            _ => panic!("shouldn't happen")
-        };
+        let value = self.parse_literal();
 
         self.expect(Token::Semicolon);
 
         Node::new(Symbol::Constant {
             binding: Box::new(binding),
-            value: value
+            value: Box::new(value)
         }, lo + self.span)
     }
 

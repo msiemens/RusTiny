@@ -13,12 +13,13 @@ use driver::session;
 
 // --- Types and Values ---------------------------------------------------------
 
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, Debug, PartialEq, Eq)]
 pub enum Type {
     Bool,
     Int,
     Char,
-    Unit
+    Unit,
+    Err,  // Special type used for expressions with type errors
 }
 
 impl FromStr for Type {
@@ -34,17 +35,27 @@ impl FromStr for Type {
 }
 
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub enum Value {
     Bool(bool),
     Int(u32),
     Char(char)
 }
 
+impl Value {
+    pub fn get_ty(&self) -> Type {
+        match *self {
+            Value::Bool(..) => Type::Bool,
+            Value::Int(..) => Type::Int,
+            Value::Char(..) => Type::Char,
+        }
+    }
+}
+
 
 // --- Operators ----------------------------------------------------------------
 
-#[derive(Copy, Clone, Eq, PartialEq, Hash)]
+#[derive(Copy, Clone, Debug, Eq, PartialEq, Hash)]
 pub enum UnOp {
     /// `!`
     Not,
@@ -53,7 +64,7 @@ pub enum UnOp {
     Neg  // TODO: Think about removing this
 }
 
-#[derive(Copy, Clone, Eq, PartialEq, Hash)]
+#[derive(Copy, Clone, Debug, Eq, PartialEq, Hash)]
 pub enum BinOp {
     /// `+`
     Add,
@@ -67,7 +78,7 @@ pub enum BinOp {
     Mod,
     /// `**`
     Pow,
-    /// `&%`
+    /// `&&`
     And,
     /// `||`
     Or,
@@ -95,14 +106,36 @@ pub enum BinOp {
     Gt
 }
 
+pub enum BinOpType {
+    Arithmetic,
+    Logic,
+    Bitwise,
+    Comparison
+}
+
+impl BinOp {
+    pub fn get_type(&self) -> BinOpType {
+        match *self {
+            BinOp::Add | BinOp::Sub
+                | BinOp::Mul | BinOp::Div
+                | BinOp::Mod | BinOp::Pow
+                | BinOp::Shl | BinOp::Shr => BinOpType::Arithmetic,
+            BinOp::And | BinOp::Or => BinOpType::Logic,
+            BinOp::BitXor | BinOp::BitAnd | BinOp::BitOr => BinOpType::Bitwise,
+            BinOp::EqEq | BinOp::Lt | BinOp::Le
+                | BinOp::Ne | BinOp::Ge | BinOp::Gt => BinOpType::Comparison
+        }
+    }
+}
+
 
 // --- The AST itself -----------------------------------------------------------
 // Note: Box<T> is used almost everywhere where elements are nested in other elements
 //       because otherwise there might be infinite loops (an expression containing an expression).
 //       Introduces a lot of indirection, but does the job anyway.
 
-#[derive(Copy, Clone, PartialEq, Eq, Hash, Debug)]
-pub struct NodeId(u32);
+#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash)]
+pub struct NodeId(pub u32);
 
 impl NodeId {
     pub fn as_u32(&self) -> u32 {
@@ -148,7 +181,7 @@ impl<T> Spanned<T> {
 ///
 /// Will eventually contain additional information about the node's source location
 /// (span) and an unique node id.
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct Node<T> {
     node: T,
     pub span: Span,
@@ -195,7 +228,7 @@ pub type Program = Vec<Node<Symbol>>;
 
 
 /// A top level symbol
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub enum Symbol {
     /// A function
     Function {
@@ -208,13 +241,13 @@ pub enum Symbol {
     /// A static value (can be modified at runtime)
     Static {
         binding: Box<Node<Binding>>,
-        value: Value
+        value: Box<Node<Expression>>
     },
 
     /// A constant value. Usages will be replaced with the value at compilation time
     Constant {
         binding: Box<Node<Binding>>,
-        value: Value
+        value: Box<Node<Expression>>
     }
 }
 
@@ -248,7 +281,7 @@ impl Symbol {
 
 
 /// A block of statements (e.g. function body, if body, ...)
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct Block {
     pub stmts: Vec<Node<Statement>>,
     pub expr: Box<Node<Expression>>
@@ -256,7 +289,7 @@ pub struct Block {
 
 
 /// A binding of a value to a name (e.g. local variable, function argument)
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct Binding {
     pub ty: Type,
     pub name: Node<Ident>
@@ -264,7 +297,7 @@ pub struct Binding {
 
 
 /// A declaration or an expression terminated with a semicolon
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub enum Statement {
     Declaration {
         binding: Box<Node<Binding>>,
@@ -284,7 +317,7 @@ pub enum Statement {
 /// ```ignore
 /// a = if a == 2 { 1 } else { 0 }
 /// ```
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub enum Expression {
     /// A literal value
     Literal {
@@ -362,9 +395,18 @@ pub enum Expression {
     Unit
 }
 
+impl Expression {
+    pub fn unwrap_ident(&self) -> Ident {
+        match *self {
+            Expression::Variable { ref name } => **name,
+            _ => panic!("expression doesn't contain an ident")
+        }
+    }
+}
+
 
 /// An identifier refering to an interned string
-#[derive(Copy, Clone, Eq, PartialEq, Hash)]
+#[derive(Copy, Clone, Debug, Eq, PartialEq, Hash)]
 pub struct Ident(pub usize);
 
 /// Allows the ident's name to be accessed by dereferencing (`*ident`)
@@ -385,19 +427,20 @@ impl<T: fmt::Debug> fmt::Debug for Spanned<T> {
     }
 }
 
-impl<T: fmt::Debug> fmt::Debug for Node<T> {
+impl<T: fmt::Display> fmt::Display for Node<T> {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{:?}", self.node)
+        write!(f, "{}", self.node)
     }
 }
 
-impl fmt::Debug for Binding {
+
+impl fmt::Display for Binding {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{:?}: {:?}", self.name, self.ty)
+        write!(f, "{}: {}", self.name, self.ty)
     }
 }
 
-impl fmt::Debug for Type {
+impl fmt::Display for Type {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         use self::Type::*;
 
@@ -405,12 +448,13 @@ impl fmt::Debug for Type {
             Bool    => write!(f, "bool"),
             Int     => write!(f, "int"),
             Char    => write!(f, "char"),
-            Unit    => write!(f, "()")
+            Unit    => write!(f, "()"),
+            Err     => write!(f, "[type error]"),
         }
     }
 }
 
-impl fmt::Debug for Value {
+impl fmt::Display for Value {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         use self::Value::*;
 
@@ -422,7 +466,7 @@ impl fmt::Debug for Value {
     }
 }
 
-impl fmt::Debug for BinOp {
+impl fmt::Display for BinOp {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         use self::BinOp::*;
 
@@ -450,7 +494,7 @@ impl fmt::Debug for BinOp {
     }
 }
 
-impl fmt::Debug for UnOp {
+impl fmt::Display for UnOp {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         use self::UnOp::*;
 
@@ -461,7 +505,7 @@ impl fmt::Debug for UnOp {
     }
 }
 
-impl fmt::Debug for Ident {
+impl fmt::Display for Ident {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "{}", session().interner.resolve(*self))
     }

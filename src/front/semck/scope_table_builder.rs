@@ -1,6 +1,7 @@
 //! Build the scope table and make sure all variables/symbols can be resolved
 
 use ast::*;
+use driver::session;
 use driver::symbol_table::SymbolTable;
 use util::visit::*;
 
@@ -40,7 +41,7 @@ impl<'a> ScopeTableBuilder<'a> {
         // Register arguments in scope table
         for binding in bindings {
             self.sytbl.register_variable(scope, &binding).unwrap_or_else(|_| {
-                fatal_at!("multiple parameters with name: `{:?}`", binding.name; &binding.name);
+                fatal_at!("multiple parameters with name: `{}`", binding.name; &binding.name);
             });
         }
     }
@@ -51,13 +52,15 @@ impl<'a> ScopeTableBuilder<'a> {
             name
         } else {
             fatal_at!("cannot call non-function"; expr);
+            return
         };
 
         // Look up the symbol in the symbol table
         let symbol = if let Some(symbol) = self.sytbl.lookup_symbol(name) {
             symbol
         } else {
-            fatal_at!("no such function: `{:?}`", &*name; expr)
+            fatal_at!("no such function: `{}`", &*name; expr);
+            return
         };
 
         // Verify the symbol is a function
@@ -69,40 +72,23 @@ impl<'a> ScopeTableBuilder<'a> {
     }
 
     fn resolve_variable(&self, name: &Node<Ident>) {
-        let mut current_scope = self.current_scope
+        let current_scope = self.current_scope
             .expect("resolving a variable without a containing scope");
 
-        // First, look in the current block and its parents
-        loop {
-            if let Some(_) = self.sytbl.lookup_variable(current_scope, name) {
-                return  // Everything's okay
-            }
-
-            if let Some(parent) = self.sytbl.parent_scope(current_scope) {
-                // Continue searching in the parent scope
-                current_scope = parent
-            } else {
-                break  // No more parent scopes, search in statics/consts
-            }
-        }
-
-        // Look up in static/const symbols
-        match self.sytbl.lookup_symbol(name) {
-            Some(&Symbol::Static { .. }) | Some(&Symbol::Constant { .. }) => {
-                return  // Everything's okay
-            }
-            Some(_) | None => {}  // Variable not found or refers to a function
-        }
-
-        fatal_at!("variable `{:?}` not declared", &*name; name)
+        match self.sytbl.resolve_variable(current_scope, name) {
+            Some(..) => {},
+            None => fatal_at!("variable `{}` not declared", &*name; name)
+        };
     }
 
     fn resolve_declaration(&mut self, binding: &Node<Binding>) {
         let scope = self.current_scope
             .expect("resolving a declaration without a containing scope");
 
-        self.sytbl.register_variable(scope, binding)
-            .unwrap_or_else(|_| fatal_at!("cannot redeclare `{:?}`", binding.name; binding));
+        match self.sytbl.register_variable(scope, binding) {
+            Ok(..) => {},
+            Err(..) => fatal_at!("cannot redeclare `{}`", binding.name; binding)
+        };
     }
 }
 
@@ -165,4 +151,6 @@ impl<'v> Visitor<'v> for ScopeTableBuilder<'v> {
 pub fn run(program: &Program, symbol_table: &mut SymbolTable) {
     let mut visitor = ScopeTableBuilder::new(symbol_table);
     walk_program(&mut visitor, program);
+
+    session().abort_if_errors();
 }

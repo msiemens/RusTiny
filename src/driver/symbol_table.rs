@@ -66,13 +66,53 @@ impl<'a> SymbolTable {
     /// # Panics
     ///
     /// Panics when the scope doesn't exist
-    pub fn lookup_variable(&self, scope: NodeId, name: &Ident) -> Option<&Type> {
-        self.scopes[scope].vars.get(name)
+    pub fn lookup_variable(&self, scope: NodeId, name: &Ident) -> Option<Type> {
+        self.scopes[scope].vars.get(name).map(|ty| *ty)
     }
 
     /// Look up a symbol
     pub fn lookup_symbol(&self, name: &Ident) -> Option<&Symbol> {
         self.symbols.get(name)
+    }
+
+    /// Look up a function's argument types and the return type
+    pub fn lookup_function(&self, name: &Ident) -> Option<(Vec<Node<Binding>>, Type)> {
+        self.symbols.get(name).and_then(|symbol| {
+            if let Symbol::Function { name: _, ref bindings, ref ret_ty, body: _ } = *symbol {
+                Some(bindings.iter().cloned().collect(), *ret_ty)
+            } else {
+                None
+            }
+        })
+    }
+
+
+    /// Look up the type of a variable
+    pub fn resolve_variable(&self, mut scope: NodeId, name: &Ident) -> Option<Type> {
+        // First, look in the current block and its parents
+        loop {
+            if let Some(ty) = self.lookup_variable(scope, name) {
+                return Some(ty)
+            }
+
+            if let Some(parent) = self.parent_scope(scope) {
+                // Continue searching in the parent scope
+                scope = parent
+            } else {
+                break  // No more parent scopes, search in statics/consts
+            }
+        }
+
+        // Look up in static/const symbols
+        match self.lookup_symbol(name) {
+            Some(&Symbol::Static { ref binding, value: _ }) => {
+                return Some(binding.ty)
+            },
+            Some(&Symbol::Constant { ref binding, value: _ }) => {
+                return Some(binding.ty)
+            }
+            Some(_) | None => return None  // Variable not found or refers to a function
+        }
     }
 
 

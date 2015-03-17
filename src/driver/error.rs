@@ -45,6 +45,15 @@ fn colors_enabled() -> bool {
     })
 }
 
+
+/// Abort compilation
+pub fn abort() -> ! {
+    // The Rust compiler uses this to abort execution, too
+    io::set_panic(Box::new(io::sink()));
+    panic!();
+}
+
+
 /// Helper for printing the `Error` string
 /// If stderr is not redirected, the string will be colored
 fn print_error(stderr: &mut io::Stderr) {
@@ -57,29 +66,20 @@ fn print_error(stderr: &mut io::Stderr) {
 
 /// Report a fatal error
 // FIXME: Add a macro with format!(...)
-pub fn fatal(msg: String) -> ! {
+pub fn fatal(msg: String) {
     let mut stderr = io::stderr();
 
     print_error(&mut stderr);
     writeln!(&mut stderr, ": {}", msg).ok();
-
-    // The Rust compiler uses this to abort execution
-    io::set_panic(Box::new(io::sink()));
-    panic!();
 }
 
 
 /// Report a fatal error at a source location
-pub fn fatal_at<L: HasSourceLocation>(msg: String, loc: L) -> ! {
+pub fn fatal_at(msg: String, source: Loc) {
     let mut stderr = io::stderr();
-
-    let source = loc.loc();
 
     print_error(&mut stderr);
     writeln!(&mut stderr, " in line {}:{}: {}", source.line, source.col, msg).ok();
-
-    io::set_panic(Box::new(io::sink()));
-    panic!();
 }
 
 
@@ -95,10 +95,8 @@ fn print_warning(stderr: &mut io::Stderr) {
 }
 
 /// Report a warning
-pub fn warn<L: HasSourceLocation>(msg: String, loc: L) {
+pub fn warn(msg: String, source: Loc) {
     let mut stderr = io::stderr();
-
-    let source = loc.loc();
 
     print_warning(&mut stderr);
     writeln!(&mut stderr, ": {}", msg).ok();
@@ -106,10 +104,8 @@ pub fn warn<L: HasSourceLocation>(msg: String, loc: L) {
 
 
 /// Report a warning at a source location
-pub fn warn_at<L: HasSourceLocation>(msg: String, loc: L) {
+pub fn warn_at(msg: String, source: Loc) {
     let mut stderr = io::stderr();
-
-    let source = loc.loc();
 
     print_warning(&mut stderr);
     writeln!(&mut stderr, " in line {}:{}: {}", source.line, source.col, msg).ok();

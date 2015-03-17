@@ -3,56 +3,18 @@
 //! # Motivation
 //!
 //! The driver is responsible for coordinating all steps of compilation.
-//!
-//! # The Session
-//!
-//! Some modules are needed throughout almost all parts of the code. This
-//! could be implemented by passing a Session struct to every step. But
-//! this results in a rather ugly design and might lead to problems when
-//! different modules run interleaved (e.g. lexing and parsing). Thus,
-//! we store the current Session in the thread local storage and provide
-//! a method for accessing it (`driver::session()`).
-//!
-//! In `driver::session()` we only can hand out an immutable reference
-//! to the current Session. Thus, to modify the current session, its members
-//! have to rely on interior mutability (methods looking immutable but
-//! actually modifying the session, implemented by a RefCell).
-//! This isn't a really clean solution either, but it's better than the
-//! alternatives IMO.
 
-use std::rc::Rc;
 use front;
-use self::codemap::Codemap;
-use self::interner::Interner;
 
-
-pub use self::error::{fatal, fatal_at};
+pub use self::session::session;
+//pub use self::error::abort;
 
 
 pub mod codemap;
 mod error;
 mod interner;
 pub mod symbol_table;
-
-
-/// The current compiling session
-pub struct Session {
-    pub codemap: Codemap,
-    pub interner: Interner,
-}
-
-
-/// Get a reference to the thread local session object
-pub fn session() -> Rc<Session> {
-    thread_local! {
-        static SESSION: Rc<Session> = Rc::new(Session {
-            codemap: Codemap::new(),
-            interner: Interner::new(),
-        })
-    };
-
-    SESSION.with(|o| o.clone())
-}
+pub mod session;
 
 
 /// The main entry point for compiling a file

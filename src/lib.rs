@@ -1,13 +1,17 @@
 #![feature(collections)]
+#![feature(core)]
 #![feature(std_misc)]
 #![feature(set_panic)]
+#![feature(plugin)]
 
-#![deny(unused_imports)]
 #![deny(unused_features)]
-#![deny(unused_variables)]
-#![deny(dead_code)]
 #![deny(deprecated)]
+#![warn(unused_variables)]
+#![warn(unused_imports)]
+#![warn(dead_code)]
 // #![warn(missing_docs)]
+
+#![plugin(rest_easy)]
 
 extern crate ansi_term;
 extern crate term;

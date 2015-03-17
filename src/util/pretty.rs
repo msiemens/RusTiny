@@ -36,8 +36,8 @@ impl<'a, W: Write> PrettyPrinter<'a, W> {
 
     fn print_symbol(&mut self, symbol: &Symbol) {
         match *symbol {
-            Symbol::Static   { ref binding, ref value } => self.print_static(&binding, value),
-            Symbol::Constant { ref binding, ref value } => self.print_constant(&binding, value),
+            Symbol::Static   { ref binding, ref value } => self.print_static(&binding, &***value),
+            Symbol::Constant { ref binding, ref value } => self.print_constant(&binding, &***value),
             Symbol::Function {
                 ref name,
                 ref bindings,
@@ -47,12 +47,16 @@ impl<'a, W: Write> PrettyPrinter<'a, W> {
         }
     }
 
-    fn print_static(&mut self, binding: &Binding, value: &Value) {
-        write!(self.out, "static {:?} = {:?};\n", binding, value).ok();
+    fn print_static(&mut self, binding: &Binding, value: &Expression) {
+        write!(self.out, "static {:?} = ", binding).ok();
+        self.print_expression(value);
+        write!(self.out, ";\n").ok();
     }
 
-    fn print_constant(&mut self, binding: &Binding, value: &Value) {
-        write!(self.out, "const {:?} = {:?};\n", binding, value).ok();
+    fn print_constant(&mut self, binding: &Binding, value: &Expression) {
+        write!(self.out, "const {:?} = ", binding).ok();
+        self.print_expression(value);
+        write!(self.out, ";\n").ok();
     }
 
     fn print_function(&mut self,

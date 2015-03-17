@@ -1,6 +1,7 @@
 //! Build the symbol table and check for duplicate definitions
 
 use ast::*;
+use driver::session;
 use driver::symbol_table::SymbolTable;
 use util::visit::*;
 
@@ -21,9 +22,10 @@ impl<'v> Visitor<'v> for SymbolTableBuilder<'v> {
     fn visit_symbol(&mut self, symbol: &'v Node<Symbol>) {
         let name = symbol.get_ident();
 
-        self.sytbl.register_symbol(name, symbol.clone_without_body())
-            .map_err(|_| fatal_at!("cannot redeclare `{}`", &*name; symbol))
-            .unwrap();
+        match self.sytbl.register_symbol(name, symbol.clone_without_body()) {
+            Ok(..) => {},
+            Err(..) => fatal_at!("cannot redeclare `{}`", &*name; symbol)
+        };
     }
 }
 
@@ -31,4 +33,6 @@ impl<'v> Visitor<'v> for SymbolTableBuilder<'v> {
 pub fn run(program: &Program, symbol_table: &mut SymbolTable) {
     let mut visitor = SymbolTableBuilder::new(symbol_table);
     walk_program(&mut visitor, program);
+
+    session().abort_if_errors();
 }

@@ -6,7 +6,7 @@ use driver;
 
 // --- List of tokens -----------------------------------------------------------
 
-#[derive(Copy, Eq, PartialEq, Hash)]
+#[derive(Copy, Debug, Eq, PartialEq, Hash)]
 pub enum Token {
     BinOp(BinOp),
     UnOp(UnOp),
@@ -68,13 +68,13 @@ pub enum TokenType {
     Other
 }
 
-impl fmt::Debug for Token {
+impl fmt::Display for Token {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         use self::Token::*;
 
         match *self {
-            BinOp(ref op)       => write!(f, "{:?}", op),
-            UnOp(ref op)        => write!(f, "{:?}", op),
+            BinOp(ref op)       => write!(f, "{}", op),
+            UnOp(ref op)        => write!(f, "{}", op),
 
             LParen              => write!(f, "("),
             RParen              => write!(f, ")"),
@@ -89,9 +89,9 @@ impl fmt::Debug for Token {
             Int(i)              => write!(f, "{}", i),
             Char(c)             => write!(f, "{}", c),
 
-            Keyword(ref kw)     => write!(f, "{:?}", kw),
-            Ident(id)           => write!(f, "{:?}", id),
-            Type(ty)            => write!(f, "{:?}", ty),
+            Keyword(ref kw)     => write!(f, "{}", kw),
+            Ident(id)           => write!(f, "{}", id),
+            Type(ty)            => write!(f, "{}", ty),
             Token::EOF          => write!(f, "EOF"),
             Token::PLACEHOLDER  => write!(f, "PLACEHOLDER")
         }
@@ -103,12 +103,12 @@ impl fmt::Debug for Token {
 
 macro_rules! keywords(
     ($($kw:ident => $name:expr),*) => {
-        #[derive(Copy, Eq, PartialEq, Hash)]
+        #[derive(Copy, Debug, Eq, PartialEq, Hash)]
         pub enum Keyword {
             $($kw),*
         }
 
-        impl fmt::Debug for Keyword {
+        impl fmt::Display for Keyword {
             fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
                 use self::Keyword::*;
 

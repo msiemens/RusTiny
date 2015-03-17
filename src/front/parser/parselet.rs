@@ -239,7 +239,7 @@ impl InfixParselet for BinaryOperatorParselet {
 
         let precedence = self.preced - match self.assoc { Left => 0, Right => 1 };
 
-        if parser.token == Token::Eq {
+        if parser.token == Token::Eq && op != BinOp::And && op != BinOp::Or {
             parser.bump();
             let right = parser.parse_expression_with_precedence(precedence);
 

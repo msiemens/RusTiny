@@ -69,7 +69,8 @@ impl<'a> Lexer<'a> {
 
     /// Report a fatal error back to the user
     fn fatal(&self, msg: String) -> ! {
-        fatal_at!(msg; self.get_source())
+        fatal_at!(msg; self.get_source());
+        session().abort()
     }
 
     /// Are we done yet?
