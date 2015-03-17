@@ -21,19 +21,23 @@ using special comments:
 
 from collections import namedtuple
 from pathlib import Path
+import os
 import subprocess
 import sys
 import re
 
-import colorama
 from termcolor import cprint, colored
 
-
-colorama.init()
 
 RUSTINY_DIR = Path(__file__).resolve().parents[1]
 TEST_DIR = RUSTINY_DIR / 'tests'
 COMPILER = RUSTINY_DIR / 'target' / 'debug' / 'rustiny'
+
+if os.name == 'nt':
+    import colorama
+    colorama.init()
+
+    COMPILER = COMPILER.with_suffix('.exe')
 
 
 # --- HELPER CLASSES ----------------------------------------------------------
@@ -148,7 +152,7 @@ def parse_expectations(filename: Path):
 def collect_tests(name):
     for cat in (TEST_DIR / name).iterdir():
         for test in (TEST_DIR / cat).iterdir():
-            yield cat.parts[-1], test
+            yield cat.name, test
 
 
 def tests_compiler():
@@ -163,7 +167,7 @@ def tests_compile_fail():
     cprint('Running compile-fail tests...', 'blue')
 
     for category, test in collect_tests('compile-fail'):
-        test_name = test.parts[-1]
+        test_name = test.name
         print('Testing {}/{} ... '.format(category, test_name), end='')
 
         expectations = parse_expectations(test)
