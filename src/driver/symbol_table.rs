@@ -79,7 +79,7 @@ impl<'a> SymbolTable {
     pub fn lookup_function(&self, name: &Ident) -> Option<(Vec<Node<Binding>>, Type)> {
         self.symbols.get(name).and_then(|symbol| {
             if let Symbol::Function { name: _, ref bindings, ref ret_ty, body: _ } = *symbol {
-                Some(bindings.iter().cloned().collect(), *ret_ty)
+                Some((bindings.iter().cloned().collect(), *ret_ty))
             } else {
                 None
             }

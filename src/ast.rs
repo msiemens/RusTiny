@@ -35,7 +35,7 @@ impl FromStr for Type {
 }
 
 
-#[derive(Clone, Debug)]
+#[derive(Copy, Clone, Debug)]
 pub enum Value {
     Bool(bool),
     Int(u32),
@@ -106,6 +106,7 @@ pub enum BinOp {
     Gt
 }
 
+#[derive(Copy)]
 pub enum BinOpType {
     Arithmetic,
     Logic,

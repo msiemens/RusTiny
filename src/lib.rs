@@ -9,6 +9,7 @@
 #![warn(unused_variables)]
 #![warn(unused_imports)]
 #![warn(dead_code)]
+#![warn(missing_copy_implementations)]
 // #![warn(missing_docs)]
 
 #![plugin(rest_easy)]
