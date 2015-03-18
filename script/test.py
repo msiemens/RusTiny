@@ -265,3 +265,6 @@ if __name__ == '__main__':
     tests_run_pass()
 
     print_results()
+
+    if session.failed > 0:
+        sys.exit(1)
