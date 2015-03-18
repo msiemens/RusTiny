@@ -12,8 +12,6 @@
 #![warn(missing_copy_implementations)]
 // #![warn(missing_docs)]
 
-#![plugin(rest_easy)]
-
 extern crate ansi_term;
 extern crate term;
 #[macro_use] extern crate lazy_static;

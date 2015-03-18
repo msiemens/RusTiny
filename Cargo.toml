@@ -22,6 +22,3 @@ lazy_static = "*"
 log = "*"
 rustc-serialize = "*"
 term = "*"
-
-[dependencies.rest_easy]
-git = "https://github.com/cmr/rest_easy"
