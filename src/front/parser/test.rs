@@ -15,7 +15,7 @@ macro_rules! ast_assert(
         if let $pat { $(ref $v),* } = $cmp {
             ($($v),*)
         } else {
-            panic!("Expected a {}, got ???", stringify!($pat));
+            panic!("Expected a {}, got {:?}", stringify!($pat), $cmp);
         }
     )
 );
@@ -45,7 +45,6 @@ fn operator_precedence_prefix_exponent() {
 
     let (op, _, _) = ast_assert!(Expression::Infix { op, lhs, rhs } == ***item);
     assert_eq!(*op, BinOp::Pow);
-
 }
 
 

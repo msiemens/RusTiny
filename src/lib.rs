@@ -1,7 +1,6 @@
 #![feature(collections)]
-#![feature(core)]
 #![feature(std_misc)]
-#![feature(set_panic)]
+#![feature(set_stdio)]
 #![feature(plugin)]
 
 #![deny(unused_features)]

@@ -60,12 +60,12 @@ impl ParseletManager {
     }
 
     /// Look up the prefix parselet for a token
-    pub fn lookup_prefix(&self, token: Token) -> Option<&PrefixParselet> {
+    pub fn lookup_prefix(&self, token: Token) -> Option<&(PrefixParselet + Sync)> {
         self.prefix.get(&token.ty()).map(|p| &**p)
     }
 
     /// Look up the infix parselet for a token
-    pub fn lookup_infix(&self, token: Token) -> Option<&InfixParselet> {
+    pub fn lookup_infix(&self, token: Token) -> Option<&(InfixParselet + Sync)> {
         self.infix.get(&token.ty()).map(|p| &**p)
     }
 

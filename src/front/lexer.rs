@@ -1,6 +1,7 @@
 //! The lexer: split the source into a stream of tokens
 
 use std::borrow::ToOwned;
+use std::str::CharIndices;
 use ast::{BinOp, UnOp, Spanned};
 use driver::session;
 use driver::codemap::Loc;
@@ -11,6 +12,7 @@ pub struct Lexer<'a> {
     source: &'a str,
     len: usize,
 
+    iter: CharIndices<'a>,
     pos: usize,
     curr: Option<char>,
 
@@ -22,12 +24,17 @@ impl<'a> Lexer<'a> {
 
     /// Create a new lexer from a given string and file name
     pub fn new(source: &'a str, _: &'a str) -> Lexer<'a> {
+        let mut iter = source.char_indices();
+        let (pos, curr) = iter.next().unwrap();
+
         Lexer {
             source: source,
             len: source.len(),
 
-            pos: 0,
-            curr: Some(source.char_at(0)),
+            pos: pos,
+            curr: Some(curr),
+
+            iter: iter,
 
             lineno: 1
         }
@@ -80,44 +87,22 @@ impl<'a> Lexer<'a> {
 
     /// Get the current source position we're at
     pub fn get_source(&self) -> Loc {
-        Loc {
-            line: self.lineno as u32,
-            col: 0  // FIXME: Column number resolution
-        }
+        session().codemap.resolve(self.pos as u32)
     }
 
     // --- Lexer: Character processing ------------------------------------------
 
     /// Move along to the next character
     fn bump(&mut self) {
-        self.curr = self.nextch();
-        self.pos = self.nextch_index();
+        if let Some((pos, curr)) = self.iter.next() {
+            self.curr = Some(curr);
+            self.pos = pos;
+        } else {
+            self.curr = None;
+            self.pos = self.source.len();
+        }
 
         debug!("Moved on to {:?}", self.curr)
-    }
-
-    fn nextch_index(&self) -> usize {
-        // When encountering multi-byte UTF-8, we may stop in the middle
-        // of it. Fast forward till we see the next actual char or EOF
-
-        let mut new_pos = self.pos + 1;
-        while !self.source.is_char_boundary(new_pos)
-                && self.pos < self.len {
-            new_pos += 1;
-        }
-
-        new_pos
-    }
-
-    /// Take a look at the next character without consuming it
-    fn nextch(&self) -> Option<char> {
-        let new_pos = self.nextch_index();
-
-        if new_pos < self.len {
-            Some(self.source.char_at(new_pos))
-        } else {
-            None
-        }
     }
 
     /// An escaped representation of the current character
@@ -132,14 +117,13 @@ impl<'a> Lexer<'a> {
     fn expect(&mut self, expect: char) {
         if self.curr != Some(expect) {
             // Build error message
-            let expect_str = format!("`{}`", expect);
             let found_str = match self.curr {
-                Some(_) => format!("'{}'", self.curr_escaped()),
+                Some(_) => format!("`{}`", self.curr_escaped()),
                 None    => String::from_str("EOF")
             };
 
-            self.fatal(format!("Expected `{}`, found `{}`",
-                               expect_str, found_str))
+            self.fatal(format!("Expected `{}`, found {}",
+                               expect, found_str))
         }
 
         // Consume the current character
@@ -152,7 +136,7 @@ impl<'a> Lexer<'a> {
     {
         let start = self.pos;
 
-        debug!("start colleting");
+        debug!("start colleting (start = {}, char = {:?})", start, self.curr);
 
         while let Some(c) = self.curr {
             if cond(&c) {
@@ -162,7 +146,7 @@ impl<'a> Lexer<'a> {
             }
         }
 
-        debug!("colleting finished");
+        debug!("colleting finished (pos = {})", self.pos);
 
         &self.source[start..self.pos]
     }
@@ -206,7 +190,7 @@ impl<'a> Lexer<'a> {
         let integer_str = self.collect(|c| c.is_numeric());
         let integer     = match integer_str.parse() {
             Ok(i) => i,
-            Err(_) => self.fatal(format!("invalid integer: {}", integer_str))
+            Err(_) => self.fatal(format!("invalid integer: `{}`", integer_str))
         };
 
         Token::Int(integer)
@@ -333,8 +317,8 @@ impl<'a> Lexer<'a> {
                 // Skip whitespaces of any type
                 if c == '\n' {
                     self.lineno += 1;
-                    let offset = if self.nextch() == Some('\r') { 2 } else { 1 };
-                    session().codemap.new_line(self.pos as u32 + offset)
+                    //let offset = if self.nextch() == Some('\r') { 2 } else { 1 };
+                    session().codemap.new_line(self.pos as u32 + 1)
                 }
 
                 self.bump();
