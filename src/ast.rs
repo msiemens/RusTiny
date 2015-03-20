@@ -59,9 +59,8 @@ impl Value {
 pub enum UnOp {
     /// `!`
     Not,
-    /// `-`, not actually used because the lexer doesn't know the difference
-    /// between UnOp::Neg and BinOp::Sub and always uses the latter.
-    Neg  // TODO: Think about removing this
+    /// `-`
+    Neg
 }
 
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Hash)]
@@ -191,20 +190,23 @@ pub struct Node<T> {
 
 impl<T> Node<T> {
     pub fn new(t: T, s: Span) -> Node<T> {
+        Node { node: t, span: s, id: NodeId(Node::<T>::get_next_id()) }
+    }
+
+    pub fn dummy(t: T) -> Node<T> {
+        Node { node: t, span: EMPTY_SPAN, id: NodeId(-1) }
+    }
+
+    fn get_next_id() -> u32 {
         thread_local!{
             static CURRENT_NODE_ID: Cell<u32> = Cell::new(0)
         };
-        let node_id = CURRENT_NODE_ID.with(|c| {
+
+        CURRENT_NODE_ID.with(|c| {
             let id = c.get();
             c.set(id + 1);
             id
-        });
-
-        Node { node: t, span: s, id: NodeId(node_id) }
-    }
-
-    pub fn unwrap(self) -> T {
-        self.node
+        })
     }
 }
 
@@ -262,21 +264,19 @@ impl Symbol {
     }
 
     /// Clone the current symbol but strip the body if it's a function
-    // FIXME: Is there a better solution?
-    pub fn clone_without_body(&self) -> Symbol {
-        match *self {
-            Symbol::Static { .. } | Symbol::Constant { .. } => (*self).clone(),
-            Symbol::Function { ref name, ref bindings, ref ret_ty, body: _ } => {
-                Symbol::Function {
-                    name: (*name).clone(),
-                    bindings: (*bindings).clone(),
-                    ret_ty: *ret_ty,
-                    body: Box::new(Node::new(Block { stmts: vec![],
-                                                     expr: Box::new(Node::new(Expression::Unit, EMPTY_SPAN)) },
-                                             EMPTY_SPAN))
-                }
+    pub fn clone_stripped(&self) -> Symbol {
+        let mut clone = (*self).clone();
+        match clone {
+            Symbol::Static { .. } | Symbol::Constant { .. } => {},
+            Symbol::Function { ref mut body, .. } => {
+                *body = Box::new(Node::dummy(Block {
+                    stmts: vec![],
+                    expr: Box::new(Node::dummy(Expression::Unit))
+                }))
             }
-        }
+        };
+
+        clone
     }
 }
 

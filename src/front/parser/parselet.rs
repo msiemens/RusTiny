@@ -191,8 +191,8 @@ define_prefix!(PrefixOperatorParselet:
         let operand = parser.parse_expression();
         let op = match token {
             Token::UnOp(op) => op,
-            Token::BinOp(BinOp::Sub) => UnOp::Neg,  // FIXME
-            _ => parser.unexpected_token(Some("an unary operator"))
+            Token::BinOp(BinOp::Sub) => UnOp::Neg,
+            _ => parser.unexpected_token(Some("a unary operator"))
         };
 
         let hi = operand.span;

@@ -22,7 +22,7 @@ impl<'v> Visitor<'v> for SymbolTableBuilder<'v> {
     fn visit_symbol(&mut self, symbol: &'v Node<Symbol>) {
         let name = symbol.get_ident();
 
-        match self.sytbl.register_symbol(name, symbol.clone_without_body()) {
+        match self.sytbl.register_symbol(name, symbol.clone_stripped()) {
             Ok(..) => {},
             Err(..) => fatal_at!("cannot redeclare `{}`", &*name; symbol)
         };

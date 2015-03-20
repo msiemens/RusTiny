@@ -16,10 +16,45 @@
 //! what exactly `Codemap::lines` stores and which offset is 0-based and
 //! which one is 1-based. But hey, it works!
 
-// TODO: Clear up 0-based vs 1-based offsets
 // TODO: Let the codemap own the source string
 
 use std::cell::RefCell;
+use std::ops::{Add, Sub};
+
+
+#[derive(Copy, Clone, Debug, PartialEq, PartialOrd)]
+pub struct BytePos(pub u32);
+
+impl BytePos {
+    pub fn as_int(&self) -> u32 {
+        let BytePos(i) = *self;
+        i
+    }
+}
+
+impl Add for BytePos {
+    type Output = BytePos;
+
+    fn add(self, rhs: BytePos) -> BytePos {
+        BytePos((self.as_int() + rhs.as_int()) as u32)
+    }
+}
+
+impl Add<u32> for BytePos {
+    type Output = BytePos;
+
+    fn add(self, rhs: u32) -> BytePos {
+        BytePos((self.as_int() + rhs) as u32)
+    }
+}
+
+impl Sub for BytePos {
+    type Output = BytePos;
+
+    fn sub(self, rhs: BytePos) -> BytePos {
+        BytePos((self.as_int() - rhs.as_int()) as u32)
+    }
+}
 
 
 /// A source location (used for error reporting)
@@ -34,57 +69,68 @@ pub struct Loc {
 
 pub struct Codemap {
     /// Mapping of the line number to the start index
-    lines: RefCell<Vec<u32>>
+    lines: RefCell<Vec<BytePos>>
 }
 
 impl Codemap {
     /// Create a new Codemap instance
     pub fn new() -> Codemap {
         let mut lines = Vec::new();
-        lines.push(0);
+        lines.push(BytePos(0));
 
         Codemap { lines: RefCell::new(lines) }
     }
 
     /// Register the beginning of a new line at a given offset
-    /// N.B. offset is 1-based
-    pub fn new_line(&self, offset: u32) {
-        self.lines.borrow_mut().push(offset - 1)
+    pub fn new_line(&self, pos: BytePos) {
+        let mut lines = self.lines.borrow_mut();
+        let line_count = lines.len();
+
+        assert!(line_count == 0 || (lines[line_count - 1] < pos));
+        lines.push(pos)
     }
 
     /// Get the source location of an offset
-    /// N.B. char_pos is 0-based!
-    pub fn resolve(&self, char_pos: u32) -> Loc {
+    pub fn resolve(&self, mut pos: BytePos) -> Loc {
         let lines = self.lines.borrow();
 
-        debug!("char_pos: {:?}", char_pos);
+        debug!("pos: {:?}", pos);
         debug!("lines: {:?}", lines);
 
-        let line = lines
-            .iter()
-            .position(|p| *p >= char_pos)  // The first line where offset >= char_pos
-            .unwrap_or(lines.len()) - 1;   // Go back one line
+        // Binary search for the index at which the offset is <= pos
+        let mut lower = 0;
+        let mut upper = lines.len();
 
-        // FIXME: That seems *very* hacky. Can we do better?
-        if line == 0 {
-            return Loc {
-                line: 1,
-                col: char_pos + 1
+        while upper - lower > 1 {
+            let mid = (lower + upper) / 2;
+            let offset = lines[mid];
+            if offset > pos {
+                // Continue on the left
+                upper = mid;
+            } else {
+                // Continue on the right
+                lower = mid;
             }
         }
 
+        let line = lower;
         let offset = lines[line];
+
+        // FIXME: Why is this needed?
+        if line == 0 {
+            pos = pos + 1;
+        }
 
         debug!("line: {:?}", line);
         debug!("offset: {:?}", offset);
 
-        debug_assert!(char_pos >= offset,
-                      "char_pos ({}) >= offset ({})\nlines: {:?}\nline:{}",
-                      char_pos, offset, lines, line);
+        debug_assert!(pos >= offset,
+                      "pos ({:?}) >= offset ({:?})\nlines: {:?}\nline:{:?}",
+                      pos, offset, lines, line);
 
         Loc {
             line: line as u32 + 1,
-            col: char_pos - offset
+            col: (pos - offset).as_int()
         }
     }
 }

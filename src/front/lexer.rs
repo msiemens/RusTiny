@@ -4,7 +4,7 @@ use std::borrow::ToOwned;
 use std::str::CharIndices;
 use ast::{BinOp, UnOp, Spanned};
 use driver::session;
-use driver::codemap::Loc;
+use driver::codemap::{BytePos, Loc};
 use front::tokens::{Token, lookup_keyword};
 
 
@@ -50,26 +50,6 @@ impl<'a> Lexer<'a> {
         Spanned::new(Token::EOF, self.pos as u32, self.pos as u32)
     }
 
-    /// Tokenize the string into a vector. Used for testing
-    /*
-    // FIXME: Can this be removed?
-    pub fn tokenize(&mut self) -> Vec<Spanned<Token>> {
-        let mut tokens = vec![];
-
-        while !self.is_eof() {
-            debug!("Processing {:?}", self.curr);
-
-            if let Some(t) = self.read_token() {
-                tokens.push(t);
-            }
-
-            debug!("So far: {:?}", tokens)
-        }
-
-        tokens
-    }
-    */
-
     // --- Lexer: Helpers -------------------------------------------------------
 
     /// Report a fatal error back to the user
@@ -85,7 +65,7 @@ impl<'a> Lexer<'a> {
 
     /// Get the current source position we're at
     pub fn get_source(&self) -> Loc {
-        session().codemap.resolve(self.pos as u32)
+        session().codemap.resolve(BytePos(self.pos as u32))
     }
 
     // --- Lexer: Character processing ------------------------------------------
@@ -316,7 +296,7 @@ impl<'a> Lexer<'a> {
                 if c == '\n' {
                     self.lineno += 1;
                     //let offset = if self.nextch() == Some('\r') { 2 } else { 1 };
-                    session().codemap.new_line(self.pos as u32 + 1)
+                    session().codemap.new_line(BytePos(self.pos as u32))
                 }
 
                 self.bump();

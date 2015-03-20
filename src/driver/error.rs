@@ -9,7 +9,7 @@ use std::io::{self, Write};
 use term;
 use ast::{Node, Span};
 use driver;
-use driver::codemap::Loc;
+use driver::codemap::{BytePos, Loc};
 
 
 pub trait HasSourceLocation {
@@ -24,7 +24,7 @@ impl<'a, T> HasSourceLocation for &'a Node<T> {
 
 impl HasSourceLocation for Span {
     fn loc(&self) -> Loc {
-        driver::session().codemap.resolve(self.pos)
+        driver::session().codemap.resolve(BytePos(self.pos))
     }
 }
 
@@ -65,7 +65,6 @@ fn print_error(stderr: &mut io::Stderr) {
 }
 
 /// Report a fatal error
-// FIXME: Add a macro with format!(...)
 pub fn fatal(msg: String) {
     let mut stderr = io::stderr();
 
