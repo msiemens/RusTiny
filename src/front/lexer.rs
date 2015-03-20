@@ -10,7 +10,6 @@ use front::tokens::{Token, lookup_keyword};
 
 pub struct Lexer<'a> {
     source: &'a str,
-    len: usize,
 
     iter: CharIndices<'a>,
     pos: usize,
@@ -29,7 +28,6 @@ impl<'a> Lexer<'a> {
 
         Lexer {
             source: source,
-            len: source.len(),
 
             pos: pos,
             curr: Some(curr),
