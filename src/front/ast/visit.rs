@@ -15,7 +15,7 @@
 //! To continue walking the AST after visiting a node, the appropriate `walk_*`
 //! method should be called at the end of `visit_*`.
 
-use ast::*;
+use front::ast::*;
 
 
 pub trait Visitor<'v> : Sized {

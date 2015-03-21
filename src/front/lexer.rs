@@ -2,9 +2,9 @@
 
 use std::borrow::ToOwned;
 use std::str::CharIndices;
-use ast::{BinOp, UnOp, Spanned};
 use driver::session;
 use driver::codemap::{BytePos, Loc};
+use front::ast::{BinOp, UnOp, Spanned};
 use front::tokens::{Token, lookup_keyword};
 
 

@@ -6,13 +6,9 @@ use std::collections::hash_map::Entry;
 use std::hash::Hash;
 
 
-pub use self::pretty::PrettyPrinter;
 pub use self::io::read_file;
 
-
 mod io;
-mod pretty;
-pub mod visit;
 
 
 /// A helper that tries to insert a key/value into a hashmap and returns

@@ -1,6 +1,6 @@
 #![cfg(test)]
 
-use ast::*;
+use front::ast::*;
 use front::{Lexer, Parser};
 
 

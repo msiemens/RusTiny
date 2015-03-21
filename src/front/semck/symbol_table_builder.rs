@@ -1,9 +1,9 @@
 //! Build the symbol table and check for duplicate definitions
 
-use ast::*;
 use driver::session;
 use driver::symbol_table::SymbolTable;
-use util::visit::*;
+use front::ast::*;
+use front::ast::visit::*;
 
 
 struct SymbolTableBuilder<'a> {

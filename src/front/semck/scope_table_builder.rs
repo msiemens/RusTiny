@@ -1,9 +1,9 @@
 //! Build the scope table and make sure all variables/symbols can be resolved
 
-use ast::*;
 use driver::session;
 use driver::symbol_table::SymbolTable;
-use util::visit::*;
+use front::ast::*;
+use front::ast::visit::*;
 
 
 struct ScopeTableBuilder<'a> {

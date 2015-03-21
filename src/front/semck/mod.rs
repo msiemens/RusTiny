@@ -2,7 +2,7 @@
 //!
 //! Make sure the source program makes sense.
 
-use ast::Program;
+use front::ast::Program;
 use driver::symbol_table::SymbolTable;
 
 

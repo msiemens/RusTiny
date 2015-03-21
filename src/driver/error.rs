@@ -7,9 +7,9 @@
 use ansi_term::Colour::Red;
 use std::io::{self, Write};
 use term;
-use ast::{Node, Span};
 use driver;
 use driver::codemap::{BytePos, Loc};
+use front::ast::{Node, Span};
 
 
 pub trait HasSourceLocation {

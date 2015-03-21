@@ -1,8 +1,8 @@
 //! All tokens that RusTiny understands
 
 use std::fmt;
-use ast::{BinOp, UnOp, Ident};
 use driver;
+use front::ast::{BinOp, UnOp, Ident};
 
 // --- List of tokens -----------------------------------------------------------
 

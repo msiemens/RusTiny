@@ -8,8 +8,8 @@
 //! }
 //! ```
 
-use ast::*;
-use util::visit::*;
+use front::ast::*;
+use front::ast::visit::*;
 
 
 struct LValueCheck;

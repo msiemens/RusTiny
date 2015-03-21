@@ -18,7 +18,6 @@ extern crate term;
 
 #[macro_use] pub mod macros;
 
-pub mod ast;
 pub mod front;
 pub mod middle;
 pub mod back;

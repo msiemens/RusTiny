@@ -1,5 +1,6 @@
 //! The front end: parsing + semantic analysis
 
+pub mod ast;
 mod lexer;
 mod parser;
 mod tokens;

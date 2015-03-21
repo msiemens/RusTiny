@@ -4,7 +4,7 @@
 //! again.
 
 use std::io::Write;
-use ast::*;
+use front::ast::*;
 
 
 pub struct PrettyPrinter<'a, W: 'a> {

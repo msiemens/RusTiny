@@ -2,7 +2,7 @@
 // FIXME: More documentation
 
 use std::collections::HashMap;
-use ast::*;
+use front::ast::*;
 use front::tokens::{Token, TokenType, Keyword};
 use front::parser::Parser;
 

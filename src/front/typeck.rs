@@ -6,10 +6,10 @@
 //! If types mismatch, an error is reported.
 
 use std::collections::HashMap;
-use ast::*;
 use driver::session;
 use driver::symbol_table::SymbolTable;
-use util::visit::*;
+use front::ast::*;
+use front::ast::visit::*;
 
 
 /// Information about the current function

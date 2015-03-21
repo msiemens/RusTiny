@@ -21,7 +21,7 @@
 //! declared in this scope and optionally the ID of the parent scope.
 
 use std::collections::HashMap;
-use ast::*;
+use front::ast::*;
 use util::TryInsert;
 
 

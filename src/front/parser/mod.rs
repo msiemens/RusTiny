@@ -68,8 +68,8 @@
 //! CHAR:       '\'' ( [a-z] | [A-Z] | '\n' ) '\''
 //! ```
 
-use ast::*;
 use driver::session;
+use front::ast::*;
 use front::Lexer;
 use front::tokens::{Token, Keyword};
 use front::parser::parselet::PARSELET_MANAGER;
