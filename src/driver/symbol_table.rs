@@ -56,7 +56,8 @@ impl<'a> SymbolTable {
     ///
     /// Panics when the scope doesn't exist
     pub fn register_variable(&mut self, scope: NodeId, binding: &Binding) -> Result<(), &'static str> {
-        self.scopes[scope].vars.try_insert(*binding.name, binding.ty)
+        self.scopes.get_mut(&scope).expect(&format!("unregistered scope: {:?}", scope))
+            .vars.try_insert(*binding.name, binding.ty)
             .map_err(|()| "the variable already exists")
     }
 
@@ -122,7 +123,8 @@ impl<'a> SymbolTable {
     ///
     /// Panics when the scope doesn't exist
     pub fn set_parent_scope(&mut self, scope: NodeId, parent: NodeId) {
-        self.scopes[scope].parent = Some(parent)
+        let scope = self.scopes.get_mut(&scope).expect(&format!("unregistered scope: {:?}", scope));
+        scope.parent = Some(parent);
     }
 
     /// Get the parent scope of a scope
