@@ -36,7 +36,7 @@ impl Add for BytePos {
     type Output = BytePos;
 
     fn add(self, rhs: BytePos) -> BytePos {
-        BytePos((self.as_int() + rhs.as_int()) as u32)
+        BytePos(self.as_int() + rhs.as_int())
     }
 }
 
@@ -44,7 +44,7 @@ impl Add<u32> for BytePos {
     type Output = BytePos;
 
     fn add(self, rhs: u32) -> BytePos {
-        BytePos((self.as_int() + rhs) as u32)
+        BytePos(self.as_int() + rhs)
     }
 }
 
@@ -52,7 +52,7 @@ impl Sub for BytePos {
     type Output = BytePos;
 
     fn sub(self, rhs: BytePos) -> BytePos {
-        BytePos((self.as_int() - rhs.as_int()) as u32)
+        BytePos(self.as_int() - rhs.as_int())
     }
 }
 
