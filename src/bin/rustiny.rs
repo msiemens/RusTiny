@@ -5,7 +5,7 @@
 
 extern crate docopt;
 extern crate env_logger;
-extern crate "rustc-serialize" as rustc_serialize;
+extern crate rustc_serialize;
 extern crate rustiny;
 
 use docopt::Docopt;

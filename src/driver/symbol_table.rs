@@ -68,7 +68,7 @@ impl<'a> SymbolTable {
     ///
     /// Panics when the scope doesn't exist
     pub fn lookup_variable(&self, scope: NodeId, name: &Ident) -> Option<Type> {
-        self.scopes[scope].vars.get(name).map(|ty| *ty)
+        self.scopes[&scope].vars.get(name).map(|ty| *ty)
     }
 
     /// Look up a symbol
@@ -133,7 +133,7 @@ impl<'a> SymbolTable {
     ///
     /// Panics when the scope doesn't exist
     pub fn parent_scope(&self, scope: NodeId) -> Option<NodeId> {
-        self.scopes[scope].parent
+        self.scopes[&scope].parent
     }
 }
 
