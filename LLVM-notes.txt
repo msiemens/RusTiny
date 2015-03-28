@@ -1,0 +1,119 @@
+Function:
+- BasicBlock*
+
+BasicBlock:
+- <Value>
+- parent (Function)
+- Argument*
+    - <Value>
+    - Name
+    - Index
+- Instruction*
+- Attribute*
+    -
+- ValueSymbolTable
+    - Name -> Value
+
+Instruction:
+- parent (BasicBlock)
+- Type
+- Ops*
+- NumOps
+    // Terminator Instructions - These instructions are used to terminate a basic
+    // block of the program.   Every basic block must end with one of these
+    // instructions for it to be a well formed basic block.
+    //
+    Ret        , ReturnInst
+    Br         , BranchInst
+    Switch     , SwitchInst
+    IndirectBr , IndirectBrInst
+    Invoke     , InvokeInst
+    Resume     , ResumeInst
+    Unreachable, UnreachableInst
+
+    // Standard binary operators...
+    Add  , BinaryOperator
+    FAdd , BinaryOperator
+    Sub  , BinaryOperator
+    FSub , BinaryOperator
+    Mul  , BinaryOperator
+    FMul , BinaryOperator
+    UDiv , BinaryOperator
+    SDiv , BinaryOperator
+    FDiv , BinaryOperator
+    URem , BinaryOperator
+    SRem , BinaryOperator
+    FRem , BinaryOperator
+
+    // Logical operators (integer operands)
+    Shl  , BinaryOperator
+    LShr , BinaryOperator
+    AShr , BinaryOperator
+    And  , BinaryOperator
+    Or   , BinaryOperator
+    Xor  , BinaryOperator
+
+    // Memory operators...
+    Alloca, AllocaInst  // Stack management
+    Load  , LoadInst    // Memory manipulation instrs
+    Store , StoreInst
+    GetElementPtr, GetElementPtrInst
+    Fence , FenceInst
+    AtomicCmpXchg , AtomicCmpXchgInst
+    AtomicRMW , AtomicRMWInst
+
+    // Cast operators ...
+    Trunc   , TruncInst     // Truncate integers
+    ZExt    , ZExtInst      // Zero extend integers
+    SExt    , SExtInst      // Sign extend integers
+    FPToUI  , FPToUIInst    // floating point -> UInt
+    FPToSI  , FPToSIInst    // floating point -> SInt
+    UIToFP  , UIToFPInst    // UInt -> floating point
+    SIToFP  , SIToFPInst    // SInt -> floating point
+    FPTrunc , FPTruncInst   // Truncate floating point
+    FPExt   , FPExtInst     // Extend floating point
+    PtrToInt, PtrToIntInst  // Pointer -> Integer
+    IntToPtr, IntToPtrInst  // Integer -> Pointer
+    BitCast , BitCastInst   // Type cast
+    AddrSpaceCast, AddrSpaceCastInst  // addrspace cast
+
+    // Other operators...
+    ICmp   , ICmpInst     // Integer comparison instruction
+    FCmp   , FCmpInst     // Floating point comparison instr.
+    PHI    , PHINode      // PHI node instruction
+    Call   , CallInst     // Call a function
+    Select , SelectInst   // select instruction
+    UserOp1, Instruction  // May be used internally in a pass
+    UserOp2, Instruction  // Internal to passes only
+    VAArg  , VAArgInst    // vaarg instruction
+    ExtractElement, ExtractElementInst// extract from vector
+    InsertElement, InsertElementInst  // insert into vector
+    ShuffleVector, ShuffleVectorInst  // shuffle two vectors.
+    ExtractValue, ExtractValueInst// extract from aggregate
+    InsertValue, InsertValueInst  // insert into aggregate
+    LandingPad, LandingPadInst  // Landing pad instruction.
+
+Value:
+- Type
+- ValueName -> updates module's Symbol Table
+- ValueTy
+    Argument
+    BasicBlock
+    Function
+    GlobalAlias
+    GlobalVariable
+    UndefValue
+    BlockAddress
+    ConstantExpr
+    ConstantAggregateZero
+    ConstantDataArray
+    ConstantDataVector
+    ConstantInt
+    ConstantFP
+    ConstantArray
+    ConstantStruct
+    ConstantVector
+    ConstantPointerNull
+    MetadataAsValue
+    InlineAsm
+    Instruction
