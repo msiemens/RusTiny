@@ -25,6 +25,7 @@ use front::ast::*;
 use util::TryInsert;
 
 
+#[derive(Debug)]
 pub struct SymbolTable {
     scopes: HashMap<NodeId, BlockScope>,
     symbols: HashMap<Ident, Symbol>,
