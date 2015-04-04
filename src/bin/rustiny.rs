@@ -16,6 +16,7 @@ Usage: rustiny [options] <input>
        rustiny --help
 
 Options:
+    --ir            Emit IR only
     -o <output>     Write output to <output>
     --help          Show this screen
 ");
@@ -32,5 +33,5 @@ fn main() {
     let source = read_file(&args.arg_input);
 
     // Start compilation
-    rustiny::driver::compile_input(source, args.arg_input);
+    rustiny::driver::compile_input(source, args.arg_input, args.flag_ir);
 }

@@ -1,0 +1,11 @@
+fn main() {
+entry-block:
+    %a = alloca
+    store 1 %a
+    %2 = load %a
+    %1 = add %2 2
+    store %1 %a
+    jmp return
+return:
+    ret void
+}

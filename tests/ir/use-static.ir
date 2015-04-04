@@ -1,0 +1,10 @@
+static STATIC = 3
+
+fn main() {
+entry-block:
+    %1 = load @STATIC
+    %0 = add %1 2
+    jmp return
+return:
+    ret void
+}

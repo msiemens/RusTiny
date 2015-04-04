@@ -1,0 +1,19 @@
+fn foo() {
+entry-block:
+    %ret_slot = alloca
+    store 3 %ret_slot
+    jmp return
+return:
+    %1 = load %ret_slot
+    ret %1
+}
+
+fn main() {
+entry-block:
+    %a = alloca
+    %0 = call foo
+    store %0 %a
+    jmp return
+return:
+    ret void
+}

@@ -1,0 +1,22 @@
+fn foo(a, b) {
+entry-block:
+    %b = alloca
+    %a = alloca
+    %1 = load %a
+    %2 = load %b
+    %0 = add %1 %2
+    jmp return
+return:
+    ret void
+}
+
+fn main() {
+entry-block:
+    %a = alloca
+    store 2 %a
+    %1 = load %a
+    %0 = call foo 1 %1
+    jmp return
+return:
+    ret void
+}

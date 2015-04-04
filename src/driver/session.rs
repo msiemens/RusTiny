@@ -21,6 +21,7 @@ use std::rc::Rc;
 use driver::codemap::Codemap;
 use driver::error::{self, HasSourceLocation};
 use driver::interner::Interner;
+use driver::symbol_table::SymbolTable;
 
 
 /// The current compiling session
@@ -28,6 +29,7 @@ pub struct Session {
     pub codemap: Codemap,
     pub interner: Interner,
     pub errors: RefCell<bool>,
+    pub symbol_table: SymbolTable,
 }
 
 impl Session {
@@ -64,6 +66,7 @@ pub fn session() -> Rc<Session> {
             codemap: Codemap::new(),
             interner: Interner::new(),
             errors: RefCell::new(false),
+            symbol_table: SymbolTable::new()
         })
     };
 

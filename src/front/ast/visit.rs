@@ -61,9 +61,11 @@ pub fn walk_symbol<'v, V>(visitor: &mut V, symbol: &'v Node<Symbol>)
         where V: Visitor<'v>
 {
     match **symbol {
+        // FIXME: Visit value too?
         Symbol::Static { ref binding, .. } => {
             visitor.visit_binding(&*binding);
         },
+        // FIXME: Visit value too?
         Symbol::Constant { ref binding, .. } => {
             visitor.visit_binding(&*binding);
         },
@@ -101,7 +103,10 @@ pub fn walk_statement<'v, V>(visitor: &mut V, stmt: &'v Node<Statement>)
         where V: Visitor<'v>
 {
     match **stmt {
-        Statement::Declaration { ref binding, .. } => visitor.visit_binding(&*binding),
+        Statement::Declaration { ref binding, ref value } => {
+            visitor.visit_binding(&*binding);
+            visitor.visit_expression(&*value);
+        },
         Statement::Expression { ref val } => visitor.visit_expression(&*val)
     }
 }

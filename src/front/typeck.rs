@@ -119,7 +119,6 @@ impl<'a> TypeCheck<'a> {
             },
             Expression::Variable { ref name } => {
                 let scope = self.scope;
-
                 self.sytbl.resolve_variable(scope, name)
                     .unwrap_or_else(|| panic!("no variable named {}", name))
             },
@@ -274,6 +273,10 @@ impl<'a> TypeCheck<'a> {
 
         if let Some(ref altern) = *altern {
             self.check_block(altern, Some(conseq_ty));
+        } else if let Some(expected) = expected {
+            if expected != Type::Unit {
+                fatal_at!("missing else clause"; conseq);
+            }
         }
 
         if let Some(expected) = expected {
@@ -315,7 +318,8 @@ impl<'v> Visitor<'v> for TypeCheck<'v> {
 }
 
 
-pub fn run(program: &Program, symbol_table: &SymbolTable) {
+pub fn run(program: &Program) {
+    let symbol_table = &session().symbol_table;
     let mut visitor = TypeCheck::new(symbol_table);
     walk_program(&mut visitor, program);
 

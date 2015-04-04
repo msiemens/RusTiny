@@ -9,11 +9,11 @@ use front::ast::visit::*;
 struct ScopeTableBuilder<'a> {
     current_scope: Option<NodeId>,
     current_symbol: Option<Ident>,
-    sytbl: &'a mut SymbolTable
+    sytbl: &'a SymbolTable
 }
 
 impl<'a> ScopeTableBuilder<'a> {
-    fn new(sytbl: &'a mut SymbolTable) -> ScopeTableBuilder<'a> {
+    fn new(sytbl: &'a SymbolTable) -> ScopeTableBuilder<'a> {
         ScopeTableBuilder {
             current_scope: None,
             current_symbol: None,
@@ -31,7 +31,7 @@ impl<'a> ScopeTableBuilder<'a> {
             let symbol = self.sytbl.lookup_symbol(&current_symbol)
                 .expect("current symbol is not registered");
 
-            bindings = if let Symbol::Function { ref bindings, .. } = *symbol {
+            bindings = if let Symbol::Function { ref bindings, .. } = symbol {
                 bindings.clone()
             } else {
                 panic!("current symbol is not a function");  // shouldn't happen
@@ -64,7 +64,7 @@ impl<'a> ScopeTableBuilder<'a> {
         };
 
         // Verify the symbol is a function
-        if let Symbol::Function { .. } = *symbol {
+        if let Symbol::Function { .. } = symbol {
             return  // Everything's okay
         } else {
             fatal_at!("cannot call non-function"; expr)
@@ -148,8 +148,9 @@ impl<'v> Visitor<'v> for ScopeTableBuilder<'v> {
     }
 }
 
-pub fn run(program: &Program, symbol_table: &mut SymbolTable) {
-    let mut visitor = ScopeTableBuilder::new(symbol_table);
+pub fn run(program: &Program) {
+    let symbol_table = &session().symbol_table;
+    let mut visitor = ScopeTableBuilder::new(&*symbol_table);
     walk_program(&mut visitor, program);
 
     session().abort_if_errors();

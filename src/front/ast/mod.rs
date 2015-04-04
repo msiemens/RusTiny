@@ -53,6 +53,14 @@ impl Value {
             Value::Char(..) => Type::Char,
         }
     }
+
+    pub fn as_u32(&self) -> u32 {
+        match *self {
+            Value::Bool(b) => b as u32,
+            Value::Int(i) => i,
+            Value::Char(c) => c as u32,
+        }
+    }
 }
 
 
@@ -108,7 +116,7 @@ pub enum BinOp {
     Gt
 }
 
-#[derive(Copy)]
+#[derive(Copy, Clone, Debug, Eq, PartialEq)]
 pub enum BinOpType {
     Arithmetic,
     Logic,
@@ -266,6 +274,14 @@ impl Symbol {
         }
     }
 
+    pub fn get_value(&self) -> &Expression {
+        match *self {
+            Symbol::Function { .. } => panic!("Symbol::get_value called on function"),
+            Symbol::Static   { binding: _, ref value } => value,
+            Symbol::Constant { binding: _, ref value } => value,
+        }
+    }
+
     /// Clone the current symbol but strip the body if it's a function
     pub fn clone_stripped(&self) -> Symbol {
         let mut clone = (*self).clone();
@@ -406,12 +422,26 @@ impl Expression {
             _ => panic!("expression doesn't contain an ident")
         }
     }
+
+    pub fn unwrap_literal(&self) -> Value {
+        match *self {
+            Expression::Literal { ref val } => *val,
+            _ => panic!("expression doesn't contain a literal")
+        }
+    }
 }
 
 
+// FIXME: Move to a better place
 /// An identifier refering to an interned string
-#[derive(Copy, Clone, Debug, Eq, PartialEq, Hash)]
+#[derive(Copy, Clone, Eq, PartialEq, Hash)]
 pub struct Ident(pub usize);
+
+impl Ident {
+    pub fn new(s: &str) -> Ident {
+        session().interner.intern(s)
+    }
+}
 
 /// Allows the ident's name to be accessed by dereferencing (`*ident`)
 impl Deref for Ident {
@@ -506,6 +536,13 @@ impl fmt::Display for UnOp {
             Neg     => write!(f, "-"),
             Not     => write!(f, "!")
         }
+    }
+}
+
+impl fmt::Debug for Ident {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        let Ident(id) = *self;
+        write!(f, "Ident({}) = `{}`", id, session().interner.resolve(*self))
     }
 }
 

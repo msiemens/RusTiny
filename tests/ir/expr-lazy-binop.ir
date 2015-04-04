@@ -1,0 +1,28 @@
+fn foo() {
+entry-block:
+    %ret_slot = alloca
+    store 2 %ret_slot
+    jmp return
+return:
+    %1 = load %ret_slot
+    ret %1
+}
+
+fn main() {
+entry-block:
+    %a = alloca
+    %2 = call foo
+    %1 = cmp eq 5 %2
+    br %1 lazy-next1 lazy-rhs1
+lazy-rhs1:
+    %5 = call foo
+    %4 = add %5 3
+    %3 = cmp ne %4 7
+    jmp lazy-next1
+lazy-next1:
+    %0 = phi [ %1, entry-block ] [ %3, lazy-rhs1 ]
+    store %0 %a
+    jmp return
+return:
+    ret void
+}

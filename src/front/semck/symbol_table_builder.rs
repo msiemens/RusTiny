@@ -7,11 +7,11 @@ use front::ast::visit::*;
 
 
 struct SymbolTableBuilder<'a> {
-    sytbl: &'a mut SymbolTable
+    sytbl: &'a SymbolTable
 }
 
 impl<'a> SymbolTableBuilder<'a> {
-    fn new(sytbl: &'a mut SymbolTable) -> SymbolTableBuilder<'a> {
+    fn new(sytbl: &'a SymbolTable) -> SymbolTableBuilder<'a> {
         SymbolTableBuilder {
             sytbl: sytbl
         }
@@ -30,7 +30,8 @@ impl<'v> Visitor<'v> for SymbolTableBuilder<'v> {
 }
 
 
-pub fn run(program: &Program, symbol_table: &mut SymbolTable) {
+pub fn run(program: &Program) {
+    let symbol_table = &session().symbol_table;
     let mut visitor = SymbolTableBuilder::new(symbol_table);
     walk_program(&mut visitor, program);
 

@@ -5,6 +5,7 @@
 //! The driver is responsible for coordinating all steps of compilation.
 
 use front;
+use middle;
 
 pub use self::session::session;
 //pub use self::error::abort;
@@ -18,7 +19,7 @@ pub mod session;
 
 
 /// The main entry point for compiling a file
-pub fn compile_input(source: String, input_file: String) {
+pub fn compile_input(source: String, input_file: String, ir_only: bool) {
     // --- Front end ------------------------------------------------------------
     // Set up
     front::setup();
@@ -29,11 +30,18 @@ pub fn compile_input(source: String, input_file: String) {
     let ast = parser.parse();
 
     // Phase 2: Analysis passes (semantic checking, type checking)
-    let symbol_table = front::semantic_checks(&ast);
-    front::type_check(&ast, &symbol_table);
+    front::semantic_checks(&ast);
+    front::type_check(&ast);
 
     // --- Middle end -----------------------------------------------------------
     // Phase 3: Intermediate code generation
+    let ir = middle::ir::translate(&ast);
+
+    if ir_only {
+        println!("{}", ir);
+    }
+
+
     // Phase 4: Optimization
 
     // --- Back end -------------------------------------------------------------

@@ -4,7 +4,7 @@ use std::borrow::ToOwned;
 use std::str::CharIndices;
 use driver::session;
 use driver::codemap::{BytePos, Loc};
-use front::ast::{BinOp, UnOp, Spanned};
+use front::ast::{BinOp, UnOp, Spanned, Ident};
 use front::tokens::{Token, lookup_keyword};
 
 
@@ -157,7 +157,7 @@ impl<'a> Lexer<'a> {
         if let Some(kw) = lookup_keyword(&ident) {
             Token::Keyword(kw)
         } else {
-            Token::Ident(session().interner.intern(ident))
+            Token::Ident(Ident::new(ident))
         }
     }
 

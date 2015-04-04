@@ -10,6 +10,9 @@ Test layout:
         run-pass/       # Tests that *should* compile
             [category]/
                 [test].rs
+        ir/             # Test for the intermediate representation
+            [test].rs   # Input
+            [test].ir   # Expected IR
 
 `compile-fail` tests can tell the test runner which error they expect by
 using special comments:
@@ -20,6 +23,7 @@ using special comments:
 """
 
 from collections import namedtuple
+from glob import glob
 from pathlib import Path
 import os
 import subprocess
@@ -44,7 +48,7 @@ if os.name == 'nt':
 
 CompileResult = namedtuple('CompileResult', 'output exit_code')
 
-FailedTest = namedtuple('FailedTest', 'name unexpected missing output msg')
+FailedTest = namedtuple('FailedTest', 'path name unexpected missing output msg')
 
 
 class CompilerError:
@@ -94,8 +98,8 @@ session = Session()
 
 # --- Compile a file ----------------------------------------------------------
 
-def compile_file(filename: Path) -> CompileResult:
-    proc = subprocess.Popen([str(COMPILER), str(filename)],
+def compile_file(filename: Path, args=[]) -> CompileResult:
+    proc = subprocess.Popen([str(COMPILER)] + args + [str(filename)],
                             stdout=subprocess.PIPE,
                             stderr=subprocess.STDOUT,
                             cwd=str(TEST_DIR))
@@ -149,9 +153,9 @@ def parse_expectations(filename: Path):
 
 # --- Compile a file ----------------------------------------------------------
 
-def collect_tests(name):
+def collect_categorized_tests(name):
     for cat in (TEST_DIR / name).iterdir():
-        for test in (TEST_DIR / cat).iterdir():
+        for test in sorted(list((TEST_DIR / cat).iterdir())):
             yield cat.name, test
 
 
@@ -166,7 +170,7 @@ def tests_compiler():
 def tests_compile_fail():
     cprint('Running compile-fail tests...', 'blue')
 
-    for category, test in collect_tests('compile-fail'):
+    for category, test in collect_categorized_tests('compile-fail'):
         test_name = test.name
         print('Testing {}/{} ... '.format(category, test_name), end='')
 
@@ -174,7 +178,7 @@ def tests_compile_fail():
         cresult = compile_file(test)
 
         if cresult.exit_code == 0:
-            session.failure(FailedTest(test_name, None, None, cresult.output,
+            session.failure(FailedTest(test, test_name, None, None, cresult.output,
                                        'compiling succeeded'))
         else:
             # Verify errors
@@ -185,7 +189,7 @@ def tests_compile_fail():
             if not unexpected_errors and not missing_errors:
                 session.success()
             else:
-                session.failure(FailedTest(test_name,
+                session.failure(FailedTest(test, test_name,
                                            unexpected_errors,
                                            missing_errors,
                                            '\n'.join(stderr),
@@ -195,7 +199,7 @@ def tests_compile_fail():
 def tests_run_pass():
     cprint('Running run-pass tests...', 'blue')
 
-    for category, test in collect_tests('run-pass'):
+    for category, test in collect_categorized_tests('run-pass'):
         test_name = test.parts[-1]
         print('Testing {}/{} ... '.format(category, test_name), end='')
 
@@ -207,8 +211,39 @@ def tests_run_pass():
         if not errors and cresult.exit_code == 0:
             session.success()
         else:
-            session.failure(FailedTest(test_name, errors, None,
+            session.failure(FailedTest(test, test_name, errors, None,
                                        '\n'.join(stderr), None))
+
+
+def tests_ir():
+    cprint('Running IR tests...', 'blue')
+
+    tests = [name for name in sorted(list((TEST_DIR / 'ir').iterdir()))
+             if name.suffix == '.rs']
+
+    for test in tests:
+        test_name = test.parts[-1]
+        print('Testing {} ... '.format(test_name), end='')
+
+        # Get generated IR
+        cresult = compile_file(test, ['--ir'])
+
+        if cresult.exit_code != 0:
+            session.failure(FailedTest(test, test_name, None, None, cresult.output,
+                                       'compiling failed'))
+            continue
+
+        generated_ir = cresult.output.strip()
+
+        # Get expceted IR
+        with (TEST_DIR / 'ir' / (test.stem + '.ir')).open() as f:
+            expected_ir = f.read().strip()
+
+        if generated_ir == expected_ir:
+            session.success()
+        else:
+            session.failure(FailedTest(test, test_name, None, None,
+                            None, '\n   {}\n{}\n\n   {}\n{}'.format(colored('Expected IR:', 'cyan'), expected_ir, colored('Generated IR:', 'cyan'), generated_ir)))
 
 
 def print_results():
@@ -220,7 +255,7 @@ def print_results():
 
         for failure in session.failures:
             print()
-            print('--- Test {}: {}'.format(failure.name, failure.msg or ''))
+            print('--- Test {}: {}'.format(failure.path, failure.msg or ''))
 
             if failure.unexpected:
                 print('Unexpected errors:')
@@ -263,6 +298,8 @@ if __name__ == '__main__':
     tests_compile_fail()
     print()
     tests_run_pass()
+    print()
+    tests_ir()
 
     print_results()
 
