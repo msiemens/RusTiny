@@ -62,7 +62,7 @@ impl Translator {
         ir::Label(Ident::new(&name))
     }
 
-    fn commit_pending_block(&mut self, block: &mut ir::Block, label: ir::Label) {
+    fn commit_block_and_continue(&mut self, block: &mut ir::Block, label: ir::Label) {
         assert!(block.last != ir::ControlFlowInstruction::NotYetProcessed);
 
         let mut new_block = ir::Block {
@@ -75,6 +75,10 @@ impl Translator {
 
         // new_block is now the old block
         self.fcx().body.push(new_block);
+    }
+
+    fn commit_block(&mut self, block: ir::Block) {
+        self.fcx().body.push(block);
     }
 
     fn register_local(&mut self, id: Ident) -> Register {
@@ -145,13 +149,13 @@ impl Translator {
 
             // FIXME: If there is a single store to the return slot,
             //        return it directly and skip the alloca/store
-            self.commit_pending_block(&mut block, ir::Label(Ident::new("return")));
+            self.commit_block_and_continue(&mut block, ir::Label(Ident::new("return")));
             let return_value = self.next_free_register();
             block.load(ir::Value::Register(self.fcx().return_slot.unwrap()), return_value);
             block.ret(Some(ir::Value::Register(return_value)));
         }
 
-        self.fcx().body.push(block);
+        self.commit_block(block);
 
         // Emit the symbol
         let fcx = self.fcx.take().unwrap();

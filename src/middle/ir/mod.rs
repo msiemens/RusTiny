@@ -446,7 +446,7 @@ impl fmt::Display for ControlFlowInstruction {
                 write!(f, "jmp {}", dest)
             },
             ControlFlowInstruction::NotYetProcessed => {
-                write!(f, "<...>")  // FIXME!
+                write!(f, "<...>")
             }
         }
     }

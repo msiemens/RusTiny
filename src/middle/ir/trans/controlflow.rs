@@ -29,20 +29,20 @@ impl Translator {
 
                 block.branch(cond_ir, label_conseq, label_altern);
 
-                self.commit_pending_block(block, label_conseq);
+                self.commit_block_and_continue(block, label_conseq);
                 self.trans_block(conseq, block, dest);
                 // FIXME: Better solution?
                 if !block.commited() {
                     block.jump(label_next);
                 }
 
-                self.commit_pending_block(block, label_altern);
+                self.commit_block_and_continue(block, label_altern);
                 self.trans_block(altern, block, dest);
                 if !block.commited() {
                     block.jump(label_next);
                 }
 
-                self.commit_pending_block(block, label_next);
+                self.commit_block_and_continue(block, label_next);
             },
             None => {
                 let label_conseq = self.next_free_label(Ident::new("conseq"));
@@ -50,13 +50,13 @@ impl Translator {
 
                 block.branch(cond_ir, label_conseq, label_next);
 
-                self.commit_pending_block(block, label_conseq);
+                self.commit_block_and_continue(block, label_conseq);
                 self.trans_block(conseq, block, dest);
                 if !block.commited() {
                     block.jump(label_next);
                 }
 
-                self.commit_pending_block(block, label_next);
+                self.commit_block_and_continue(block, label_next);
             }
         }
     }
@@ -74,12 +74,12 @@ impl Translator {
         self.fcx().loop_exit = Some(label_next);
 
         // Condition block
-        self.commit_pending_block(block, label_cond);
+        self.commit_block_and_continue(block, label_cond);
         let cond = self.trans_expr_to_value(cond, block);
         block.branch(cond, label_body, label_next);
 
         // Body block
-        self.commit_pending_block(block, label_body);
+        self.commit_block_and_continue(block, label_body);
         let r = self.next_free_register();
         self.trans_block(body, block, r);
         if !block.commited() {
@@ -87,7 +87,7 @@ impl Translator {
         }
 
         // Exit block
-        self.commit_pending_block(block, label_next);
+        self.commit_block_and_continue(block, label_next);
     }
 
     pub fn trans_break(&mut self,

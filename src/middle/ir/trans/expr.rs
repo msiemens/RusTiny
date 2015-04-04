@@ -175,11 +175,11 @@ impl Translator {
                     _ => panic!()
                 }
 
-                self.commit_pending_block(block, label_rhs);
+                self.commit_block_and_continue(block, label_rhs);
                 let rhs_val = self.trans_expr_to_value(rhs, block);
                 block.jump(label_next);
 
-                self.commit_pending_block(block, label_next);
+                self.commit_block_and_continue(block, label_next);
                 block.phi(vec![(lhs_val, label_lhs),
                                (rhs_val, label_rhs)],
                           dest);
