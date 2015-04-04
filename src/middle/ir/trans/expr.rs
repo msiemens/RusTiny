@@ -1,6 +1,7 @@
+use ::Ident;
 use driver;
 use driver::symbol_table::VariableKind;
-use front::ast::{self, Ident};
+use front::ast;
 use middle::ir::{self, Register};
 use middle::ir::trans::Translator;
 
@@ -39,11 +40,7 @@ impl Translator {
                 self.trans_prefix(op, item, block, dest)
             },
             ast::Expression::If { ref cond, ref conseq, ref altern } => {
-                // FIXME: cleanup
-                match *altern {
-                    Some(ref altern) => self.trans_if(cond, conseq, Some(&**altern), block, dest),
-                    None => self.trans_if(cond, conseq, None, block, dest),
-                }
+                self.trans_if(cond, conseq, altern.as_ref().map(|b| &**b), block, dest)
             },
             ast::Expression::While { ref cond, ref body } => {
                 self.trans_while(cond, body, block)

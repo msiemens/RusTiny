@@ -22,6 +22,7 @@
 
 use std::cell::RefCell;
 use std::collections::HashMap;
+use ::Ident;
 use front::ast::*;
 use util::TryInsert;
 

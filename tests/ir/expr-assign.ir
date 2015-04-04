@@ -2,7 +2,5 @@ fn main() {
 entry-block:
     %a = alloca
     store 1 %a
-    jmp return
-return:
     ret void
 }

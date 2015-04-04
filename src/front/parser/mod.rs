@@ -68,6 +68,7 @@
 //! CHAR:       '\'' ( [a-z] | [A-Z] | '\n' ) '\''
 //! ```
 
+use ::Ident;
 use driver::session;
 use front::ast::*;
 use front::Lexer;

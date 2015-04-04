@@ -1,17 +1,10 @@
-// TODO: (done) Check that expr -> Variable comments are right
-// TODO: (done) Generate allocas for arguments
-// TODO: (done) Fix test.rs IR
-// TODO: (done) Pretty-print function arguments
-// TODO: (done) Translate statement expressions
-// TODO: (done) Fix test failures
-// TODO: (done) Translate logical operators
-
 // TODO: SSA verifier?
-// TODO: Cleanup pass: remove `jmp label; label: ...`
+// TODO: Reintroduce `Dest` to get nicer tmp register names
 
 use std::collections::{HashMap, LinkedList};
 use std::mem;
-use front::ast::{self, Ident};
+use ::Ident;
+use front::ast;
 use middle::ir::{self, Register};
 use front::ast::visit::*;
 
@@ -24,7 +17,7 @@ struct FunctionContext {
     body: Vec<ir::Block>,
     locals: HashMap<Ident, Register>,
     scope: ast::NodeId,
-    return_slot: Register,
+    return_slot: Option<Register>,
 
     next_id: u32,
     next_label: HashMap<Ident, u32>,
@@ -105,12 +98,14 @@ impl Translator {
                 bindings: &[ast::Binding],
                 ret_ty: ast::Type,
                 body: &ast::Node<ast::Block>) {
+        let is_void = ret_ty == ast::Type::Unit;
+
         // Prepare function context
         let ret_slot = Register(Ident::new("ret_slot"));
         self.fcx = Some(FunctionContext {
             body: Vec::new(),
             locals: HashMap::new(),
-            return_slot: ret_slot,
+            return_slot: if !is_void { Some(ret_slot) } else { None },
             scope: ast::NodeId(-1),
             next_id: 0,
             next_label: HashMap::new(),
@@ -130,32 +125,30 @@ impl Translator {
             block.alloc(reg);
         }
 
-        // FIXME: If not void
+        // Translate ast block
         if ret_ty != ast::Type::Unit {
             block.alloc(ret_slot);
+            self.trans_block(body, &mut block, ret_slot);
+        } else {
+            let r = self.next_free_register();
+            self.trans_block(body, &mut block, r);
         }
 
-        // Translate ast block
-        self.trans_block(body, &mut block, ret_slot);
 
         // Finish the function
-        // FIXME: If there is a single store to the return slot,
-        //        return it directly and skip the alloca/store
-        if !block.commited() {
-            block.jump(ir::Label(Ident::new("return")));
-        }
-
-        self.commit_pending_block(&mut block, ir::Label(Ident::new("return")));
-
-        match ret_ty {
-            ast::Type::Unit => {
-                block.ret(None);
-            },
-            _ => {
-                let return_value = self.next_free_register();
-                block.load(ir::Value::Register(self.fcx().return_slot), return_value);
-                block.ret(Some(ir::Value::Register(return_value)));
+        if is_void && !block.commited() {
+            block.ret(None);
+        } else {
+            if !block.commited() {
+                block.jump(ir::Label(Ident::new("return")));
             }
+
+            // FIXME: If there is a single store to the return slot,
+            //        return it directly and skip the alloca/store
+            self.commit_pending_block(&mut block, ir::Label(Ident::new("return")));
+            let return_value = self.next_free_register();
+            block.load(ir::Value::Register(self.fcx().return_slot.unwrap()), return_value);
+            block.ret(Some(ir::Value::Register(return_value)));
         }
 
         self.fcx().body.push(block);

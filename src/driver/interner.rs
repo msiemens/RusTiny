@@ -24,7 +24,7 @@ use std::collections::HashMap;
 use std::fmt;
 use std::ops::Deref;
 use std::rc::Rc;
-use front::ast::Ident;
+use ::Ident;
 
 
 /// An interned string

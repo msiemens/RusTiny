@@ -4,22 +4,20 @@ entry-block:
     store 2 %a
     jmp while_cond1
 while_cond1:
-    %2 = load %a
-    %1 = cmp gt %2 0
-    br %1 while_body1 while_exit1
+    %3 = load %a
+    %2 = cmp gt %3 0
+    br %2 while_body1 while_exit1
 while_body1:
-    %6 = load %a
-    %5 = sub %6 1
-    store %5 %a
-    %9 = load %a
-    %8 = cmp eq %9 1
-    br %8 conseq1 next1
+    %7 = load %a
+    %6 = sub %7 1
+    store %6 %a
+    %10 = load %a
+    %9 = cmp eq %10 1
+    br %9 conseq1 next1
 conseq1:
     jmp while_exit1
 next1:
     jmp while_cond1
 while_exit1:
-    jmp return
-return:
     ret void
 }

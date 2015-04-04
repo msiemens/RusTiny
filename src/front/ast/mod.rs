@@ -6,9 +6,9 @@
 pub mod pretty;
 pub mod visit;
 
+use ::Ident;
 use std::cell::Cell;
 use std::fmt;
-use std::mem;
 use std::ops::{Add, Deref, DerefMut};
 use std::str::FromStr;
 use driver::session;
@@ -428,27 +428,6 @@ impl Expression {
             Expression::Literal { ref val } => *val,
             _ => panic!("expression doesn't contain a literal")
         }
-    }
-}
-
-
-// FIXME: Move to a better place
-/// An identifier refering to an interned string
-#[derive(Copy, Clone, Eq, PartialEq, Hash)]
-pub struct Ident(pub usize);
-
-impl Ident {
-    pub fn new(s: &str) -> Ident {
-        session().interner.intern(s)
-    }
-}
-
-/// Allows the ident's name to be accessed by dereferencing (`*ident`)
-impl Deref for Ident {
-    type Target = str;
-
-    fn deref<'a>(&'a self) -> &'a str {
-        unsafe { mem::transmute(&*(session().interner.resolve(*self))) }
     }
 }
 

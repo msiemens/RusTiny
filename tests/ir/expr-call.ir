@@ -2,11 +2,9 @@ fn foo(a, b) {
 entry-block:
     %b = alloca
     %a = alloca
-    %1 = load %a
-    %2 = load %b
-    %0 = add %1 %2
-    jmp return
-return:
+    %2 = load %a
+    %3 = load %b
+    %1 = add %2 %3
     ret void
 }
 
@@ -14,9 +12,7 @@ fn main() {
 entry-block:
     %a = alloca
     store 2 %a
-    %1 = load %a
-    %0 = call foo 1 %1
-    jmp return
-return:
+    %2 = load %a
+    %1 = call foo 1 %2
     ret void
 }

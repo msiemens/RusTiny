@@ -1,4 +1,5 @@
-use front::ast::{self, Ident};
+use ::Ident;
+use front::ast;
 use middle::ir::{self, Register};
 use middle::ir::trans::Translator;
 
@@ -7,7 +8,7 @@ impl Translator {
                         val: &ast::Expression,
                         block: &mut ir::Block) {
         let val = self.trans_expr_to_value(val, block);
-        let return_slot = self.fcx().return_slot;
+        let return_slot = self.fcx().return_slot.unwrap();
         block.store(val, return_slot);
         block.jump(ir::Label(Ident::new("return")));
     }

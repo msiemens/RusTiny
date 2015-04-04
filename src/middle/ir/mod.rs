@@ -1,6 +1,7 @@
 use std::collections::{HashMap, LinkedList};
 use std::fmt;
-use front::ast::{self, Ident};
+use ::Ident;
+use front::ast;
 
 
 mod trans;
