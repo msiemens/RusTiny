@@ -25,3 +25,26 @@ macro_rules! fatal_at(
         }
     );
 );
+
+
+#[macro_export]
+macro_rules! with_reset(
+    ($val:expr, $tmp:expr, $f:block) => (
+        {
+            let old_value = $val;
+            $val = $tmp;
+
+            $f;
+
+            $val = old_value;
+        }
+    );
+);
+
+
+#[macro_export]
+macro_rules! connect {
+    ($items:expr, $fmt:expr, $connector:expr) => (
+        $items.iter().map(|t| format!($fmt, t)).collect::<Vec<_>>().connect($connector)
+    )
+}

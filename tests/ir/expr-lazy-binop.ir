@@ -4,23 +4,23 @@ entry-block:
     store 2 %ret_slot
     jmp return
 return:
-    %1 = load %ret_slot
-    ret %1
+    %0 = load %ret_slot
+    ret %0
 }
 
 fn main() {
 entry-block:
     %a = alloca
-    %3 = call foo
-    %2 = cmp eq 5 %3
-    br %2 lazy-next1 lazy-rhs1
+    %2 = call foo
+    %1 = cmp eq 5 %2
+    br %1 lazy-next1 lazy-rhs1
 lazy-rhs1:
-    %6 = call foo
-    %5 = add %6 3
-    %4 = cmp ne %5 7
+    %5 = call foo
+    %4 = add %5 3
+    %3 = cmp ne %4 7
     jmp lazy-next1
 lazy-next1:
-    %1 = phi [ %2, entry-block ] [ %4, lazy-rhs1 ]
-    store %1 %a
+    %0 = phi [ %1, entry-block ] [ %3, lazy-rhs1 ]
+    store %0 %a
     ret void
 }

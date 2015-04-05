@@ -1,5 +1,4 @@
 // TODO: SSA verifier?
-// TODO: Reintroduce `Dest` to get nicer tmp register names
 
 use std::collections::{HashMap, LinkedList};
 use std::mem;
@@ -23,6 +22,13 @@ struct FunctionContext {
     next_label: HashMap<Ident, u32>,
 
     loop_exit: Option<ir::Label>,
+}
+
+
+#[derive(Copy, Debug)]
+enum Dest {
+    Store(Register),
+    Ignore
 }
 
 
@@ -60,6 +66,13 @@ impl Translator {
         let mut name = basename.to_string();
         name.push_str(&next_label[&basename].to_string());
         ir::Label(Ident::new(&name))
+    }
+
+    fn unwrap_dest(&mut self, dest: Dest) -> Register {
+        match dest {
+            Dest::Store(r) => r,
+            Dest::Ignore => self.next_free_register()
+        }
     }
 
     fn commit_block_and_continue(&mut self, block: &mut ir::Block, label: ir::Label) {
@@ -124,7 +137,7 @@ impl Translator {
         };
 
         // Allocate arguments & return slot
-        for binding in bindings {
+        for binding in bindings.iter().rev() {
             let reg = self.register_local(*binding.name);
             block.alloc(reg);
         }
@@ -132,10 +145,9 @@ impl Translator {
         // Translate ast block
         if ret_ty != ast::Type::Unit {
             block.alloc(ret_slot);
-            self.trans_block(body, &mut block, ret_slot);
+            self.trans_block(body, &mut block, Dest::Store(ret_slot));
         } else {
-            let r = self.next_free_register();
-            self.trans_block(body, &mut block, r);
+            self.trans_block(body, &mut block, Dest::Ignore);
         }
 
 
@@ -170,17 +182,14 @@ impl Translator {
     fn trans_block(&mut self,
                    b: &ast::Node<ast::Block>,
                    block: &mut ir::Block,
-                   dest: ir::Register) {
-        let old_scope = self.fcx().scope;
-        self.fcx().scope = b.id;
+                   dest: Dest) {
+        with_reset!(self.fcx().scope, b.id, {
+            for stmt in &b.stmts {
+                self.trans_stmt(stmt, block);
+            }
 
-        for stmt in &b.stmts {
-            self.trans_stmt(stmt, block);
-        }
-
-        self.trans_expr(&**b.expr, block, dest);
-
-        self.fcx().scope = old_scope;
+            self.trans_expr(&**b.expr, block, dest);
+        });
     }
 
     fn trans_stmt(&mut self,
@@ -189,18 +198,18 @@ impl Translator {
         match *stmt {
             ast::Statement::Declaration { ref binding, ref value } => {
                 // Allocate memory on stack for the binding
-                let slot = block.alloc(self.register_local(*binding.name));
+                let reg = self.register_local(*binding.name);
+                match self.fcx().body.first_mut() {
+                    Some(first) => first.alloc(reg),
+                    None => block.alloc(reg)
+                };
 
                 // Store the expression in the new slot
                 let value = self.trans_expr_to_value(value, block);
-                block.store(value, slot);
-
-                // FIXME: Insert in first block!
+                block.store(value, reg);
             },
             ast::Statement::Expression { ref val } => {
-                // FIXME: Don't increment register for while/return/break
-                let r = self.next_free_register();
-                self.trans_expr(val, block, r);
+                self.trans_expr(val, block, Dest::Ignore);
             }
         }
     }
@@ -221,7 +230,7 @@ impl<'v> Visitor<'v> for Translator {
                     value: ir::Immediate(value.unwrap_literal().as_u32())
                 });
             },
-            ast::Symbol::Constant { ref binding, ref value } => {
+            ast::Symbol::Constant { .. } => {
                 // Will be inlined on usage
             },
             ast::Symbol::Function { ref name, ref bindings, ref ret_ty, ref body } => {

@@ -1,7 +1,7 @@
 use ::Ident;
 use front::ast;
-use middle::ir::{self, Register};
-use middle::ir::trans::Translator;
+use middle::ir;
+use middle::ir::trans::{Dest, Translator};
 
 impl Translator {
     pub fn trans_return(&mut self,
@@ -18,7 +18,7 @@ impl Translator {
                     conseq: &ast::Node<ast::Block>,
                     altern: Option<&ast::Node<ast::Block>>,
                     block: &mut ir::Block,
-                    dest: ir::Register) {
+                    dest: Dest) {
         let cond_ir = self.trans_expr_to_value(cond, block);
 
         match altern {
@@ -80,8 +80,7 @@ impl Translator {
 
         // Body block
         self.commit_block_and_continue(block, label_body);
-        let r = self.next_free_register();
-        self.trans_block(body, block, r);
+        self.trans_block(body, block, Dest::Ignore);
         if !block.commited() {
             block.jump(label_cond);
         }

@@ -69,12 +69,12 @@ impl Block {
     }
 
     fn ret(&mut self, value: Option<Value>) {
-        assert!(self.last == ControlFlowInstruction::NotYetProcessed);
+        assert!(self.last == ControlFlowInstruction::NotYetProcessed, "self.last is already commited with `{}`", self.last);
         self.last = ControlFlowInstruction::Return { value: value }
     }
 
     fn branch(&mut self, cond: Value, conseq: Label, altern: Label) {
-        assert!(self.last == ControlFlowInstruction::NotYetProcessed);
+        assert!(self.last == ControlFlowInstruction::NotYetProcessed, "self.last is already commited with `{}`", self.last);
         self.last = ControlFlowInstruction::Branch {
             cond: cond,
             conseq: conseq,
@@ -83,12 +83,12 @@ impl Block {
     }
 
     fn jump(&mut self, dest: Label) {
-        assert!(self.last == ControlFlowInstruction::NotYetProcessed);
+        assert!(self.last == ControlFlowInstruction::NotYetProcessed, "self.last is already commited with `{}`", self.last);
         self.last = ControlFlowInstruction::Jump { dest: dest }
     }
 
     fn binop(&mut self, op: InfixOp, lhs: Value, rhs: Value, dst: Register) {
-        assert!(self.last == ControlFlowInstruction::NotYetProcessed);
+        assert!(self.last == ControlFlowInstruction::NotYetProcessed, "self.last is already commited with `{}`", self.last);
         self.inst.push_back(Instruction::BinOp {
             op: op,
             lhs: lhs,
@@ -98,7 +98,7 @@ impl Block {
     }
 
     fn unop(&mut self, op: PrefixOp, item: Value, dst: Register) {
-        assert!(self.last == ControlFlowInstruction::NotYetProcessed);
+        assert!(self.last == ControlFlowInstruction::NotYetProcessed, "self.last is already commited with `{}`", self.last);
         self.inst.push_back(Instruction::UnOp {
             op: op,
             item: item,
@@ -107,7 +107,7 @@ impl Block {
     }
 
     fn cmp(&mut self, cmp: CmpOp, lhs: Value, rhs: Value, dst: Register) {
-        assert!(self.last == ControlFlowInstruction::NotYetProcessed);
+        assert!(self.last == ControlFlowInstruction::NotYetProcessed, "self.last is already commited with `{}`", self.last);
         self.inst.push_back(Instruction::Cmp {
             cmp: cmp,
             lhs: lhs,
@@ -116,8 +116,9 @@ impl Block {
         })
     }
 
-    fn alloc(&mut self, r: Register) -> Register {
-        assert!(self.last == ControlFlowInstruction::NotYetProcessed);
+    fn alloc(&mut self, reg: Register) {
+        // No assert here because allocas are always placed in the first block
+        // which may already be commited
 
         // Find position of first non-alloca instruction
         let first_non_alloca = self.inst.iter()
@@ -136,14 +137,12 @@ impl Block {
 
         // Insert new alloca after last alloca
         let mut non_allocas = self.inst.split_off(insert_pos);
-        self.inst.push_back(Instruction::Alloca { dst: r });
+        self.inst.push_back(Instruction::Alloca { dst: reg });
         self.inst.append(&mut non_allocas);
-
-        r
     }
 
     fn load(&mut self, src: Value, dst: Register) {
-        assert!(self.last == ControlFlowInstruction::NotYetProcessed);
+        assert!(self.last == ControlFlowInstruction::NotYetProcessed, "self.last is already commited with `{}`", self.last);
 
         self.inst.push_back(Instruction::Load {
             src: src,
@@ -152,7 +151,7 @@ impl Block {
     }
 
     fn store(&mut self, src: Value, dst: Register) {
-        assert!(self.last == ControlFlowInstruction::NotYetProcessed);
+        assert!(self.last == ControlFlowInstruction::NotYetProcessed, "self.last is already commited with `{}`", self.last);
 
         self.inst.push_back(Instruction::Store {
             src: src,
@@ -161,7 +160,7 @@ impl Block {
     }
 
     fn call(&mut self, name: Ident, args: Vec<Value>, dst: Register) {
-        assert!(self.last == ControlFlowInstruction::NotYetProcessed);
+        assert!(self.last == ControlFlowInstruction::NotYetProcessed, "self.last is already commited with `{}`", self.last);
 
         self.inst.push_back(Instruction::Call {
             name: name,
@@ -171,7 +170,7 @@ impl Block {
     }
 
     fn phi(&mut self, srcs: Vec<(Value, Label)>, dst: Register) {
-        assert!(self.last == ControlFlowInstruction::NotYetProcessed);
+        assert!(self.last == ControlFlowInstruction::NotYetProcessed, "self.last is already commited with `{}`", self.last);
 
         self.inst.push_back(Instruction::Phi {
             srcs: srcs,
@@ -392,11 +391,8 @@ impl fmt::Display for Symbol {
             Symbol::Global { ref name, ref value } => {
                 write!(f, "static {} = {}\n\n", name, value)
             },
-            Symbol::Function { ref name, ref body, ref args, ref locals } => {
-                let arg_str = args.iter()
-                    .map(|arg| format!("{}", arg))
-                    .collect::<Vec<_>>().connect(", ");
-                try!(write!(f, "fn {}({}) {{\n", name, arg_str));
+            Symbol::Function { ref name, ref body, ref args, locals: _ } => {
+                try!(write!(f, "fn {}({}) {{\n", name, connect!(args, "{}", ", ")));
                 for block in body {
                     try!(write!(f, "{}", block));
                 }
@@ -518,10 +514,7 @@ impl fmt::Display for Instruction {
                    write!(f, "{} = call {}", dst, name)
                 } else {
                     write!(f, "{} = call {} {}", dst, name,
-                           args.iter()
-                            .map(|arg| format!("{}", arg))
-                            .collect::<Vec<_>>()
-                            .connect(" "))
+                           connect!(args, "{}", " "))
                 }
 
             },

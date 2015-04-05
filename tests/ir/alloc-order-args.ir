@@ -1,0 +1,13 @@
+fn foo(a, b, c) {
+entry-block:
+    %a = alloca
+    %b = alloca
+    %c = alloca
+    ret void
+}
+
+fn main() {
+entry-block:
+    %0 = call foo 1 2 3
+    ret void
+}

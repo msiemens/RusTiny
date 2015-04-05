@@ -76,17 +76,14 @@ impl<'a> TypeCheck<'a> {
     }
 
     fn check_block(&mut self, block: &Node<Block>, expected_ty: Option<Type>) -> Type {
-        let old_scope = self.scope;
-        self.scope = block.id;
+        with_reset!(self.scope, block.id, {
+            for stmt in &block.stmts {
+                self.check_statement(stmt);
+            }
 
-        for stmt in &block.stmts {
-            self.check_statement(stmt);
-        }
-
-        let block_ty = self.check_expression(&block.expr, expected_ty);
-        self.types.insert(block.id, block_ty);
-
-        self.scope = old_scope;
+            let block_ty = self.check_expression(&block.expr, expected_ty);
+            self.types.insert(block.id, block_ty);
+        })
 
         block_ty
     }

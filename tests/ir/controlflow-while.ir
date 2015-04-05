@@ -4,13 +4,13 @@ entry-block:
     store 2 %a
     jmp while_cond1
 while_cond1:
-    %3 = load %a
-    %2 = cmp gt %3 0
-    br %2 while_body1 while_exit1
+    %1 = load %a
+    %0 = cmp gt %1 0
+    br %0 while_body1 while_exit1
 while_body1:
-    %7 = load %a
-    %6 = sub %7 1
-    store %6 %a
+    %3 = load %a
+    %2 = sub %3 1
+    store %2 %a
     jmp while_cond1
 while_exit1:
     ret void

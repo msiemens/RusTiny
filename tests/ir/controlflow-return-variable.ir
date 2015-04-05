@@ -3,18 +3,18 @@ entry-block:
     %a = alloca
     %ret_slot = alloca
     store 3 %a
-    %1 = load %a
-    store %1 %ret_slot
+    %0 = load %a
+    store %0 %ret_slot
     jmp return
 return:
-    %2 = load %ret_slot
-    ret %2
+    %1 = load %ret_slot
+    ret %1
 }
 
 fn main() {
 entry-block:
     %a = alloca
-    %1 = call foo
-    store %1 %a
+    %0 = call foo
+    store %0 %a
     ret void
 }

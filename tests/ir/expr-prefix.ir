@@ -2,7 +2,7 @@ fn main() {
 entry-block:
     %a = alloca
     store 1 %a
-    %2 = load %a
-    %1 = not %2
+    %0 = load %a
+    %1 = not %0
     ret void
 }

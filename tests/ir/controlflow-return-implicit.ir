@@ -11,7 +11,7 @@ return:
 fn main() {
 entry-block:
     %a = alloca
-    %1 = call foo
-    store %1 %a
+    %0 = call foo
+    store %0 %a
     ret void
 }

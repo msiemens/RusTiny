@@ -3,13 +3,13 @@ use driver;
 use driver::symbol_table::VariableKind;
 use front::ast;
 use middle::ir::{self, Register};
-use middle::ir::trans::Translator;
+use middle::ir::trans::{Dest, Translator};
 
 impl Translator {
     pub fn trans_expr(&mut self,
                   expr: &ast::Expression,
                   block: &mut ir::Block,
-                  dest: ir::Register) {
+                  dest: Dest) {
         match *expr {
             ast::Expression::Literal { ref val } => {
                 self.trans_literal(val, block, dest);
@@ -18,10 +18,10 @@ impl Translator {
                 self.trans_variable(name, block, dest);
             },
             ast::Expression::Assign { ref lhs, ref rhs } => {
-                self.trans_assign(lhs, rhs, block, dest)
+                self.trans_assign(lhs, rhs, block)
             },
             ast::Expression::AssignOp { op, ref lhs, ref rhs } => {
-                self.trans_assign_op(op, lhs, rhs, block, dest)
+                self.trans_assign_op(op, lhs, rhs, block)
             },
             ast::Expression::Return { ref val } => {
                 self.trans_return(val, block)
@@ -73,22 +73,22 @@ impl Translator {
         }
 
         let tmp = self.next_free_register();
-        self.trans_expr(expr, block, tmp);
+        self.trans_expr(expr, block, Dest::Store(tmp));
         ir::Value::Register(tmp)
     }
 
     fn trans_literal(&mut self,
                      val: &ast::Value,
                      block: &mut ir::Block,
-                     dest: ir::Register) {
+                     dest: Dest) {
         let val = ir::Value::Immediate(ir::Immediate(val.as_u32()));
-        block.store(val, dest)
+        block.store(val, self.unwrap_dest(dest))
     }
 
     fn trans_variable(&mut self,
                       name: &Ident,
                       block: &mut ir::Block,
-                      dest: ir::Register) {
+                      dest: Dest) {
         let sytable = &driver::session().symbol_table;
         let vkind = sytable.variable_kind(self.fcx().scope, name).unwrap();
 
@@ -96,11 +96,11 @@ impl Translator {
             VariableKind::Local => {
                 // %dest = load %local
                 let r = self.fcx().locals[name];
-                block.load(ir::Value::Register(r), dest);
+                block.load(ir::Value::Register(r), self.unwrap_dest(dest));
             },
             VariableKind::Static => {
                 // %dest = load %static
-                block.load(ir::Value::Static(*name), dest);
+                block.load(ir::Value::Static(*name), self.unwrap_dest(dest));
             },
             VariableKind::Constant => {
                 // %dest = {const}
@@ -112,8 +112,7 @@ impl Translator {
     fn trans_assign(&mut self,
                     lhs: &ast::Expression,
                     rhs: &ast::Expression,
-                    block: &mut ir::Block,
-                    dest: ir::Register) {
+                    block: &mut ir::Block) {
         let reg = Register(lhs.unwrap_ident());  // Already registered
         let val = self.trans_expr_to_value(rhs, block);
 
@@ -124,12 +123,11 @@ impl Translator {
                        op: ast::BinOp,
                        lhs: &ast::Expression,
                        rhs: &ast::Expression,
-                       block: &mut ir::Block,
-                       dest: ir::Register) {
+                       block: &mut ir::Block) {
         let tmp = self.next_free_register();
         let dst = Register(lhs.unwrap_ident());  // Already registered
 
-        self.trans_infix(op, lhs, rhs, block, tmp);
+        self.trans_infix(op, lhs, rhs, block, Dest::Store(tmp));
         block.store(ir::Value::Register(tmp), dst);
     }
 
@@ -137,12 +135,12 @@ impl Translator {
                   func: &Ident,
                   args: &[&ast::Expression],
                   block: &mut ir::Block,
-                  dest: ir::Register) {
+                  dest: Dest) {
         let translated_args: Vec<_> = args.iter().map(|expr| {
             self.trans_expr_to_value(expr, block)
         }).collect();
 
-        block.call(*func, translated_args, dest);
+        block.call(*func, translated_args, self.unwrap_dest(dest));
     }
 
     fn trans_infix(&mut self,
@@ -150,7 +148,7 @@ impl Translator {
                    lhs: &ast::Expression,
                    rhs: &ast::Expression,
                    block: &mut ir::Block,
-                   dest: ir::Register) {
+                   dest: Dest) {
         match op.get_type() {
             ast::BinOpType::Arithmetic | ast::BinOpType::Bitwise => {
             let lhs_val = self.trans_expr_to_value(lhs, block);
@@ -159,7 +157,7 @@ impl Translator {
                 block.binop(ir::InfixOp::from_ast_op(op),
                             lhs_val,
                             rhs_val,
-                            dest)
+                            self.unwrap_dest(dest))
             },
             ast::BinOpType::Logic => {
                 // Short-circuiting logic
@@ -182,7 +180,7 @@ impl Translator {
                 self.commit_block_and_continue(block, label_next);
                 block.phi(vec![(lhs_val, label_lhs),
                                (rhs_val, label_rhs)],
-                          dest);
+                          self.unwrap_dest(dest));
             },
             ast::BinOpType::Comparison => {
                 let lhs_val = self.trans_expr_to_value(lhs, block);
@@ -191,7 +189,7 @@ impl Translator {
                 block.cmp(ir::CmpOp::from_ast_op(op),
                           lhs_val,
                           rhs_val,
-                          dest)
+                          self.unwrap_dest(dest))
             }
         }
     }
@@ -200,11 +198,11 @@ impl Translator {
                    op: ast::UnOp,
                    item: &ast::Expression,
                    block: &mut ir::Block,
-                   dest: ir::Register) {
+                   dest: Dest) {
         let tmp = self.trans_expr_to_value(item, block);
 
         block.unop(ir::PrefixOp::from_ast_op(op),
                     tmp,
-                    dest)
+                    self.unwrap_dest(dest))
     }
 }
