@@ -4,8 +4,9 @@
 //       is called every now and then.
 // IDEA: Show the source line and underline the offending token
 
-use ansi_term::Colour::Red;
 use std::io::{self, Write};
+use std::process;
+use ansi_term::Colour::Red;
 use term;
 use driver;
 use driver::codemap::{BytePos, Loc};
@@ -48,9 +49,7 @@ fn colors_enabled() -> bool {
 
 /// Abort compilation
 pub fn abort() -> ! {
-    // The Rust compiler uses this to abort execution, too
-    io::set_panic(Box::new(io::sink()));
-    panic!();
+    process::exit(1);
 }
 
 

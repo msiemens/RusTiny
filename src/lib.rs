@@ -1,8 +1,3 @@
-#![feature(collections)]
-#![feature(std_misc)]
-#![feature(set_stdio)]
-#![feature(plugin)]
-
 #![deny(unused_features)]
 #![deny(deprecated)]
 #![warn(unused_variables)]

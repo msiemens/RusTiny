@@ -50,3 +50,21 @@ macro_rules! connect {
         $items.iter().map(|t| format!($fmt, t)).collect::<Vec<_>>().connect($connector)
     )
 }
+
+
+#[macro_export]
+macro_rules! try_insert {
+    ($map:expr, $key:expr, $val:expr) => (
+        {
+            use std::collections::hash_map::Entry;
+
+            match $map.entry($key) {
+                Entry::Occupied(_) => Err(()),
+                Entry::Vacant(entry) => {
+                    entry.insert($val);
+                    Ok(())
+                }
+            }
+        }
+    )
+}

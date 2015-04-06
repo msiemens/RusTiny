@@ -98,7 +98,7 @@ impl<'a> Lexer<'a> {
             // Build error message
             let found_str = match self.curr {
                 Some(_) => format!("`{}`", self.curr_escaped()),
-                None    => String::from_str("EOF")
+                None    => "EOF".to_owned()
             };
 
             self.fatal(format!("Expected `{}`, found {}",

@@ -7,7 +7,7 @@ use front::ast::{BinOp, UnOp};
 
 // --- List of tokens -----------------------------------------------------------
 
-#[derive(Copy, Debug, Eq, PartialEq, Hash)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Hash)]
 pub enum Token {
     BinOp(BinOp),
     UnOp(UnOp),
@@ -57,7 +57,7 @@ impl Token {
 }
 
 /// Token type. Used for the Prett Parser
-#[derive(Copy, Eq, PartialEq, Hash, Debug)]
+#[derive(Clone, Copy, Eq, PartialEq, Hash, Debug)]
 pub enum TokenType {
     Literal,
     Ident,
@@ -104,7 +104,7 @@ impl fmt::Display for Token {
 
 macro_rules! keywords(
     ($($kw:ident => $name:expr),*) => {
-        #[derive(Copy, Debug, Eq, PartialEq, Hash)]
+        #[derive(Clone, Copy, Debug, Eq, PartialEq, Hash)]
         pub enum Keyword {
             $($kw),*
         }

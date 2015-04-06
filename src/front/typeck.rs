@@ -33,7 +33,7 @@ impl<'a> TypeCheck<'a> {
         TypeCheck {
             sytbl: sytbl,
             types: HashMap::new(),
-            scope: NodeId(-1),
+            scope: NodeId(!0),
             fctx: FunctionContext {
                 return_ty: Type::Unit,
                 explicit_return: false

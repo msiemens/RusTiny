@@ -85,7 +85,7 @@ struct FunctionContext {
 /// This is expressed by `Dest::Store(..)`.
 /// But sometimes we just want the computation and don't care about where the
 /// the result is stored. This behaviour can be requested by using `Dest::Ignore`
-#[derive(Copy, Debug)]
+#[derive(Clone, Copy, Debug)]
 enum Dest {
     Store(Register),
     Ignore
@@ -101,7 +101,7 @@ pub struct Translator {
 impl Translator {
     pub fn new() -> Translator {
         Translator {
-            ir: Vec::new(),
+            ir: ir::Program::new(),
             fcx: None
         }
     }
@@ -214,7 +214,7 @@ impl Translator {
             body: Vec::new(),
             locals: HashMap::new(),
             return_slot: if !is_void { Some(ret_slot) } else { None },
-            scope: ast::NodeId(-1),
+            scope: ast::NodeId(!0),
             next_register: 0,
             next_label: HashMap::new(),
             loop_exit: None
@@ -267,7 +267,7 @@ impl Translator {
 
         // Emit the symbol
         let fcx = self.fcx.take().unwrap();
-        self.emit_symbol(ir::Symbol::Function {
+        self.ir.emit(ir::Symbol::Function {
             name: name,
             body: fcx.body,
             args: bindings.iter().map(|b| *b.name).collect(),
@@ -310,11 +310,6 @@ impl Translator {
             }
         }
     }
-
-    /// Helper for emitting a symbol
-    fn emit_symbol(&mut self, s: ir::Symbol) {
-        self.ir.push(s);
-    }
 }
 
 
@@ -322,7 +317,7 @@ impl<'v> Visitor<'v> for Translator {
     fn visit_symbol(&mut self, s: &'v ast::Node<ast::Symbol>) {
         match **s {
             ast::Symbol::Static { ref binding, ref value } => {
-                self.emit_symbol(ir::Symbol::Global {
+                self.ir.emit(ir::Symbol::Global {
                     name: *binding.name,
                     value: ir::Immediate(value.unwrap_literal().as_u32())
                 });

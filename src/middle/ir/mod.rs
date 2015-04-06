@@ -1,5 +1,8 @@
 use std::collections::{HashMap, LinkedList};
 use std::fmt;
+use std::iter::IntoIterator;
+use std::slice;
+use std::vec::IntoIter;
 use ::Ident;
 use front::ast;
 
@@ -10,7 +13,7 @@ mod trans;
 pub use middle::ir::trans::translate;
 
 
-#[derive(Copy, Debug, PartialEq)]
+#[derive(Clone, Copy, Debug, PartialEq)]
 pub struct Label(Ident);
 
 impl Label {
@@ -19,7 +22,7 @@ impl Label {
     }
 }
 
-#[derive(Copy, Debug, PartialEq)]
+#[derive(Clone, Copy, Debug, PartialEq)]
 pub enum Value {
     /// Contents of a register
     Register(Register),
@@ -31,7 +34,7 @@ pub enum Value {
     Static(Ident),
 }
 
-#[derive(Copy, PartialEq)]
+#[derive(Clone, Copy, PartialEq)]
 pub struct Register(Ident);
 
 impl Register {
@@ -45,11 +48,44 @@ impl Register {
     }
 }
 
-#[derive(Copy, PartialEq)]
+#[derive(Clone, Copy, PartialEq)]
 pub struct Immediate(u32);
 
 
-pub type Program = Vec<Symbol>;
+pub struct Program(Vec<Symbol>);
+
+impl Program {
+    fn new() -> Program {
+        Program(Vec::new())
+    }
+
+    fn emit(&mut self, s: Symbol) {
+        let Program(ref mut vec) = *self;
+        vec.push(s);
+    }
+}
+
+impl IntoIterator for Program {
+    type Item = Symbol;
+    type IntoIter = IntoIter<Symbol>;
+
+    fn into_iter(self) -> IntoIter<Symbol> {
+        let Program(vec) = self;
+        vec.into_iter()
+    }
+}
+
+impl<'a> IntoIterator for &'a Program {
+    type Item = &'a Symbol;
+    type IntoIter = slice::Iter<'a, Symbol>;
+
+    fn into_iter(self) -> slice::Iter<'a, Symbol> {
+        let Program(ref vec) = *self;
+        vec.iter()
+    }
+}
+
+
 
 #[derive(Debug)]
 pub enum Symbol {
@@ -255,7 +291,7 @@ pub enum Instruction {
 }
 
 
-#[derive(Copy, Debug)]
+#[derive(Clone, Copy, Debug)]
 pub enum InfixOp {
     // Arithmetical
     Add,  // +
@@ -294,7 +330,7 @@ impl InfixOp {
     }
 }
 
-#[derive(Copy, Debug)]
+#[derive(Clone, Copy, Debug)]
 pub enum PrefixOp {
     // Arithmetical
     Neg,  // -
@@ -312,7 +348,7 @@ impl PrefixOp {
     }
 }
 
-#[derive(Copy, Debug)]
+#[derive(Clone, Copy, Debug)]
 pub enum CmpOp {
     Lt,  // <
     Le,  // <=

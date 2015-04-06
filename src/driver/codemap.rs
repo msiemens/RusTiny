@@ -58,7 +58,7 @@ impl Sub for BytePos {
 
 
 /// A source location (used for error reporting)
-#[derive(Copy)]
+#[derive(Clone, Copy)]
 pub struct Loc {
     /// The (1-based) line number
     pub line: u32,

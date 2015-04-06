@@ -24,7 +24,6 @@ use std::cell::RefCell;
 use std::collections::HashMap;
 use ::Ident;
 use front::ast::*;
-use util::TryInsert;
 
 
 #[derive(Debug)]
@@ -44,14 +43,14 @@ impl<'a> SymbolTable {
     /// Register a new symbol
     pub fn register_symbol(&self, name: Ident, symbol: Symbol) -> Result<(), &'static str> {
         let mut symbols = self.symbols.borrow_mut();
-        symbols.try_insert(name, symbol)
+        try_insert!(symbols, name, symbol)
             .map_err(|()| "the symbol already exists")
     }
 
     /// Register a new scope
     pub fn register_scope(&self, scope: NodeId) -> Result<(), &'static str> {
         let mut scopes = self.scopes.borrow_mut();
-        scopes.try_insert(scope, BlockScope::new())
+        try_insert!(scopes, scope, BlockScope::new())
             .map_err(|()| "the block's node id is not unique")
     }
 
@@ -62,8 +61,11 @@ impl<'a> SymbolTable {
     /// Panics when the scope doesn't exist
     pub fn register_variable(&self, scope: NodeId, binding: &Binding) -> Result<(), &'static str> {
         let mut scopes = self.scopes.borrow_mut();
-        scopes.get_mut(&scope).expect(&format!("unregistered scope: {:?}", scope))
-            .vars.try_insert(*binding.name, binding.ty)
+        let ref mut vars = scopes.get_mut(&scope)
+            .expect(&format!("unregistered scope: {:?}", scope))
+            .vars;
+
+        try_insert!(vars, *binding.name, binding.ty)
             .map_err(|()| "the variable already exists")
     }
 
@@ -193,7 +195,7 @@ impl BlockScope {
 }
 
 
-#[derive(Copy)]
+#[derive(Clone, Copy)]
 pub enum VariableKind {
     Local,
     Static,

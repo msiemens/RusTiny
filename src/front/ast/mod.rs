@@ -205,7 +205,7 @@ impl<T> Node<T> {
     }
 
     pub fn dummy(t: T) -> Node<T> {
-        Node { node: t, span: EMPTY_SPAN, id: NodeId(-1) }
+        Node { node: t, span: EMPTY_SPAN, id: NodeId(!0) }
     }
 
     fn get_next_id() -> u32 {
