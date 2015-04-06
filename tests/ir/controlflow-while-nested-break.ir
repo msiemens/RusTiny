@@ -1,0 +1,16 @@
+fn main() {
+entry-block:
+    jmp while_cond1
+while_cond1:
+    br 1 while_body1 while_exit1
+while_body1:
+    jmp while_cond2
+while_cond2:
+    br 1 while_body2 while_exit2
+while_body2:
+    jmp while_cond2
+while_exit2:
+    jmp while_exit1
+while_exit1:
+    ret void
+}

@@ -34,9 +34,11 @@ macro_rules! with_reset(
             let old_value = $val;
             $val = $tmp;
 
-            $f;
+            let block_val = $f;
 
             $val = old_value;
+
+            block_val
         }
     );
 );

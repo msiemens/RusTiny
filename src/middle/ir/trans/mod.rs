@@ -1,3 +1,47 @@
+//! AST -> IR Translation
+//!
+//! This module translates the tree-like AST representation into the more linear
+//! intermediate representation (IR). In the process, the code is made more
+//! explicit. This includes the evaluation order, the storage location of
+//! temporary values and (conditional) branch information.
+//!
+//! # Register-to-register IR
+//!
+//! As described in *Engineering a Compiler*, there are two types of intermediate
+//! representations: memory-to-memory and register-to-register. The former assumes
+//! all instructions to operate on memory locations. In this case the register
+//! allocator is just an optimization to minimize memory access.
+//! On the other hand, register-to-register IRs assume an infinite number of
+//! registers. Also, instructions operate ONLY on registers! Here the register
+//! allocator is indispensable because the target architecture (usually) doesn't
+//! provide enough registers.
+//! In this compiler I've choosen the register-to-register model as both
+//! *Introduction to Compiler Design*, *Engineering a Compiler* and the LLVM IR
+//! use it too.
+//!
+//! # Storage locations/choice of registers
+//!
+//! As stated in *Introduction to Compiler Design*, there are two approaches to
+//! translating expressions:
+//!
+//! 1. Each sub-expression chooses a storage location and passes it up to the
+//!    parent.
+//! 2. The parent determines a storage location for its children's values.
+//!
+//! In *ItCD* the first approach is preferred because sub-expressions might
+//! alter some values needed by the parent (e.g. `x + (x = 2)` (?). I think
+//! such behaviour it not possible in RusTiny. Therefore, I might rewrite the
+//! translator to use the first approach instead.
+//!
+//! # Implementation notes
+//!
+//! Each translation function takes a mutable reference to the current block
+//! (except for `translate_fn` which creates the block). That way we can commit
+//! the current block and continue with a new block in the middle of a function
+//! (see `commit_block_and_continue`). I think passing the pointer along is better
+//! than getting a reference to the current block every time we need it using a
+//! function.
+
 // TODO: SSA verifier?
 
 use std::collections::{HashMap, LinkedList};
@@ -12,19 +56,35 @@ mod controlflow;
 mod expr;
 
 
+/// Information about the function that's translated currently
 struct FunctionContext {
+    /// The generated function body
     body: Vec<ir::Block>,
+    /// Where the addresses of local variables are stored
     locals: HashMap<Ident, Register>,
+    /// The current block's scope
     scope: ast::NodeId,
+    /// A return slot used to store the return value
+    /// if the return type is non-void
     return_slot: Option<Register>,
 
-    next_id: u32,
+    /// The next free register to use
+    next_register: u32,
+    /// As the translator might want to use the same label multiple times,
+    /// we always append an index, which is stored here, to it
     next_label: HashMap<Ident, u32>,
 
+    /// The current loop's exit
     loop_exit: Option<ir::Label>,
 }
 
 
+/// The destination of a computation
+///
+/// Sometimes we want an expression to store its result in a specific register.
+/// This is expressed by `Dest::Store(..)`.
+/// But sometimes we just want the computation and don't care about where the
+/// the result is stored. This behaviour can be requested by using `Dest::Ignore`
 #[derive(Copy, Debug)]
 enum Dest {
     Store(Register),
@@ -32,6 +92,7 @@ enum Dest {
 }
 
 
+/// The AST -> IR translator
 pub struct Translator {
     ir: ir::Program,
     fcx: Option<FunctionContext>,
@@ -45,19 +106,25 @@ impl Translator {
         }
     }
 
+    /// Access the current function context
+    ///
+    /// # Panics
+    ///
+    /// Panics when we're not translating a function at the moment.
+    ///
     fn fcx(&mut self) -> &mut FunctionContext {
         self.fcx.as_mut().unwrap()
     }
 
+    /// Get the next free register
     fn next_free_register(&mut self) -> Register {
-        let next_id = self.fcx().next_id;
-        self.fcx().next_id += 1;
+        let next_register = self.fcx().next_register;
+        self.fcx().next_register += 1;
 
-        let register = self.register_local(Ident::new(&next_id.to_string()));
-
-        register
+        Register::new(&next_register.to_string())
     }
 
+    /// Get the next free label with a given base name (e.g. `id` -> `id2`)
     fn next_free_label(&mut self, basename: Ident) -> ir::Label {
         let ref mut next_label = self.fcx().next_label;
 
@@ -65,9 +132,13 @@ impl Translator {
 
         let mut name = basename.to_string();
         name.push_str(&next_label[&basename].to_string());
-        ir::Label(Ident::new(&name))
+        ir::Label::new(&name)
     }
 
+    /// Unwrap a destination
+    ///
+    /// When the destination contains a register, we return it. Otherwise we
+    /// take the next free register.
     fn unwrap_dest(&mut self, dest: Dest) -> Register {
         match dest {
             Dest::Store(r) => r,
@@ -75,7 +146,19 @@ impl Translator {
         }
     }
 
+    fn with_first_block<F>(&mut self, current: &mut ir::Block, f: F) where F: Fn(&mut ir::Block) -> () {
+        match self.fcx().body.first_mut() {
+            Some(first) => f(first),
+            None => f(current)
+        };
+    }
+
+    /// Commit the current block and continue working with an empty one
+    ///
+    /// *Note:* To create a new block we have to give it a label. For that reason
+    /// we take a label here.
     fn commit_block_and_continue(&mut self, block: &mut ir::Block, label: ir::Label) {
+        // Make sure the current block is finalized
         assert!(block.last != ir::ControlFlowInstruction::NotYetProcessed);
 
         let mut new_block = ir::Block {
@@ -86,30 +169,38 @@ impl Translator {
 
         mem::swap(block, &mut new_block);
 
-        // new_block is now the old block
+        // We need to push `new_block` here as it's contains `block` after the
+        // swap.
         self.fcx().body.push(new_block);
     }
 
+    /// Commit the current block
     fn commit_block(&mut self, block: ir::Block) {
         self.fcx().body.push(block);
     }
 
+    /// Register a local variable and return the register that contains it's address
     fn register_local(&mut self, id: Ident) -> Register {
+        // Find a free name
         let mut id_mangled = id;
         let mut i = 1;
 
-        // Find a free name
         while self.fcx().locals.contains_key(&id_mangled) {
             id_mangled = Ident::new(&format!("{}{}", id, i));
             i += 1;
         }
 
+        // Register the variable
+        // FIXME: This doesn't take into account scoping. It's propably better
+        // to store the register in'the symbol table so we can reuse the whole
+        // lookup mechanism.
         let register = Register(id_mangled);
         assert!(self.fcx().locals.insert(id_mangled, register).is_none());
 
         register
     }
 
+    /// Translate a function
     fn trans_fn(&mut self,
                 name: Ident,
                 bindings: &[ast::Binding],
@@ -118,25 +209,25 @@ impl Translator {
         let is_void = ret_ty == ast::Type::Unit;
 
         // Prepare function context
-        let ret_slot = Register(Ident::new("ret_slot"));
+        let ret_slot = Register::new("ret_slot");
         self.fcx = Some(FunctionContext {
             body: Vec::new(),
             locals: HashMap::new(),
             return_slot: if !is_void { Some(ret_slot) } else { None },
             scope: ast::NodeId(-1),
-            next_id: 0,
+            next_register: 0,
             next_label: HashMap::new(),
             loop_exit: None
         });
 
         // Prepare ast block
         let mut block = ir::Block {
-            label: ir::Label(Ident::new("entry-block")),
+            label: ir::Label::new("entry-block"),
             inst: LinkedList::new(),
             last: ir::ControlFlowInstruction::NotYetProcessed
         };
 
-        // Allocate arguments & return slot
+        // Allocate arguments (from left to right)
         for binding in bindings.iter().rev() {
             let reg = self.register_local(*binding.name);
             block.alloc(reg);
@@ -144,24 +235,29 @@ impl Translator {
 
         // Translate ast block
         if ret_ty != ast::Type::Unit {
-            block.alloc(ret_slot);
             self.trans_block(body, &mut block, Dest::Store(ret_slot));
         } else {
             self.trans_block(body, &mut block, Dest::Ignore);
         }
 
 
-        // Finish the function
-        if is_void && !block.commited() {
+        // Finalize the function
+        if is_void && !block.finalized() {
             block.ret(None);
         } else {
-            if !block.commited() {
-                block.jump(ir::Label(Ident::new("return")));
-            }
-
+            // Build the return block
             // FIXME: If there is a single store to the return slot,
             //        return it directly and skip the alloca/store
-            self.commit_block_and_continue(&mut block, ir::Label(Ident::new("return")));
+            self.with_first_block(&mut block, |block| block.alloc(ret_slot));
+
+            let return_label = ir::Label::new("return");
+            if !block.finalized() {
+                block.jump(return_label);
+            }
+
+            // %reg = mem[%return_slot]
+            // ret %reg
+            self.commit_block_and_continue(&mut block, return_label);
             let return_value = self.next_free_register();
             block.load(ir::Value::Register(self.fcx().return_slot.unwrap()), return_value);
             block.ret(Some(ir::Value::Register(return_value)));
@@ -179,6 +275,7 @@ impl Translator {
         });
     }
 
+    /// Translate an AST code block
     fn trans_block(&mut self,
                    b: &ast::Node<ast::Block>,
                    block: &mut ir::Block,
@@ -192,6 +289,7 @@ impl Translator {
         });
     }
 
+    /// Translate a statement
     fn trans_stmt(&mut self,
                   stmt: &ast::Statement,
                   block: &mut ir::Block) {
@@ -199,22 +297,21 @@ impl Translator {
             ast::Statement::Declaration { ref binding, ref value } => {
                 // Allocate memory on stack for the binding
                 let reg = self.register_local(*binding.name);
-                match self.fcx().body.first_mut() {
-                    Some(first) => first.alloc(reg),
-                    None => block.alloc(reg)
-                };
+                self.with_first_block(block, |block| block.alloc(reg));
 
                 // Store the expression in the new slot
                 let value = self.trans_expr_to_value(value, block);
                 block.store(value, reg);
             },
             ast::Statement::Expression { ref val } => {
+                // We don't care where the value of the expression is stored,
+                // thus `Dest::Ignore`.
                 self.trans_expr(val, block, Dest::Ignore);
             }
         }
     }
 
-
+    /// Helper for emitting a symbol
     fn emit_symbol(&mut self, s: ir::Symbol) {
         self.ir.push(s);
     }
@@ -234,12 +331,10 @@ impl<'v> Visitor<'v> for Translator {
                 // Will be inlined on usage
             },
             ast::Symbol::Function { ref name, ref bindings, ref ret_ty, ref body } => {
-                let bindings: Vec<_> = bindings.iter().map(|b| (**b).clone()).collect();
+                // Get the Binding out of the Node<Binding>
+                let bindings: Vec<_> = bindings.iter().map(|b| **b).collect();
 
-                self.trans_fn(**name,
-                              &*bindings,
-                              *ret_ty,
-                              body);
+                self.trans_fn(**name, &*bindings, *ret_ty, body);
             }
         }
     }

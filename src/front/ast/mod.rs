@@ -237,6 +237,9 @@ impl<T> DerefMut for Node<T> {
 }
 
 
+impl<T: Copy> Copy for Node<T> {}
+
+
 /// A program is a list of symbols
 pub type Program = Vec<Node<Symbol>>;
 
@@ -309,7 +312,7 @@ pub struct Block {
 
 
 /// A binding of a value to a name (e.g. local variable, function argument)
-#[derive(Clone, Debug)]
+#[derive(Clone, Copy, Debug)]
 pub struct Binding {
     pub ty: Type,
     pub name: Node<Ident>
