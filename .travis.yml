@@ -1,4 +1,6 @@
 language: rust
+rust:
+  - 1.0.0-beta
 before_install:
 - sudo add-apt-repository -y ppa:fkrull/deadsnakes
 - sudo apt-get update -qq
