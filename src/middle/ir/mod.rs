@@ -1,4 +1,4 @@
-use std::collections::{HashMap, LinkedList};
+use std::collections::LinkedList;
 use std::fmt;
 use std::iter::IntoIterator;
 use std::slice;
@@ -34,7 +34,7 @@ pub enum Value {
     Static(Ident),
 }
 
-#[derive(Clone, Copy, PartialEq)]
+#[derive(Clone, Copy, PartialEq, Eq, Hash)]
 pub struct Register(Ident);
 
 impl Register {
@@ -97,7 +97,6 @@ pub enum Symbol {
         name: Ident,
         body: Vec<Block>,
         args: Vec<Ident>,
-        locals: HashMap<Ident, Register>,
     },
 }
 
@@ -437,7 +436,7 @@ impl fmt::Display for Symbol {
             Symbol::Global { ref name, ref value } => {
                 write!(f, "static {} = {}\n\n", name, value)
             },
-            Symbol::Function { ref name, ref body, ref args, locals: _ } => {
+            Symbol::Function { ref name, ref body, ref args } => {
                 try!(write!(f, "fn {}({}) {{\n", name, connect!(args, "{}", ", ")));
                 for block in body {
                     try!(write!(f, "{}", block));

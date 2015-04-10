@@ -110,8 +110,8 @@ impl Translator {
         match vkind {
             VariableKind::Local => {
                 // %dest = load %local
-                let r = self.fcx().locals[name];
-                block.load(ir::Value::Register(r), self.unwrap_dest(dest));
+                let reg = self.lookup_register(name);
+                block.load(ir::Value::Register(reg), self.unwrap_dest(dest));
             },
             VariableKind::Static => {
                 // %dest = load %static
@@ -129,7 +129,7 @@ impl Translator {
                     lhs: &ast::Expression,
                     rhs: &ast::Expression,
                     block: &mut ir::Block) {
-        let reg = self.fcx().locals[&lhs.unwrap_ident()];
+        let reg = self.lookup_register(&lhs.unwrap_ident());
         let val = self.trans_expr_to_value(rhs, block);
 
         block.store(val, reg);
@@ -142,7 +142,7 @@ impl Translator {
                        rhs: &ast::Expression,
                        block: &mut ir::Block) {
         let tmp = self.next_free_register();
-        let dst = self.fcx().locals[&lhs.unwrap_ident()];
+        let dst = self.lookup_register(&lhs.unwrap_ident());
 
         self.trans_infix(op, lhs, rhs, block, Dest::Store(tmp));
         block.store(ir::Value::Register(tmp), dst);

@@ -93,8 +93,8 @@ impl<'a> TypeCheck<'a> {
     fn check_statement(&mut self, stmt: &Node<Statement>) {
         match **stmt {
             Statement::Declaration { ref binding, ref value } => {
-                let expected = self.sytbl.resolve_variable(self.scope, &binding.name).unwrap();
-                self.check_expression(value, Some(expected));
+                let var = self.sytbl.resolve_variable(self.scope, &binding.name).unwrap();
+                self.check_expression(value, Some(var.ty));
             },
             Statement::Expression { ref val } => {
                 // Expression can be of any type as the statement always
@@ -120,6 +120,7 @@ impl<'a> TypeCheck<'a> {
                 let scope = self.scope;
                 self.sytbl.resolve_variable(scope, name)
                     .unwrap_or_else(|| panic!("no variable named {}", name))
+                    .ty
             },
             // Compound expressions
             Expression::Assign { ref lhs, ref rhs } => {

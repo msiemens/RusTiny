@@ -22,6 +22,8 @@ using special comments:
 
 """
 
+# FIXME: Detect panics and count as errors
+
 from collections import namedtuple
 from glob import glob
 from pathlib import Path

@@ -44,9 +44,10 @@
 
 // TODO: SSA verifier?
 
-use std::collections::{HashMap, LinkedList};
+use std::collections::{HashMap, HashSet, LinkedList};
 use std::mem;
 use ::Ident;
+use driver::session;
 use front::ast;
 use middle::ir::{self, Register};
 use front::ast::visit::*;
@@ -60,8 +61,8 @@ mod expr;
 struct FunctionContext {
     /// The generated function body
     body: Vec<ir::Block>,
-    /// Where the addresses of local variables are stored
-    locals: HashMap<Ident, Register>,
+    /// All registers used in this function
+    registers: HashSet<Register>,
     /// The current block's scope
     scope: ast::NodeId,
     /// A return slot used to store the return value
@@ -181,23 +182,29 @@ impl Translator {
 
     /// Register a local variable and return the register that contains it's address
     fn register_local(&mut self, id: Ident) -> Register {
-        // Find a free name
+        // Find a register
         let mut id_mangled = id;
         let mut i = 1;
 
-        while self.fcx().locals.contains_key(&id_mangled) {
+        while self.fcx().registers.contains(&Register(id_mangled)) {
             id_mangled = Ident::new(&format!("{}{}", id, i));
             i += 1;
         }
 
         // Register the variable
-        // FIXME: This doesn't take into account scoping. It's propably better
-        // to store the register in'the symbol table so we can reuse the whole
-        // lookup mechanism.
         let register = Register(id_mangled);
-        assert!(self.fcx().locals.insert(id_mangled, register).is_none());
+        self.fcx().registers.insert(register);
+
+        let sytable = &session().symbol_table;
+        sytable.set_register(self.fcx().scope, &id, register);
 
         register
+    }
+
+    fn lookup_register(&mut self, name: &Ident) -> Register {
+        let sytable = &session().symbol_table;
+        let var = sytable.resolve_variable(self.fcx().scope, name).unwrap();
+        var.reg.unwrap()
     }
 
     /// Translate a function
@@ -212,9 +219,9 @@ impl Translator {
         let ret_slot = Register::new("ret_slot");
         self.fcx = Some(FunctionContext {
             body: Vec::new(),
-            locals: HashMap::new(),
+            registers: HashSet::new(),
             return_slot: if !is_void { Some(ret_slot) } else { None },
-            scope: ast::NodeId(!0),
+            scope: body.id,
             next_register: 0,
             next_label: HashMap::new(),
             loop_exit: None
@@ -271,7 +278,6 @@ impl Translator {
             name: name,
             body: fcx.body,
             args: bindings.iter().map(|b| *b.name).collect(),
-            locals: fcx.locals,
         });
     }
 
