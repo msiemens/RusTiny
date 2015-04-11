@@ -22,8 +22,6 @@ using special comments:
 
 """
 
-# FIXME: Detect panics and count as errors
-
 from collections import namedtuple
 from glob import glob
 from pathlib import Path
@@ -182,6 +180,9 @@ def tests_compile_fail():
         if cresult.exit_code == 0:
             session.failure(FailedTest(test, test_name, None, None, cresult.output,
                                        'compiling succeeded'))
+        elif cresult.exit_code == 101:
+            session.failure(FailedTest(test, test_name, None, None, cresult.output,
+                                       'compiler panicked'))
         else:
             # Verify errors
             errors, stderr = parse_errors(cresult.output)
