@@ -1,0 +1,3 @@
+enum X86Assembly {
+    //
+}
