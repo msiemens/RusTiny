@@ -27,8 +27,7 @@ pub struct BytePos(pub u32);
 
 impl BytePos {
     pub fn as_int(&self) -> u32 {
-        let BytePos(i) = *self;
-        i
+        self.0
     }
 }
 

@@ -43,8 +43,7 @@ impl Register {
     }
 
     pub fn unwrap_ident(&self) -> Ident {
-        let Register(id) = *self;
-        id
+        self.0
     }
 }
 
@@ -60,8 +59,7 @@ impl Program {
     }
 
     fn emit(&mut self, s: Symbol) {
-        let Program(ref mut vec) = *self;
-        vec.push(s);
+        self.0.push(s);
     }
 }
 
@@ -80,8 +78,7 @@ impl<'a> IntoIterator for &'a Program {
     type IntoIter = slice::Iter<'a, Symbol>;
 
     fn into_iter(self) -> slice::Iter<'a, Symbol> {
-        let Program(ref vec) = *self;
-        vec.iter()
+        self.0.iter()
     }
 }
 
@@ -376,23 +373,20 @@ impl CmpOp {
 
 impl fmt::Debug for Register {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        let Register(r) = *self;
-        write!(f, "Register({})", r)
+        write!(f, "Register({})", self.0)
     }
 }
 
 impl fmt::Debug for Immediate {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        let Immediate(v) = *self;
-        write!(f, "Immediate({})", v)
+        write!(f, "Immediate({})", self.0)
     }
 }
 
 
 impl fmt::Display for Label {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        let Label(id) = *self;
-        write!(f, "{}", id)
+        write!(f, "{}", self.0)
     }
 }
 
@@ -408,15 +402,13 @@ impl fmt::Display for Value {
 
 impl fmt::Display for Register {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        let Register(r) = *self;
-        write!(f, "%{}", r)
+        write!(f, "%{}", self.0)
     }
 }
 
 impl fmt::Display for Immediate {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        let Immediate(i) = *self;
-        write!(f, "{}", i)
+        write!(f, "{}", self.0)
     }
 }
 

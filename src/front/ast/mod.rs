@@ -150,8 +150,7 @@ pub struct NodeId(pub u32);
 
 impl NodeId {
     pub fn as_u32(&self) -> u32 {
-        let NodeId(i) = *self;
-        i
+        self.0
     }
 }
 
@@ -523,8 +522,7 @@ impl fmt::Display for UnOp {
 
 impl fmt::Debug for Ident {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        let Ident(id) = *self;
-        write!(f, "Ident({}) = `{}`", id, session().interner.resolve(*self))
+        write!(f, "Ident({}) = `{}`", self.0, session().interner.resolve(*self))
     }
 }
 
