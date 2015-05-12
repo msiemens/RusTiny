@@ -15,7 +15,8 @@ impl Translator {
         // Store the return value in the return slot and jump to the return block
         let val = self.trans_expr_to_value(val, block);
         let return_slot = self.fcx().return_slot.unwrap();
-        block.store(val, return_slot);
+
+        block.store_reg(val, return_slot);
         block.jump(ir::Label(Ident::new("return")));
     }
 

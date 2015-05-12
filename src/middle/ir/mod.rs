@@ -34,6 +34,16 @@ pub enum Value {
     Static(Ident),
 }
 
+impl Value {
+    pub fn reg(self) -> Register {
+        if let Value::Register(r) = self {
+            return r
+        } else {
+            panic!("Invalid Value::reg({:?})", self);
+        }
+    }
+}
+
 #[derive(Clone, Copy, PartialEq, Eq, Hash)]
 pub struct Register(Ident);
 
@@ -192,8 +202,19 @@ impl Block {
         })
     }
 
-    fn store(&mut self, src: Value, dst: Register) {
+    // Optimization for storing to a register
+    fn store_reg(&mut self, src: Value, dst: Register) {
         assert!(self.last == ControlFlowInstruction::NotYetProcessed, "self.last is already set: `{}`", self.last);
+
+        self.inst.push_back(Instruction::Store {
+            src: src,
+            dst: Value::Register(dst)
+        })
+    }
+
+    fn store(&mut self, src: Value, dst: Value) {
+        assert!(self.last == ControlFlowInstruction::NotYetProcessed, "self.last is already set: `{}`", self.last);
+        assert!(match dst { Value::Immediate(..) => false, _ => true }, "attempt to store in an immediate");
 
         self.inst.push_back(Instruction::Store {
             src: src,
@@ -267,11 +288,11 @@ pub enum Instruction {
     },
     Load {
         src: Value,     // The memory address
-        dst: Register,  // The register where to store the value
+        dst: Register,  // Where to store the value
     },
     Store {
         src: Value,     // The value to store
-        dst: Register,  // The memory address
+        dst: Value,     // The memory address (Register or Static)
     },
 
     // Other

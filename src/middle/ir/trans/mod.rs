@@ -203,8 +203,9 @@ impl Translator {
 
     fn lookup_register(&mut self, name: &Ident) -> Register {
         let sytable = &session().symbol_table;
-        let var = sytable.resolve_variable(self.fcx().scope, name).unwrap();
-        var.reg.unwrap()
+        let var = sytable.resolve_variable(self.fcx().scope, name)
+            .expect(&format!("variable {} not yet declared", name));
+        var.reg.expect(&format!("{:?} is not a local variable", var))
     }
 
     /// Translate a function
@@ -302,12 +303,12 @@ impl Translator {
         match *stmt {
             ast::Statement::Declaration { ref binding, ref value } => {
                 // Allocate memory on stack for the binding
-                let reg = self.register_local(*binding.name);
-                self.with_first_block(block, |block| block.alloc(reg));
+                let dst = self.register_local(*binding.name);
+                self.with_first_block(block, |block| block.alloc(dst));
 
                 // Store the expression in the new slot
                 let value = self.trans_expr_to_value(value, block);
-                block.store(value, reg);
+                block.store_reg(value, dst);
             },
             ast::Statement::Expression { ref val } => {
                 // We don't care where the value of the expression is stored,

@@ -1,0 +1,9 @@
+static GLOBAL = 0
+
+fn main() {
+entry-block:
+    %1 = load @GLOBAL
+    %0 = add %1 4
+    store %0 @GLOBAL
+    ret void
+}

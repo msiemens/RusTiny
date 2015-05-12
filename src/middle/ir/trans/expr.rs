@@ -70,12 +70,12 @@ impl Translator {
             return ir::Value::Immediate(ir::Immediate(val.as_u32()))
         }
 
-        // Special handling for constants: return the immediate value
         if let ast::Expression::Variable { ref name } = *expr {
             // Look up of which kind the variable is
             let sytable = &driver::session().symbol_table;
             let vkind = sytable.variable_kind(self.fcx().scope, name).unwrap();
 
+            // Special handling for constants: return the immediate value
             if let VariableKind::Constant = vkind {
                 // Get the constant's value and return it as an immediate
                 let symbol = sytable.lookup_symbol(name).unwrap();
@@ -90,13 +90,26 @@ impl Translator {
         ir::Value::Register(tmp)
     }
 
+    fn assign_dest(&mut self, dest: Ident) -> ir::Value {
+        // Look up of which kind the variable is
+        let sytable = &driver::session().symbol_table;
+        let vkind = sytable.variable_kind(self.fcx().scope, &dest).unwrap();
+
+        match vkind {
+            VariableKind::Local => ir::Value::Register(self.lookup_register(&dest)),
+            VariableKind::Static => ir::Value::Static(dest),
+            VariableKind::Constant => panic!("attempt to assign to a constant"),
+        }
+    }
+
     /// Translate a literal
     fn trans_literal(&mut self,
                      val: &ast::Value,
                      block: &mut ir::Block,
                      dest: Dest) {
         let val = ir::Value::Immediate(ir::Immediate(val.as_u32()));
-        block.store(val, self.unwrap_dest(dest))
+        let dst = self.unwrap_dest(dest);
+        block.store_reg(val, dst)
     }
 
     /// Translate the usage of a variable
@@ -129,10 +142,10 @@ impl Translator {
                     lhs: &ast::Expression,
                     rhs: &ast::Expression,
                     block: &mut ir::Block) {
-        let reg = self.lookup_register(&lhs.unwrap_ident());
+        let dst = self.assign_dest(lhs.unwrap_ident());
         let val = self.trans_expr_to_value(rhs, block);
 
-        block.store(val, reg);
+        block.store(val, dst);
     }
 
     /// Translate an assignment with an operator
@@ -141,8 +154,8 @@ impl Translator {
                        lhs: &ast::Expression,
                        rhs: &ast::Expression,
                        block: &mut ir::Block) {
+        let dst = self.assign_dest(lhs.unwrap_ident());
         let tmp = self.next_free_register();
-        let dst = self.lookup_register(&lhs.unwrap_ident());
 
         self.trans_infix(op, lhs, rhs, block, Dest::Store(tmp));
         block.store(ir::Value::Register(tmp), dst);
