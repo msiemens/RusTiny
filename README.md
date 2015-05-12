@@ -4,10 +4,11 @@ This is an educational compiler for a Rust-like language that targets the
 fictional [Tiny architecture](https://github.com/msiemens/rust-tinyasm).
 The syntax is based on Rust, but there are numerous semantic differences:
 
-- The only datatype is `int`. There also are `bool` and `chair`, but these are
+- The only datatype is `int`. There also are `bool` and `char`, but these are
   actually `int`s in disguise.
 - No structs/classes, no modules, only functions. This keeps the whole
   language managable for me.
+- No `mut`, no borrow checker. Again: keep it simple.
 
 ## Goal
 
@@ -31,4 +32,3 @@ Resources I found helpful:
 
 - [**Introduction to Compiler Design** by Torben Ægidius Mogensen](http://www.springer.com/us/book/9780857298287)
 - [**Engineering a Compiler** by Keith D. Cooper & Linda Torczon](http://store.elsevier.com/product.jsp?isbn=9780120884780)
-- [**Single-Pass Generation of Static Single Assignment Form for Structured Languages** by MARC M. BRANDIS and HANSPETER MÖSSENBÖCK](http://www-plan.cs.colorado.edu/diwan/7135/p1684-brandis.pdf)
