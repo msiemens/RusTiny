@@ -1,3 +1,9 @@
+//! The instruction selector
+//!
+//! Note: For now this will be the simplest instruction selector possible.
+//!       I'll be able to improve it later, but I need something that works
+//!       before I can get there.
+
 use back::machine::MachineCode;
 use middle::ir;
 
