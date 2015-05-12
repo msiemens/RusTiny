@@ -6,6 +6,7 @@
 
 use front;
 use middle;
+use back;
 
 pub use self::session::session;
 //pub use self::error::abort;
@@ -39,13 +40,17 @@ pub fn compile_input(source: String, input_file: String, ir_only: bool) {
 
     if ir_only {
         println!("{}", ir);
+        return
     }
-
 
     // Phase 4: Optimization
 
     // --- Back end -------------------------------------------------------------
     // Phase 5: Machine code generation
+    let assembly = back::select_instructions(&ir);
+
     // Phase 6: Register allocation
     // Phase 7: Assembly optimization
+
+    println!("{:?}", assembly);
 }

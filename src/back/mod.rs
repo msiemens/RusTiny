@@ -1,5 +1,8 @@
-mod interface;
-mod targets;
+mod instsel;
+mod machine;
+
+
+pub use self::instsel::select_instructions;
 
 
 // IR -> ASM (v)
