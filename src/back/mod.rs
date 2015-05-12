@@ -1,5 +1,5 @@
+#[macro_use] mod machine;
 mod instsel;
-mod machine;
 
 
 pub use self::instsel::select_instructions;

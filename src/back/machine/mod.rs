@@ -12,9 +12,13 @@
 //! - The runtime stack
 
 mod cconv;
-mod instructions;
+#[macro_use] mod instructions;
 mod registers;
 
 
-pub use self::instructions::MachineCode;
+pub use self::instructions::{Argument, Address, Instruction, MachineCode};
 pub use self::registers::MachineRegister;
+
+
+pub type NativeInt = u16;
+pub const REGISTER_COUNT: usize = 6;

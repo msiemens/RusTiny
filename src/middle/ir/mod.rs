@@ -60,6 +60,12 @@ impl Register {
 #[derive(Clone, Copy, PartialEq)]
 pub struct Immediate(u32);
 
+impl Immediate {
+    pub fn val(self) -> u32 {
+        self.0
+    }
+}
+
 
 pub struct Program(Vec<Symbol>);
 
@@ -70,6 +76,10 @@ impl Program {
 
     fn emit(&mut self, s: Symbol) {
         self.0.push(s);
+    }
+
+    pub fn iter<'a>(&'a self) -> slice::Iter<'a, Symbol> {
+        self.0.iter()
     }
 }
 
