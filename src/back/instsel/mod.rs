@@ -43,21 +43,24 @@ impl<'a> InstructionSelector<'a> {
         // TODO: Generate the prologue
         
         for block in body {
+            /* IDEA:
             for inst in block.inst {
                 // TODO: Translate instruction
-                /* IDEA:
-                let asm_instr = match *inst {
+                match *inst {
                     ir::Instruction::BinOp { op, lhs, rhs, dst } => {
                         match op {
-                            ir::InfixOp::Add => instruction!(ADD ...),
+                            ir::InfixOp::Add => {
+                                self.code.emit(instruction!(MOV lhs dst));
+                                self.code.emit(instruction!(ADD dst rhs));
+                            }
                             ...
                         }
                     },
                     ir::Instruction::UnOp { op, item, dst } => { ... },
                     ...
                 }
-                */
             }
+            // */
             
             // TODO: Translate closing instruction
         }
