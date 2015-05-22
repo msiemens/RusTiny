@@ -40,7 +40,29 @@ impl<'a> InstructionSelector<'a> {
     }
 
     fn trans_fn(&mut self, name: &Ident, body: &[ir::Block], args: &[Ident]) {
-        //
+        // TODO: Generate the prologue
+        
+        for block in body {
+            for inst in block.inst {
+                // TODO: Translate instruction
+                /* IDEA:
+                let asm_instr = match *inst {
+                    ir::Instruction::BinOp { op, lhs, rhs, dst } => {
+                        match op {
+                            ir::InfixOp::Add => instruction!(ADD ...),
+                            ...
+                        }
+                    },
+                    ir::Instruction::UnOp { op, item, dst } => { ... },
+                    ...
+                }
+                */
+            }
+            
+            // TODO: Translate closing instruction
+        }
+        
+        // TODO: Generate the epilogue
     }
 
     fn translate(mut self) -> MachineCode {
@@ -56,8 +78,9 @@ impl<'a> InstructionSelector<'a> {
         self.code.emit(instruction!(MOV [Address::MachineRegister(MachineRegister::BP)] tos));
         self.code.emit(instruction!(MOV [Address::MachineRegister(MachineRegister::SP)] tos));
 
-        // Emit a JMP to main
+        // Execute the main method and then halt
         self.code.emit(instruction!(JMP Ident::new("main")));
+        self.code.emit(instruction!(HALT));
 
         // Translate all functions
         for symbol in self.ir {
