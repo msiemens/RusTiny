@@ -47,7 +47,7 @@ macro_rules! with_reset(
 #[macro_export]
 macro_rules! connect {
     ($items:expr, $fmt:expr, $connector:expr) => (
-        $items.iter().map(|t| format!($fmt, t)).collect::<Vec<_>>().connect($connector)
+        $items.iter().map(|t| format!($fmt, t)).collect::<Vec<_>>().join($connector)
     )
 }
 

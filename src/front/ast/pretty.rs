@@ -72,7 +72,7 @@ impl<'a, W: Write> PrettyPrinter<'a, W> {
                   .iter()
                   .map(|b| format!("{:?}", b))
                   .collect::<Vec<_>>()
-                  .connect(", "),
+                  .join(", "),
                ret_ty).ok();
         self.print_block(body)
     }

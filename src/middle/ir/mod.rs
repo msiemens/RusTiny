@@ -571,7 +571,7 @@ impl fmt::Display for Instruction {
                 write!(f, "{} = phi {}", dst, srcs.iter()
                         .map(|src| format!("[ {}, {} ]", src.0, src.1))
                         .collect::<Vec<_>>()
-                        .connect(" "))
+                        .join(" "))
             },
             Instruction::Call {
                 ref name,
