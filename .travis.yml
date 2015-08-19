@@ -1,6 +1,5 @@
 language: rust
 rust:
-  - 1.0.0-beta.3
   - nightly
 before_install:
 - sudo add-apt-repository -y ppa:fkrull/deadsnakes
