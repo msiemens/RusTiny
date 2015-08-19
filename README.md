@@ -1,7 +1,7 @@
 # RusTiny
 
-This is an educational compiler for a Rust-like language that targets the
-fictional [Tiny architecture](https://github.com/msiemens/rust-tinyasm).
+This is an educational compiler for a Rust-like language that was originally
+planned to target the fictional [Tiny architecture](https://github.com/msiemens/rust-tinyasm). But due to Tiny's limitations, RusTiny now targets x86-64 machines.
 The syntax is based on Rust, but there are numerous semantic differences:
 
 - The only datatype is `int`. There also are `bool` and `char`, but these are
