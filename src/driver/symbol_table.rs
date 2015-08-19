@@ -25,6 +25,7 @@ use std::collections::HashMap;
 use ::Ident;
 use front::ast;
 use middle::ir;
+use util::TryInsert;
 
 
 #[derive(Debug)]
@@ -44,15 +45,13 @@ impl<'a> SymbolTable {
     /// Register a new symbol
     pub fn register_symbol(&self, name: Ident, symbol: ast::Symbol) -> Result<(), &'static str> {
         let mut symbols = self.symbols.borrow_mut();
-        try_insert!(symbols, name, symbol)
-            .map_err(|()| "the symbol already exists")
+        symbols.try_insert(name, symbol).map_err(|()| "the symbol already exists")
     }
 
     /// Register a new scope
     pub fn register_scope(&self, scope: ast::NodeId) -> Result<(), &'static str> {
         let mut scopes = self.scopes.borrow_mut();
-        try_insert!(scopes, scope, BlockScope::new())
-            .map_err(|()| "the block's node id is not unique")
+        scopes.try_insert(scope, BlockScope::new()).map_err(|()| "the block's node id is not unique")
     }
 
     /// Register a variable in a scope
@@ -66,7 +65,7 @@ impl<'a> SymbolTable {
             .expect(&format!("unregistered scope: {:?}", scope))
             .vars;
 
-        try_insert!(vars, *binding.name, Variable { ty: binding.ty, reg: None })
+        vars.try_insert(*binding.name, Variable { ty: binding.ty, reg: None })
             .map_err(|()| "the variable already exists")
     }
 

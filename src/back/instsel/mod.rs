@@ -6,11 +6,13 @@
 
 // TODO: Finish Instruction Selection
 // TODO: Write assembly pretty printer
+// TODO: Add pow intrinsics
 // TODO: Add tests
+// TODO: Implement constant folding
 
 use std::collections::HashMap;
 use ::Ident;
-use back::machine::{Address, Instruction, MachineCode, MachineRegister, NativeInt, REGISTER_COUNT};
+use back::machine::{Instruction, MachineCode, MachineRegister, Word};
 use middle::ir;
 
 
@@ -29,19 +31,13 @@ impl<'a> InstructionSelector<'a> {
         }
     }
 
-    fn init_global(&mut self, name: &Ident, value: NativeInt, offset: usize) {
-        let address = offset + REGISTER_COUNT - 1;
-
-        // Store the offset
-        self.globals.insert(*name, address);
-
-        // Emit initialization
-        self.code.emit(instruction!(MOV [Address::Immediate(address as NativeInt)] value))
+    fn init_global(&mut self, name: &Ident, value: Word, offset: usize) {
+        // TODO: Create a way to emit directives
     }
 
     fn trans_fn(&mut self, name: &Ident, body: &[ir::Block], args: &[Ident]) {
         // TODO: Generate the prologue
-        
+
         for block in body {
             /* IDEA:
             for inst in block.inst {
@@ -61,10 +57,10 @@ impl<'a> InstructionSelector<'a> {
                 }
             }
             // */
-            
+
             // TODO: Translate closing instruction
         }
-        
+
         // TODO: Generate the epilogue
     }
 
@@ -72,18 +68,13 @@ impl<'a> InstructionSelector<'a> {
         // First, initialize global variables
         for (offset, symbol) in self.ir.iter().enumerate() {
             if let ir::Symbol::Global { ref name, ref value } = *symbol {
-                self.init_global(name, value.val() as NativeInt, offset);
+                self.init_global(name, value.val() as Word, offset);
             }
         }
 
         // Then initialize the stack management registers
-        let tos = (REGISTER_COUNT + self.globals.len()) as NativeInt - 1;  // Top of stack
-        self.code.emit(instruction!(MOV [Address::MachineRegister(MachineRegister::BP)] tos));
-        self.code.emit(instruction!(MOV [Address::MachineRegister(MachineRegister::SP)] tos));
 
         // Execute the main method and then halt
-        self.code.emit(instruction!(JMP Ident::new("main")));
-        self.code.emit(instruction!(HALT));
 
         // Translate all functions
         for symbol in self.ir {

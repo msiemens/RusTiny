@@ -1,12 +1,12 @@
 //! Different helpers & utilities
+use std::collections::hash_map::{HashMap, Entry};
+use std::collections::hash_state::HashState;
+use std::hash::Hash;
+
 pub use self::io::read_file;
 
 mod io;
 
-
-/*
-// This cannot implemented without #[feature(std_misc)] as of rustc 1.0.0-beta
-(9854143cb 2015-04-02).
 
 /// A helper that tries to insert a key/value into a hashmap and returns
 /// an error if the key already exists.
@@ -26,4 +26,3 @@ impl<K, V, S> TryInsert<K, V> for HashMap<K, V, S>
         }
     }
 }
-*/

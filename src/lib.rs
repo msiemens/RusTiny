@@ -1,3 +1,5 @@
+#![feature(hashmap_hasher)]
+
 #![deny(unused_features)]
 #![deny(deprecated)]
 #![warn(unused_variables)]

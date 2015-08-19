@@ -1,12 +1,22 @@
 #[derive(Debug)]
 pub enum MachineRegister {
     // General purpose registers
-    AX,
-    BX,
-    CX,
-    DX,
+    RAX,
+    RBX,
+    RCX,
+    RDX,
+    RSI,
+    RDI,
+    R8,
+    R9,
+    R10,
+    R11,
+    R12,
+    R13,
+    R14,
+    R15,
 
     // Stack management registers
-    SP,
-    BP,
+    RSP,
+    RBP,
 }
