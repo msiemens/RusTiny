@@ -19,4 +19,7 @@ pub enum MachineRegister {
     // Stack management registers
     RSP,
     RBP,
+
+    // Needed for artithmetic left shift
+    CL,
 }

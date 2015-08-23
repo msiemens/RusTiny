@@ -9,6 +9,11 @@ name = "rustiny"
 doc = false
 test = false
 
+[[bin]]
+name = "rustiny-rulecomp"
+doc = false
+test = false
+
 [profile.release]
 opt-level = 3
 lto = true

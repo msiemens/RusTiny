@@ -12,13 +12,20 @@
 
 use std::collections::HashMap;
 use ::Ident;
-use back::machine::{Instruction, MachineCode, MachineRegister, Word};
+use back::machine::{Instruction, Assembly, MachineRegister, Word};
 use middle::ir;
+
+
+pub use self::rulecomp::compile_rules;
+
+
+//mod rules; // TODO: Include rule compilation in build.rs
+mod rulecomp;
 
 
 struct InstructionSelector<'a> {
     ir: &'a ir::Program,
-    code: MachineCode,
+    code: Vec<Instruction>,
     globals: HashMap<Ident, usize>,
 }
 
@@ -26,7 +33,7 @@ impl<'a> InstructionSelector<'a> {
     fn new(ir: &'a ir::Program) -> InstructionSelector<'a> {
         InstructionSelector {
             ir: ir,
-            code: MachineCode::new(),
+            code: Vec::new(),
             globals: HashMap::new(),
         }
     }
@@ -64,7 +71,7 @@ impl<'a> InstructionSelector<'a> {
         // TODO: Generate the epilogue
     }
 
-    fn translate(mut self) -> MachineCode {
+    fn translate(mut self) -> Vec<Instruction> {
         // First, initialize global variables
         for (offset, symbol) in self.ir.iter().enumerate() {
             if let ir::Symbol::Global { ref name, ref value } = *symbol {
@@ -88,7 +95,7 @@ impl<'a> InstructionSelector<'a> {
 }
 
 
-pub fn select_instructions(ir: &ir::Program) -> MachineCode {
+pub fn select_instructions(ir: &ir::Program) -> Vec<Instruction> {
     let is = InstructionSelector::new(ir);
     is.translate()
 }

@@ -2,11 +2,11 @@
 //!
 
 mod cconv;
-#[macro_use] mod instructions;
+#[macro_use] pub mod instructions;
 mod registers;
 
 
-pub use self::instructions::{Argument, Instruction, MachineCode};
+pub use self::instructions::{Argument, Instruction, Assembly};
 pub use self::registers::MachineRegister;
 
 

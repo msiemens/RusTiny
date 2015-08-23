@@ -207,6 +207,10 @@ impl<T> Node<T> {
         Node { node: t, span: EMPTY_SPAN, id: NodeId(!0) }
     }
 
+    pub fn unwrap(self) -> T {
+        self.node
+    }
+
     fn get_next_id() -> u32 {
         thread_local!{
             static CURRENT_NODE_ID: Cell<u32> = Cell::new(0)

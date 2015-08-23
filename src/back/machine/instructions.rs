@@ -5,6 +5,13 @@ use back::machine::{MachineRegister, Word};
 
 
 #[derive(Debug)]
+pub enum AssemblyLine {
+    Directive(String),
+    Instruction(Instruction)
+}
+
+
+#[derive(Debug)]
 pub struct Instruction {
     mnemonic: &'static str,
     args: Vec<Argument>,
@@ -29,15 +36,13 @@ pub enum Argument {
 
     Register(Register),
 
-    // section:[base + index*scale + disp]
+    // [base + index * scale + disp]
     // Example: mov eax, DWORD PTR [rbp-4]
     Indirect {
         size:   OperandSize,
         base:   Option<Register>,
-        index:  Option<Register>,
-        scale:  Option<u32>,
+        index:  Option<(Register, u32)>,
         disp:   Option<u32>,
-        section: Option<Register>,
     },
 }
 
@@ -59,24 +64,24 @@ pub enum Register {
 
 
 #[derive(Debug)]
-pub struct MachineCode(Vec<Instruction>);
+pub struct Assembly(Vec<AssemblyLine>);
 
-impl MachineCode {
-    pub fn new() -> MachineCode {
-        MachineCode(Vec::new())
+impl Assembly {
+    pub fn new() -> Assembly {
+        Assembly(Vec::new())
     }
 
-    pub fn emit(&mut self, i: Instruction) {
-        self.0.push(i);
+    pub fn emit(&mut self, l: AssemblyLine) {
+        self.0.push(l);
     }
 }
 
-impl IntoIterator for MachineCode {
-    type Item = Instruction;
-    type IntoIter = IntoIter<Instruction>;
+impl IntoIterator for Assembly {
+    type Item = AssemblyLine;
+    type IntoIter = IntoIter<AssemblyLine>;
 
-    fn into_iter(self) -> IntoIter<Instruction> {
-        let MachineCode(vec) = self;
+    fn into_iter(self) -> IntoIter<AssemblyLine> {
+        let Assembly(vec) = self;
         vec.into_iter()
     }
 }

@@ -2,7 +2,7 @@
 mod instsel;
 
 
-pub use self::instsel::select_instructions;
+pub use self::instsel::{compile_rules, select_instructions};
 
 
 // IR -> ASM (v)
@@ -17,4 +17,4 @@ pub use self::instsel::select_instructions;
 // ASM -> ASM
 //pub fn prolog_epilog_insertion() {};
 
-//pub fn emit_code(emitter: Box<CodeEmitter>) {};
+//pub fn emit_code(emitter: Box<CodeEmitter>) {};  // <-- Also emit necessary directives (globals etc.)
