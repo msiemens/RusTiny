@@ -27,29 +27,3 @@ pub mod middle;
 pub mod back;
 pub mod driver;
 pub mod util;
-
-
-use std::mem;
-use std::ops::Deref;
-use driver::session;
-
-
-// FIXME: Maybe move to driver::interner
-/// An identifier refering to an interned string
-#[derive(Copy, Clone, Eq, PartialEq, Hash)]
-pub struct Ident(pub usize);
-
-impl Ident {
-    pub fn new(s: &str) -> Ident {
-        session().interner.intern(s)
-    }
-}
-
-/// Allows the ident's name to be accessed by dereferencing (`*ident`)
-impl Deref for Ident {
-    type Target = str;
-
-    fn deref(&self) -> &str {
-        unsafe { mem::transmute(&*(session().interner.resolve(*self))) }
-    }
-}

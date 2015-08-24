@@ -1,10 +1,8 @@
 //! Rule parser
 //!
 //! TODO: Docs!
-// TODO: Clean up this mess!
-// TODO: Fix all warnings
 
-use ::Ident;
+use driver::interner::Ident;
 use driver::session;
 use front::ast::{Node, Span};
 use back::machine::MachineRegister;

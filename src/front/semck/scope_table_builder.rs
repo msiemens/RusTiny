@@ -1,6 +1,6 @@
 //! Build the scope table and make sure all variables/symbols can be resolved
 
-use ::Ident;
+use driver::interner::Ident;
 use driver::session;
 use driver::symbol_table::SymbolTable;
 use front::ast::*;

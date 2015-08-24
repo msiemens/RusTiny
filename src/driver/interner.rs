@@ -22,12 +22,34 @@ use std::cell::RefCell;
 use std::cmp::Ordering;
 use std::collections::HashMap;
 use std::fmt;
+use std::mem;
 use std::ops::Deref;
 use std::rc::Rc;
-use ::Ident;
+use driver::session;
 
 
-/// An interned string
+/// An identifier refering to an interned string
+#[derive(Copy, Clone, Eq, PartialEq, Hash)]
+pub struct Ident(pub usize);
+
+impl Ident {
+    pub fn new(s: &str) -> Ident {
+        session().interner.intern(s)
+    }
+}
+
+/// Allows the ident's name to be accessed by dereferencing (`*ident`)
+impl Deref for Ident {
+    type Target = str;
+
+    fn deref(&self) -> &str {
+        unsafe { mem::transmute(&*(session().interner.resolve(*self))) }
+    }
+}
+
+
+
+/// An string stored in the interner
 #[derive(Clone, PartialEq, Hash, PartialOrd)]
 pub struct InternedString {
     string: Rc<String>,

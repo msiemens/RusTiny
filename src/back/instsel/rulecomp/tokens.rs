@@ -1,8 +1,8 @@
 //! All tokens that RusTiny understands
 
 use std::fmt;
-use ::Ident;
 use driver;
+use driver::interner::Ident;
 
 // --- List of tokens -----------------------------------------------------------
 
@@ -79,6 +79,13 @@ macro_rules! keywords(
             $($kw),*
         }
 
+        impl Keyword {
+            /// Load all keywords into the interner
+            pub fn setup() {
+                $( driver::session().interner.intern($name); )*
+            }
+        }
+
         impl fmt::Display for Keyword {
             fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
                 use self::Keyword::*;
@@ -89,12 +96,6 @@ macro_rules! keywords(
                     ),*
                 }
             }
-        }
-
-        /// Load all keywords into the interner
-        // TODO: Call this in init!
-        pub fn intern_keywords() {
-            $( driver::session().interner.intern($name); )*
         }
 
         /// Get the keyword a string represents, if possible

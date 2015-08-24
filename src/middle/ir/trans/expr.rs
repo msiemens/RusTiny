@@ -1,6 +1,6 @@
 //! Translate of expressions
 
-use ::Ident;
+use driver::interner::Ident;
 use driver;
 use driver::symbol_table::VariableKind;
 use front::ast;

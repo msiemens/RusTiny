@@ -46,7 +46,7 @@
 
 use std::collections::{HashMap, HashSet, VecDeque};
 use std::mem;
-use ::Ident;
+use driver::interner::Ident;
 use driver::session;
 use front::ast;
 use middle::ir::{self, Register};
@@ -247,7 +247,6 @@ impl Translator {
         } else {
             self.trans_block(body, &mut block, Dest::Ignore);
         }
-
 
         // Finalize the function
         if is_void && !block.finalized() {

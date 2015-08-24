@@ -6,11 +6,11 @@
 pub mod pretty;
 pub mod visit;
 
-use ::Ident;
 use std::cell::Cell;
 use std::fmt;
 use std::ops::{Add, Deref, DerefMut};
 use std::str::FromStr;
+use driver::interner::Ident;
 use driver::session;
 
 

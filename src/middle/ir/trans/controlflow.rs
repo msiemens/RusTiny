@@ -2,7 +2,7 @@
 
 // FIXME: Docs
 
-use ::Ident;
+use driver::interner::Ident;
 use front::ast;
 use middle::ir;
 use middle::ir::trans::{Dest, Translator};

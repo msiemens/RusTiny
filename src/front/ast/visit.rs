@@ -15,7 +15,7 @@
 //! To continue walking the AST after visiting a node, the appropriate `walk_*`
 //! method should be called at the end of `visit_*`.
 
-use ::Ident;
+use driver::interner::Ident;
 use front::ast::*;
 
 

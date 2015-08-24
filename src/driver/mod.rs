@@ -9,12 +9,11 @@ use middle;
 use back;
 
 pub use self::session::session;
-//pub use self::error::abort;
 
 
 pub mod codemap;
 mod error;
-mod interner;
+pub mod interner;
 pub mod symbol_table;
 pub mod session;
 

@@ -1,6 +1,6 @@
 use std::iter::IntoIterator;
 use std::vec::IntoIter;
-use ::Ident;
+use driver::interner::Ident;
 use back::machine::{MachineRegister, Word};
 
 

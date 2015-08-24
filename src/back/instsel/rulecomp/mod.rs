@@ -6,7 +6,7 @@ mod parser;
 
 pub fn setup() {
     // Load all keywords into the interning table
-    tokens::intern_keywords();
+    tokens::Keyword::setup();
 }
 
 

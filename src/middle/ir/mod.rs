@@ -3,7 +3,7 @@ use std::fmt;
 use std::iter::IntoIterator;
 use std::slice;
 use std::vec::IntoIter;
-use ::Ident;
+use driver::interner::Ident;
 use front::ast;
 
 

@@ -2,7 +2,7 @@
 
 use std::borrow::ToOwned;
 use std::str::CharIndices;
-use ::Ident;
+use driver::interner::Ident;
 use driver::session;
 use driver::codemap::{BytePos, Loc};
 use front::ast::{BinOp, UnOp, Spanned};

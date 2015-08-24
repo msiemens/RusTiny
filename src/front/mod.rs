@@ -17,5 +17,5 @@ pub use self::typeck::run as type_check;
 
 pub fn setup() {
 	// Load all keywords into the interning table
-    tokens::intern_keywords();
+    tokens::Keyword::setup();
 }

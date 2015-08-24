@@ -13,7 +13,7 @@
 
 #![allow(unused_variables)]  // FIXME: Remove after finishing
 
-use ::Ident;
+use driver::interner::Ident;
 use back::machine::{Instruction, Word};
 use middle::ir;
 
