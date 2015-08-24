@@ -36,7 +36,7 @@ pub struct InternedString {
 impl InternedString {
     pub fn new(string: &str) -> InternedString {
         InternedString {
-            string: Rc::new(string.to_string()),
+            string: Rc::new(string.to_owned()),
         }
     }
 }

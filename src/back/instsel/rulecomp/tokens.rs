@@ -32,8 +32,7 @@ pub enum Token {
     Ident(Ident),
     Literal(Ident),
 
-    EOF,
-    PLACEHOLDER
+    EOF
 }
 
 impl fmt::Display for Token {
@@ -66,7 +65,6 @@ impl fmt::Display for Token {
             Literal(lit)        => write!(f, "{}", lit),
 
             EOF                 => write!(f, "EOF"),
-            PLACEHOLDER         => write!(f, "PLACEHOLDER"),
         }
     }
 }

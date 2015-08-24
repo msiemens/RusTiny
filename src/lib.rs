@@ -1,12 +1,19 @@
 #![feature(hashmap_hasher)]
+#![feature(split_off)]
+#![feature(append)]
+#![feature(plugin)]
 
+#![plugin(clippy)]
+
+#![allow(needless_return)]
+#![allow(needless_lifetimes)]
 #![deny(unused_features)]
 #![deny(deprecated)]
 #![warn(unused_variables)]
 #![warn(unused_imports)]
 #![warn(dead_code)]
 #![warn(missing_copy_implementations)]
-// #![warn(missing_docs)]
+//#![warn(missing_docs)]
 
 extern crate ansi_term;
 extern crate term;
@@ -42,7 +49,7 @@ impl Ident {
 impl Deref for Ident {
     type Target = str;
 
-    fn deref<'a>(&'a self) -> &'a str {
+    fn deref(&self) -> &str {
         unsafe { mem::transmute(&*(session().interner.resolve(*self))) }
     }
 }

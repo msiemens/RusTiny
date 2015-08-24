@@ -75,9 +75,9 @@ pub enum AsmArg {
     IrArg(Node<Ident>),
     Literal(Node<Ident>),
     Indirect {
-        size: OperandSize,
+        size: Option<OperandSize>,
         base: Option<Box<AsmArg>>,
         index: Option<(Box<AsmArg>, u32)>,
-        disp: Option<u32>
+        disp: Option<i32>
     }
 }

@@ -44,7 +44,7 @@
 
 // TODO: SSA verifier?
 
-use std::collections::{HashMap, HashSet, LinkedList};
+use std::collections::{HashMap, HashSet, VecDeque};
 use std::mem;
 use ::Ident;
 use driver::session;
@@ -164,7 +164,7 @@ impl Translator {
 
         let mut new_block = ir::Block {
             label: label,
-            inst: LinkedList::new(),
+            inst: VecDeque::new(),
             last: ir::ControlFlowInstruction::NotYetProcessed
         };
 
@@ -231,7 +231,7 @@ impl Translator {
         // Prepare ast block
         let mut block = ir::Block {
             label: ir::Label::new("entry-block"),
-            inst: LinkedList::new(),
+            inst: VecDeque::new(),
             last: ir::ControlFlowInstruction::NotYetProcessed
         };
 

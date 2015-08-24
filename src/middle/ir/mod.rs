@@ -1,4 +1,4 @@
-use std::collections::LinkedList;
+use std::collections::VecDeque;
 use std::fmt;
 use std::iter::IntoIterator;
 use std::slice;
@@ -121,7 +121,7 @@ pub enum Symbol {
 #[derive(Debug)]
 pub struct Block {
     label: Label,
-    inst: LinkedList<Instruction>,
+    inst: VecDeque<Instruction>,
     last: ControlFlowInstruction,
 }
 
@@ -578,7 +578,7 @@ impl fmt::Display for Instruction {
                 ref args,
                 ref dst
             } => {
-                if args.len() == 0 {
+                if args.is_empty() {
                    write!(f, "{} = call {}", dst, name)
                 } else {
                     write!(f, "{} = call {} {}", dst, name,

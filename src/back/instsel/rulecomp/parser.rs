@@ -2,6 +2,7 @@
 //!
 //! TODO: Docs!
 // TODO: Clean up this mess!
+// TODO: Fix all warnings
 
 use ::Ident;
 use driver::session;
@@ -36,9 +37,8 @@ impl<'a> Parser<'a> {
 
     /// Process all tokens and create an AST
     pub fn parse(&mut self) -> Vec<Node<Rule>> {
-        debug!("Starting parsing");
-
         // Grammar: kw_rules BANG LBRACE rule+ RBRACKET
+        debug!("Starting parsing");
         let lo = self.span;
 
         let mut rules = Vec::new();
@@ -83,8 +83,6 @@ impl<'a> Parser<'a> {
 
     /// Move along to the next token
     fn bump(&mut self) {
-        //debug!("asking the lexer for the next token");
-
         let next_token = self.lexer.next_token();
         self.token = next_token.value;
         self.span = next_token.span;
@@ -127,7 +125,17 @@ impl<'a> Parser<'a> {
 
     // --- Parse ir patterns ----------------------------------------------------
 
+    fn on_last_pattern(&self) -> bool {
+        match self.token {
+            Token::Keyword(Keyword::Ret)
+            | Token::Keyword(Keyword::Br)
+            | Token::Keyword(Keyword::Jmp) => true,
+            _ => false
+        }
+    }
+
     fn parse_ir_pattern(&mut self) -> Node<IrPattern> {
+        // Grammar: not funny
         macro_rules! binop {
             ($dst:ident, $pat:path) => {
                 {
@@ -145,18 +153,14 @@ impl<'a> Parser<'a> {
         let lo = self.span;
 
         let pattern = if self.eat(Token::Keyword(Keyword::Store)) {
+            // store ..., %(...)
             let src = self.parse_ir_arg();
             self.expect(Token::Comma);
-            self.expect(Token::Percent);
-            self.expect(Token::LParen);
             let dst = self.parse_ir_register();
-            self.expect(Token::RParen);
             IrPattern::Store(src, dst)
         } else {
-            self.expect(Token::Percent);
-            self.expect(Token::LParen);
+            // %(`dest`) = ...
             let dst = self.parse_ir_register();
-            self.expect(Token::RParen);
             self.expect(Token::Equal);
 
             match self.token {
@@ -198,10 +202,7 @@ impl<'a> Parser<'a> {
                 },
                 Token::Keyword(Keyword::Load) => {
                     self.bump();
-                    self.expect(Token::Percent);
-                    self.expect(Token::LParen);
                     let val = self.parse_ir_register();
-                    self.expect(Token::RParen);
                     IrPattern::Load(dst, val)
                 },
                 Token::Keyword(Keyword::Call) => {
@@ -266,7 +267,10 @@ impl<'a> Parser<'a> {
         debug!("parsing an ir register");
         let lo = self.span;
 
+        self.expect(Token::Percent);
+        self.expect(Token::LParen);
         let ident = self.parse_ident();
+        self.expect(Token::RParen);
 
         Node::new(IrRegister(*ident), lo + self.span)
     }
@@ -286,13 +290,7 @@ impl<'a> Parser<'a> {
         let lo = self.span;
 
         let arg = match self.token {
-            Token::Percent => {
-                self.bump();
-                self.expect(Token::LParen);
-                let ident = self.parse_ident();
-                self.expect(Token::RParen);
-                IrArg::Register(*ident)
-            },
+            Token::Percent => IrArg::Register(self.parse_ir_register().0),
             Token::Zero => {
                 self.bump();
                 self.expect(Token::LParen);
@@ -314,18 +312,17 @@ impl<'a> Parser<'a> {
         let lo = self.span;
 
         let mut args = Vec::new();
-        let mut bump = false;
 
         let mnemonic = match self.token {
             Token::Ident(..) => self.parse_ident(),
-            Token::Keyword(ref kw) => {
-                bump = true;  // TODO: Document ugly hack
+            Token::Keyword(kw) => {
+                // Some mnemonics have the same name as some IR keywords,
+                // thus we need to extract them
+                self.bump();
                 Node::new(Ident::new(&*format!("{}", kw)), lo + self.span)
             },
             _ => self.unexpected_token(Some("a mnemonic"))
         };
-
-        if bump { self.bump(); }
 
         while self.token != Token::Semicolon {
             args.push(self.parse_asm_arg());
@@ -364,29 +361,30 @@ impl<'a> Parser<'a> {
 
                 AsmArg::Literal(Node::new(literal, lo + self.span))
             },
+            Token::LBracket => {
+                self.parse_asm_memory_operand(None)
+            }
             Token::Keyword(Keyword::Byte) => {
                 self.bump();
                 self.expect(Token::Keyword(Keyword::Ptr));
-                self.parse_asm_memory_operand(OperandSize::Byte)
+                self.parse_asm_memory_operand(Some(OperandSize::Byte))
             },
             Token::Keyword(Keyword::Word) => {
                 self.bump();
                 self.expect(Token::Keyword(Keyword::Ptr));
-                self.parse_asm_memory_operand(OperandSize::Word)
+                self.parse_asm_memory_operand(Some(OperandSize::Word))
             },
             Token::Keyword(Keyword::DWord) => {
                 self.bump();
                 self.expect(Token::Keyword(Keyword::Ptr));
-                self.parse_asm_memory_operand(OperandSize::DWord)
+                self.parse_asm_memory_operand(Some(OperandSize::DWord))
             },
             Token::Keyword(Keyword::QWord) => {
                 self.bump();
                 self.expect(Token::Keyword(Keyword::Ptr));
-                self.parse_asm_memory_operand(OperandSize::QWord)
+                self.parse_asm_memory_operand(Some(OperandSize::QWord))
             },
-            _ => {
-                AsmArg::Register(self.parse_asm_register())
-            }
+            _ => AsmArg::Register(self.parse_asm_register())
         };
 
         Node::new(arg, lo + self.span)
@@ -416,44 +414,74 @@ impl<'a> Parser<'a> {
         }
     }
 
-    fn parse_asm_memory_operand(&mut self, size: OperandSize) -> AsmArg {
+    fn parse_asm_memory_operand(&mut self, size: Option<OperandSize>) -> AsmArg {
         self.expect(Token::LBracket);
 
         let mut base = None;
         let mut index = None;
         let mut disp = None;
 
-        loop {
-            match self.token {
-                Token::RBracket => break,
-                Token::Ident(..) | Token::Dollar | Token::Percent => {
-                    let reg = self.parse_asm_arg().unwrap();
-                    if let Token::Asterisk = self.token {
-                        self.expect(Token::Asterisk);
-                        let scale = if let Token::Literal(lit) = self.token {
-                            lit.parse::<u32>().unwrap()
-                        } else {
-                            self.unexpected_token(Some("a numeric literal"));
-                        };
-
-                        index = Some((Box::new(reg), scale));
-                    } else {
-                        base = Some(Box::new(reg));
-                    }
-                },
-                Token::Literal(..) => {
-                    disp = if let Token::Literal(lit) = self.token {
-                        Some(lit.parse::<u32>().unwrap())
+        // Parse base or index
+        match self.token {
+            Token::Dollar | Token::Percent | Token::Ident(..) => {
+                let reg = self.parse_asm_arg().unwrap();
+                if let Token::Asterisk = self.token {
+                    self.expect(Token::Asterisk);
+                    let scale = if let Token::Literal(lit) = self.token {
+                        lit.parse::<u32>().unwrap()
                     } else {
                         self.unexpected_token(Some("a numeric literal"));
-                    }
-                },
-                _ => self.unexpected_token(None)
-            }
+                    };
+                    self.bump();
 
-            if base.is_some() && index.is_some() && disp.is_some() {
-                break
+                    index = Some((Box::new(reg), scale));
+                } else {
+                    base = Some(Box::new(reg));
+                }
+            },
+            _ => {
+                self.unexpected_token(Some("a register"));
             }
+        }
+
+        // If the previous part was the base, now try to parse the index
+        if self.eat(Token::Plus) && index.is_none() {
+            match self.token {
+                Token::Ident(..) | Token::Dollar | Token::Percent => {
+                    let reg = self.parse_asm_arg().unwrap();
+                    self.expect(Token::Asterisk);
+                    let scale = if let Token::Literal(lit) = self.token {
+                        lit.parse::<u32>().unwrap()
+                    } else {
+                        self.unexpected_token(Some("a numeric literal"));
+                    };
+                    self.bump();
+
+                    index = Some((Box::new(reg), scale));
+                },
+                _ => {}  // Propably the displacement
+            }
+        }
+
+        // Parse displacement
+        println!("0 - {:?}", self.token);
+
+        match self.token {
+            Token::Literal(lit) => {
+                disp = Some(lit.parse().unwrap())
+            },
+            Token::Minus => {
+                self.bump();
+
+                disp = if let Token::Literal(lit) = self.token {
+                    Some(-1 * lit.parse::<i32>().unwrap())
+                } else {
+                    self.unexpected_token(Some("a numeric literal"));
+                };
+
+                self.bump();
+            },
+            _ => {}
         }
 
         self.expect(Token::RBracket);
@@ -481,7 +509,7 @@ impl<'a> Parser<'a> {
         loop {
             if self.eat(Token::DoubleDot) {
                 break
-            } else if self.eat(Token::FatArrow) {
+            } else if self.on_last_pattern() {
                 last = Some(self.parse_ir_pattern_last());
                 break
             } else {

@@ -4,7 +4,15 @@ mod lexer;
 mod parser;
 
 
+pub fn setup() {
+    // Load all keywords into the interning table
+    tokens::intern_keywords();
+}
+
+
 pub fn compile_rules(input: &str, filename: &str) -> String {
+    setup();
+
     let mut parser = parser::Parser::new(lexer::Lexer::new(input, filename));
     let rules = parser.parse();
 

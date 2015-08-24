@@ -228,13 +228,13 @@ impl<T> Node<T> {
 impl<T> Deref for Node<T> {
     type Target = T;
 
-    fn deref<'a>(&'a self) -> &'a T {
+    fn deref(&self) -> &T {
         &self.node
     }
 }
 
 impl<T> DerefMut for Node<T> {
-    fn deref_mut<'a>(&'a mut self) -> &'a mut T {
+    fn deref_mut(&mut self) -> &mut T {
         &mut self.node
     }
 }

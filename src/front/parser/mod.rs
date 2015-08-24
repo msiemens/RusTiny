@@ -448,7 +448,7 @@ impl<'a> Parser<'a> {
         Node::new(Expression::If {
             cond: Box::new(cond),
             conseq: Box::new(conseq),
-            altern: altern.map(|b| Box::new(b))
+            altern: altern.map(Box::new)
         }, lo + self.span)
     }
 
@@ -555,16 +555,14 @@ impl<'a> Parser<'a> {
         // Grammar: function | static | constant | impl
         debug!("parsing a symbol");
 
-        let symbol = match self.token {
+        match self.token {
             Token::Keyword(Keyword::Fn) => self.parse_fn(),
             Token::Keyword(Keyword::Static) => self.parse_static(),
             Token::Keyword(Keyword::Const) => self.parse_const(),
             //Token::Keyword(Keyword::Impl) => unimplemented!(),  // TODO: Implement
 
             _ => self.unexpected_token(Some("a symbol"))
-        };
-
-        symbol
+        }
     }
 
 }

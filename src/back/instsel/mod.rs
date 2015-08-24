@@ -10,9 +10,10 @@
 // TODO: Add tests
 // TODO: Implement constant folding
 
-use std::collections::HashMap;
+#![allow(unused_variables)]  // FIXME: Remove after finishing
+
 use ::Ident;
-use back::machine::{Instruction, Assembly, MachineRegister, Word};
+use back::machine::{Instruction, Word};
 use middle::ir;
 
 
@@ -26,7 +27,7 @@ mod rulecomp;
 struct InstructionSelector<'a> {
     ir: &'a ir::Program,
     code: Vec<Instruction>,
-    globals: HashMap<Ident, usize>,
+    //globals: HashMap<Ident, usize>,
 }
 
 impl<'a> InstructionSelector<'a> {
@@ -34,7 +35,7 @@ impl<'a> InstructionSelector<'a> {
         InstructionSelector {
             ir: ir,
             code: Vec::new(),
-            globals: HashMap::new(),
+            //globals: HashMap::new(),
         }
     }
 
@@ -45,8 +46,8 @@ impl<'a> InstructionSelector<'a> {
     fn trans_fn(&mut self, name: &Ident, body: &[ir::Block], args: &[Ident]) {
         // TODO: Generate the prologue
 
+        /* IDEA:
         for block in body {
-            /* IDEA:
             for inst in block.inst {
                 // TODO: Translate instruction
                 match *inst {
@@ -63,10 +64,10 @@ impl<'a> InstructionSelector<'a> {
                     ...
                 }
             }
-            // */
 
-            // TODO: Translate closing instruction
+            // TODO: Translate last instruction
         }
+        // */
 
         // TODO: Generate the epilogue
     }

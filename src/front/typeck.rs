@@ -76,7 +76,7 @@ impl<'a> TypeCheck<'a> {
     }
 
     fn check_block(&mut self, block: &Node<Block>, expected_ty: Option<Type>) -> Type {
-        let block_ty = with_reset!(self.scope, block.id, {
+        with_reset!(self.scope, block.id, {
             for stmt in &block.stmts {
                 self.check_statement(stmt);
             }
@@ -85,9 +85,7 @@ impl<'a> TypeCheck<'a> {
             self.types.insert(block.id, block_ty);
 
             block_ty
-        });
-
-        block_ty
+        })
     }
 
     fn check_statement(&mut self, stmt: &Node<Statement>) {

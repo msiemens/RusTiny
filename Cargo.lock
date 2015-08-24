@@ -3,6 +3,7 @@ name = "rustiny"
 version = "0.0.1"
 dependencies = [
  "ansi_term 0.5.1 (registry+https://github.com/rust-lang/crates.io-index)",
+ "clippy 0.0.11 (git+https://github.com/Manishearth/rust-clippy)",
  "docopt 0.6.64 (registry+https://github.com/rust-lang/crates.io-index)",
  "env_logger 0.3.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "lazy_static 0.1.10 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -15,6 +16,11 @@ dependencies = [
 name = "ansi_term"
 version = "0.5.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
+
+[[package]]
+name = "clippy"
+version = "0.0.11"
+source = "git+https://github.com/Manishearth/rust-clippy#961f9d68a9f2098bb27b06a5f8286dab4faa7505"
 
 [[package]]
 name = "docopt"

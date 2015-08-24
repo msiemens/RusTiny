@@ -94,23 +94,6 @@ impl<'a> Lexer<'a> {
         }
     }
 
-    /// Consume an expected character or report an error
-    fn expect(&mut self, expect: char) {
-        if self.curr != Some(expect) {
-            // Build error message
-            let found_str = match self.curr {
-                Some(_) => format!("`{}`", self.curr_escaped()),
-                None    => "EOF".to_owned()
-            };
-
-            self.fatal(format!("Expected `{}`, found {}",
-                               expect, found_str))
-        }
-
-        // Consume the current character
-        self.bump();
-    }
-
     /// Collect & consume all consecutive characters into a string as long as a condition is true
     fn collect<F>(&mut self, cond: F) -> &'a str
             where F: Fn(&char) -> bool

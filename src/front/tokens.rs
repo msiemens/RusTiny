@@ -28,7 +28,6 @@ pub enum Token {
     Char(char),
 
     EOF,
-    PLACEHOLDER
 }
 
 impl Token {
@@ -94,7 +93,6 @@ impl fmt::Display for Token {
             Ident(id)           => write!(f, "{}", id),
             Type(ty)            => write!(f, "{}", ty),
             Token::EOF          => write!(f, "EOF"),
-            Token::PLACEHOLDER  => write!(f, "PLACEHOLDER")
         }
     }
 }
