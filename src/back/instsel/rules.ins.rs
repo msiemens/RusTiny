@@ -438,8 +438,23 @@ rules!{
 
     [%(dst) = call func [args ..]; ..] => {
         mov rax, [rax + rbx * 8 - 12];
-    }
+    },
 
-    // TODO: How are phi nodes handeled?
-    // TODO: return/branch/jump
+    // --- Return/Branch/Jump ---------------------------------------------------
+
+    [ret %(val)] => {
+        // Reset the stack pointer
+        leave;
+        ret;
+    },
+
+    [br %(cond), conseq, altern] => {
+        test $cond, 1;
+        je $conseq;
+        jmp $altern;
+    },
+
+    [jmp target] => {
+        jmp $target;
+    }
 }

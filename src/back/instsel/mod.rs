@@ -9,6 +9,7 @@
 // TODO: Add pow intrinsics
 // TODO: Add tests
 // TODO: Implement constant folding
+// TODO: How are phi nodes handeled?
 
 #![allow(unused_variables)]  // FIXME: Remove after finishing
 

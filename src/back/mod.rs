@@ -18,3 +18,5 @@ pub use self::instsel::{compile_rules, select_instructions};
 //pub fn prolog_epilog_insertion() {};
 
 //pub fn emit_code(emitter: Box<CodeEmitter>) {};  // <-- Also emit necessary directives (globals etc.)
+
+// TODO: Peephole optimizer: Remove JMP to next instruction
