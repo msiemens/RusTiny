@@ -4,19 +4,19 @@ use back::machine::MachineRegister;
 use back::machine::instructions::OperandSize;
 
 
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub struct Rule {
     pub pattern: Node<Pattern>,
     pub asm: Node<Vec<Node<AsmInstr>>>,
 }
 
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub struct Pattern {
     pub ir_patterns: Vec<Node<IrPattern>>,
     pub last: Option<Node<IrPatternLast>>
 }
 
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub enum IrPattern {
     Add(Node<IrRegister>, Node<IrArg>, Node<IrArg>),
     Sub(Node<IrRegister>, Node<IrArg>, Node<IrArg>),
@@ -38,42 +38,52 @@ pub enum IrPattern {
     CmpGe(Node<IrRegister>, Node<IrArg>, Node<IrArg>),
     CmpGt(Node<IrRegister>, Node<IrArg>, Node<IrArg>),
     Alloca(Node<IrRegister>),
-    Load(Node<IrRegister>, Node<IrRegister>),
-    Store(Node<IrArg>, Node<IrRegister>),
+    Load(Node<IrRegister>, Node<IrArg>),
+    Store(Node<IrArg>, Node<IrArg>),
     Call(Node<IrRegister>, Node<Ident>, Node<Ident>),
 }
 
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub enum IrPatternLast {
     Ret(Option<Node<IrArg>>),
     Br(Node<IrArg>, Node<IrLabel>, Node<IrLabel>),
     Jmp(Node<IrLabel>),
 }
 
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub enum IrArg {
     Register(Ident),
     Literal(Ident)
 }
 
-#[derive(Debug)]
+impl IrArg {
+    pub fn get_name(&self) -> Ident {
+        match *self {
+            IrArg::Register(id) => id,
+            IrArg::Literal(id) => id
+        }
+    }
+}
+
+#[derive(Clone, Debug)]
 pub struct IrRegister(pub Ident);
 
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub struct IrLabel(pub Ident);
 
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub struct AsmInstr {
     pub mnemonic: Node<Ident>,
     pub args: Vec<Node<AsmArg>>,
 }
 
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub enum AsmArg {
     Register(MachineRegister),
     NewRegister(Node<Ident>),
     IrArg(Node<Ident>),
     Literal(Node<Ident>),
+    Label(Node<Ident>),
     Indirect {
         size: Option<OperandSize>,
         base: Option<Box<AsmArg>>,

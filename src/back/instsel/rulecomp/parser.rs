@@ -154,7 +154,7 @@ impl<'a> Parser<'a> {
             // store ..., %(...)
             let src = self.parse_ir_arg();
             self.expect(Token::Comma);
-            let dst = self.parse_ir_register();
+            let dst = self.parse_ir_arg();
             IrPattern::Store(src, dst)
         } else {
             // %(`dest`) = ...
@@ -200,7 +200,7 @@ impl<'a> Parser<'a> {
                 },
                 Token::Keyword(Keyword::Load) => {
                     self.bump();
-                    let val = self.parse_ir_register();
+                    let val = self.parse_ir_arg();
                     IrPattern::Load(dst, val)
                 },
                 Token::Keyword(Keyword::Call) => {
@@ -354,6 +354,11 @@ impl<'a> Parser<'a> {
 
                 AsmArg::NewRegister(ident)
             },
+            Token::Dot => {
+                self.bump();
+
+                AsmArg::Label(self.parse_ident())
+            },
             Token::Literal(literal) => {
                 self.bump();
 
@@ -462,8 +467,6 @@ impl<'a> Parser<'a> {
         }
 
         // Parse displacement
-        println!("0 - {:?}", self.token);
-
         match self.token {
             Token::Literal(lit) => {
                 disp = Some(lit.parse().unwrap())

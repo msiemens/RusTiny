@@ -14,7 +14,7 @@ pub use middle::ir::trans::translate;
 
 
 #[derive(Clone, Copy, Debug, PartialEq)]
-pub struct Label(Ident);
+pub struct Label(pub Ident);
 
 impl Label {
     pub fn new(name: &str) -> Label {
@@ -45,7 +45,7 @@ impl Value {
 }
 
 #[derive(Clone, Copy, PartialEq, Eq, Hash)]
-pub struct Register(Ident);
+pub struct Register(pub Ident);
 
 impl Register {
     pub fn new(name: &str) -> Register {
@@ -58,7 +58,7 @@ impl Register {
 }
 
 #[derive(Clone, Copy, PartialEq)]
-pub struct Immediate(u32);
+pub struct Immediate(pub u32);
 
 impl Immediate {
     pub fn val(self) -> u32 {

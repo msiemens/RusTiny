@@ -13,13 +13,13 @@ pub enum AssemblyLine {
 
 #[derive(Debug)]
 pub struct Instruction {
-    mnemonic: &'static str,
+    mnemonic: Ident,
     args: Vec<Argument>,
     label: Option<Ident>,
 }
 
 impl Instruction {
-    pub fn new(mnemonic: &'static str, args: Vec<Argument>) -> Instruction {
+    pub fn new(mnemonic: Ident, args: Vec<Argument>) -> Instruction {
         Instruction {
             mnemonic: mnemonic,
             args: args,
@@ -29,7 +29,7 @@ impl Instruction {
 }
 
 
-#[derive(Debug)]
+#[derive(Copy, Clone, Debug)]
 pub enum Argument {
     Immediate(Word),
     Label(Ident),
@@ -39,15 +39,15 @@ pub enum Argument {
     // [base + index * scale + disp]
     // Example: mov eax, DWORD PTR [rbp-4]
     Indirect {
-        size:   OperandSize,
+        size:   Option<OperandSize>,
         base:   Option<Register>,
         index:  Option<(Register, u32)>,
-        disp:   Option<u32>,
+        disp:   Option<i32>,
     },
 }
 
 
-#[derive(Debug)]
+#[derive(Copy, Clone, Debug)]
 pub enum OperandSize {
     Byte,
     Word,
@@ -56,7 +56,7 @@ pub enum OperandSize {
 }
 
 
-#[derive(Debug)]
+#[derive(Copy, Clone, Debug)]
 pub enum Register {
     MachineRegister(MachineRegister),
     VirtualRegister(Ident),
@@ -73,6 +73,10 @@ impl Assembly {
 
     pub fn emit(&mut self, l: AssemblyLine) {
         self.0.push(l);
+    }
+
+    pub fn emit_instruction(&mut self, i: Instruction) {
+        self.0.push(AssemblyLine::Instruction(i));
     }
 }
 

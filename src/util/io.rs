@@ -1,7 +1,7 @@
 //! File I/O related helpers
 
 use std::fs::File;
-use std::io::Read;
+use std::io::{Read, Write};
 use std::path::Path;
 use driver::session;
 
@@ -33,4 +33,23 @@ pub fn read_file(input_path: &str) -> String {
             session().abort();
         }
     }
+}
+
+
+pub fn write_file(output_path: &str, contents: &str) {
+    let mut file = match File::create(&Path::new(output_path)) {
+        Ok(f) => f,
+        Err(err) => {
+            fatal!("Can't open {}: {}", output_path, err);
+            session().abort();
+        }
+    };
+
+    match file.write_all(contents.as_bytes()) {
+        Ok(..) => {},
+        Err(_) => {
+            fatal!("Can't write {}", output_path);
+            session().abort();
+        }
+    };
 }

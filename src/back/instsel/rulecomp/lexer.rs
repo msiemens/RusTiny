@@ -209,7 +209,7 @@ impl<'a> Lexer<'a> {
             '*' => emit!(self, Token::Asterisk),
 
             '.' => emit!(self, next: '.' => Token::DoubleDot;
-                               default: self.fatal(format!("unexpected character: `{}`", c))),
+                               default: Token::Dot),
 
             '(' => emit!(self, Token::LParen),
 

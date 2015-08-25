@@ -49,20 +49,20 @@ rules!{
     },
 
     // Integer division
-    [%(dst) = sub %(lhs), %(rhs); ..] => {
+    [%(dst) = div %(lhs), %(rhs); ..] => {
         xor rdx, rdx;
         mov rax, $lhs;
         idiv $rhs;
         mov $dst, rax;
     },
-    [%(dst) = sub %(lhs), 0(rhs); ..] => {
+    [%(dst) = div %(lhs), 0(rhs); ..] => {
         mov %(tmp), $rhs;  // Create a temporary virtual register
         xor rdx, rdx;
         mov rax, $lhs;
         idiv $tmp;
         mov $dst, rax;
     },
-    [%(dst) = sub 0(lhs), %(rhs); ..] => {
+    [%(dst) = div 0(lhs), %(rhs); ..] => {
         xor rdx, rdx;
         mov rax, $lhs;
         idiv $rhs;
@@ -73,20 +73,20 @@ rules!{
 
     // Modulo
     // Like div but use the remainder of the division
-    [%(dst) = sub %(lhs), %(rhs); ..] => {
+    [%(dst) = mod %(lhs), %(rhs); ..] => {
         xor rdx, rdx;
         mov rax, $lhs;
         idiv $rhs;
         mov $dst, rdx;
     },
-    [%(dst) = sub %(lhs), 0(rhs); ..] => {
+    [%(dst) = mod %(lhs), 0(rhs); ..] => {
         mov %(tmp), $rhs;  // Create a temporary virtual register
         xor rdx, rdx;
         mov rax, $lhs;
         idiv $tmp;
         mov $dst, rdx;
     },
-    [%(dst) = sub 0(lhs), %(rhs); ..] => {
+    [%(dst) = mod 0(lhs), %(rhs); ..] => {
         xor rdx, rdx;
         mov rax, $lhs;
         idiv $rhs;
@@ -184,19 +184,19 @@ rules!{
     // Lower than: With branch
     [%(dst) = cmp lt %(lhs), %(rhs); br %(cond), conseq, altern] => {
         cmp $lhs, $rhs;
-        jl $conseq;
-        jmp $altern;
+        jl .conseq;
+        jmp .altern;
     },
     [%(dst) = cmp lt %(lhs), 0(rhs); br %(cond), conseq, altern] => {
         cmp $lhs, $rhs;
-        jl $conseq;
-        jmp $altern;
+        jl .conseq;
+        jmp .altern;
     },
     [%(dst) = cmp lt 0(lhs), %(rhs); br %(cond), conseq, altern] => {
         // Inverted cmp
         cmp $rhs, $lhs;
-        jge $altern;
-        jmp $conseq;
+        jge .altern;
+        jmp .conseq;
     },
 
     // Lower than: Without branch
@@ -223,19 +223,19 @@ rules!{
     // Lower than or equal: With branch
     [%(dst) = cmp le %(lhs), %(rhs); br %(cond), conseq, altern] => {
         cmp $lhs, $rhs;
-        jle $conseq;
-        jmp $altern;
+        jle .conseq;
+        jmp .altern;
     },
     [%(dst) = cmp le %(lhs), 0(rhs); br %(cond), conseq, altern] => {
         cmp $lhs, $rhs;
-        jle $conseq;
-        jmp $altern;
+        jle .conseq;
+        jmp .altern;
     },
     [%(dst) = cmp le 0(lhs), %(rhs); br %(cond), conseq, altern] => {
         // Inverted cmp
         cmp $rhs, $lhs;
-        jg $altern;
-        jmp $conseq;
+        jg .altern;
+        jmp .conseq;
     },
 
     // Lower than or equal: Without branch
@@ -262,19 +262,19 @@ rules!{
     // Greater than or equal: With branch
     [%(dst) = cmp ge %(lhs), %(rhs); br %(cond), conseq, altern] => {
         cmp $lhs, $rhs;
-        jge $conseq;
-        jmp $altern;
+        jge .conseq;
+        jmp .altern;
     },
     [%(dst) = cmp ge %(lhs), 0(rhs); br %(cond), conseq, altern] => {
         cmp $lhs, $rhs;
-        jge $conseq;
-        jmp $altern;
+        jge .conseq;
+        jmp .altern;
     },
     [%(dst) = cmp ge 0(lhs), %(rhs); br %(cond), conseq, altern] => {
         // Inverted cmp
         cmp $rhs, $lhs;
-        jl $altern;
-        jmp $conseq;
+        jl .altern;
+        jmp .conseq;
     },
 
     // Greater than or equal: Without branch
@@ -301,19 +301,19 @@ rules!{
     // Greater than: With branch
     [%(dst) = cmp gt %(lhs), %(rhs); br %(cond), conseq, altern] => {
         cmp $lhs, $rhs;
-        jg $conseq;
-        jmp $altern;
+        jg .conseq;
+        jmp .altern;
     },
     [%(dst) = cmp gt %(lhs), 0(rhs); br %(cond), conseq, altern] => {
         cmp $lhs, $rhs;
-        jg $conseq;
-        jmp $altern;
+        jg .conseq;
+        jmp .altern;
     },
     [%(dst) = cmp gt 0(lhs), %(rhs); br %(cond), conseq, altern] => {
         // Inverted cmp
         cmp $rhs, $lhs;
-        jle $altern;
-        jmp $conseq;
+        jle .altern;
+        jmp .conseq;
     },
 
     // Greater than: Without branch
@@ -340,19 +340,19 @@ rules!{
     // Equality: With branch
     [%(dst) = cmp eq %(lhs), %(rhs); br %(cond), conseq, altern] => {
         cmp $lhs, $rhs;
-        je $conseq;
-        jmp $altern;
+        je .conseq;
+        jmp .altern;
     },
     [%(dst) = cmp eq %(lhs), 0(rhs); br %(cond), conseq, altern] => {
         cmp $lhs, $rhs;
-        je $conseq;
-        jmp $altern;
+        je .conseq;
+        jmp .altern;
     },
     [%(dst) = cmp eq 0(lhs), %(rhs); br %(cond), conseq, altern] => {
         // Inverted cmp
         cmp $rhs, $lhs;
-        jne $altern;
-        jmp $conseq;
+        jne .altern;
+        jmp .conseq;
     },
 
     // Equality: Without branch
@@ -377,37 +377,37 @@ rules!{
     },
 
     // Inequality: With branch
-    [%(dst) = cmp eq %(lhs), %(rhs); br %(cond), conseq, altern] => {
+    [%(dst) = cmp ne %(lhs), %(rhs); br %(cond), conseq, altern] => {
         cmp $lhs, $rhs;
-        jne $conseq;
-        jmp $altern;
+        jne .conseq;
+        jmp .altern;
     },
-    [%(dst) = cmp eq %(lhs), 0(rhs); br %(cond), conseq, altern] => {
+    [%(dst) = cmp ne %(lhs), 0(rhs); br %(cond), conseq, altern] => {
         cmp $lhs, $rhs;
-        jne $conseq;
-        jmp $altern;
+        jne .conseq;
+        jmp .altern;
     },
-    [%(dst) = cmp eq 0(lhs), %(rhs); br %(cond), conseq, altern] => {
+    [%(dst) = cmp ne 0(lhs), %(rhs); br %(cond), conseq, altern] => {
         // Inverted cmp
         cmp $rhs, $lhs;
-        je $altern;
-        jmp $conseq;
+        je .altern;
+        jmp .conseq;
     },
 
     // Inequality: Without branch
-    [%(dst) = cmp eq %(lhs), %(rhs); ..] => {
+    [%(dst) = cmp ne %(lhs), %(rhs); ..] => {
         cmp $lhs, $rhs;
         setne cl;
         and cl, 1;      // Truncate to first bit
         movzx $dst, cl; // Move with zero extension
     },
-    [%(dst) = cmp eq %(lhs), 0(rhs); ..] => {
+    [%(dst) = cmp ne %(lhs), 0(rhs); ..] => {
         cmp $lhs, $rhs;
         setne cl;
         and cl, 1;
         movzx $dst, cl;
     },
-    [%(dst) = cmp eq 0(lhs), %(rhs); ..] => {
+    [%(dst) = cmp ne 0(lhs), %(rhs); ..] => {
         // Inverted cmp
         cmp $rhs, $lhs;
         sete cl;
@@ -436,8 +436,9 @@ rules!{
 
     // --- Call -----------------------------------------------------------------
 
-    [%(dst) = call func [args ..]; ..] => {
-        mov rax, [rax + rbx * 8 - 12];
+    [%(dst) = call func [args ..]; ..] => rust {
+        // TODO: Add this sytax to the parser/compiler and create ccov.call
+        ccov.call(func, args, dst);
     },
 
     // --- Return/Branch/Jump ---------------------------------------------------
@@ -450,11 +451,11 @@ rules!{
 
     [br %(cond), conseq, altern] => {
         test $cond, 1;
-        je $conseq;
-        jmp $altern;
+        je .conseq;
+        jmp .altern;
     },
 
     [jmp target] => {
-        jmp $target;
+        jmp .target;
     }
 }

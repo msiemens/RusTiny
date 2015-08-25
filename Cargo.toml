@@ -21,6 +21,7 @@ lto = true
 [dependencies]
 ansi_term = "*"
 docopt = "*"
+docopt_macros = "*"
 env_logger = "*"
 lazy_static = "*"
 log = "*"

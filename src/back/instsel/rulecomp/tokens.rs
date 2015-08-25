@@ -16,6 +16,7 @@ pub enum Token {
     Plus,
     Minus,
     Asterisk,
+    Dot,
     DoubleDot,
 
     LParen,
@@ -48,6 +49,7 @@ impl fmt::Display for Token {
             Plus                => write!(f, "+"),
             Minus               => write!(f, "-"),
             Asterisk            => write!(f, "*"),
+            Dot                 => write!(f, "."),
             DoubleDot           => write!(f, ".."),
 
             LParen              => write!(f, "("),

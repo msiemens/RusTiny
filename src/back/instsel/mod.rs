@@ -10,8 +10,13 @@
 // TODO: Add tests
 // TODO: Implement constant folding
 // TODO: How are phi nodes handeled?
+// TODO: Remove &**** to account for auto-deref
 
 #![allow(unused_variables)]  // FIXME: Remove after finishing
+
+
+mod rules;
+
 
 use driver::interner::Ident;
 use back::machine::{Instruction, Word};

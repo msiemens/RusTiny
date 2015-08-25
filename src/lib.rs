@@ -1,7 +1,8 @@
-#![feature(hashmap_hasher)]
-#![feature(split_off)]
 #![feature(append)]
+#![feature(hashmap_hasher)]
 #![feature(plugin)]
+#![feature(slice_patterns)]
+#![feature(split_off)]
 
 #![plugin(clippy)]
 
