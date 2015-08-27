@@ -291,7 +291,7 @@ impl Translator {
                 self.trans_stmt(stmt, block);
             }
 
-            self.trans_expr(&**b.expr, block, dest);
+            self.trans_expr(&b.expr, block, dest);
         });
     }
 
@@ -335,7 +335,7 @@ impl<'v> Visitor<'v> for Translator {
                 // Get the Binding out of the Node<Binding>
                 let bindings: Vec<_> = bindings.iter().map(|b| **b).collect();
 
-                self.trans_fn(**name, &*bindings, *ret_ty, body);
+                self.trans_fn(**name, &bindings, *ret_ty, body);
             }
         }
     }

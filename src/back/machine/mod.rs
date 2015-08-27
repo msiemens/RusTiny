@@ -1,7 +1,7 @@
 //! The RusTiny machine description
 //!
 
-mod cconv;
+pub mod cconv;
 #[macro_use] pub mod instructions;
 mod registers;
 

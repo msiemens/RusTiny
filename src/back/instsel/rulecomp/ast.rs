@@ -7,13 +7,14 @@ use back::machine::instructions::OperandSize;
 #[derive(Clone, Debug)]
 pub struct Rule {
     pub pattern: Node<Pattern>,
-    pub asm: Node<Vec<Node<AsmInstr>>>,
+    pub implementation: Impl,
 }
 
 #[derive(Clone, Debug)]
 pub struct Pattern {
     pub ir_patterns: Vec<Node<IrPattern>>,
-    pub last: Option<Node<IrPatternLast>>
+    pub last: Option<Node<IrPatternLast>>,
+    pub cond: Option<Ident>,
 }
 
 #[derive(Clone, Debug)]
@@ -70,6 +71,12 @@ pub struct IrRegister(pub Ident);
 
 #[derive(Clone, Debug)]
 pub struct IrLabel(pub Ident);
+
+#[derive(Clone, Debug)]
+pub enum Impl {
+    Asm(Node<Vec<Node<AsmInstr>>>),
+    Rust(Node<Ident>),
+}
 
 #[derive(Clone, Debug)]
 pub struct AsmInstr {

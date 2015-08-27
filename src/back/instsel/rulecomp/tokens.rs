@@ -27,11 +27,13 @@ pub enum Token {
     RBrace,
     Comma,
     Semicolon,
+    Arrow,
     FatArrow,
 
     Keyword(Keyword),
     Ident(Ident),
     Literal(Ident),
+    Snippet(Ident),
 
     EOF
 }
@@ -60,11 +62,13 @@ impl fmt::Display for Token {
             RBrace              => write!(f, "}}"),
             Comma               => write!(f, ","),
             Semicolon           => write!(f, ";"),
+            Arrow               => write!(f, "->"),
             FatArrow            => write!(f, "=>"),
 
             Keyword(ref kw)     => write!(f, "{}", kw),
-            Ident(id)           => write!(f, "{}", id),
-            Literal(lit)        => write!(f, "{}", lit),
+            Ident(ref id)       => write!(f, "{}", id),
+            Literal(ref lit)    => write!(f, "{}", lit),
+            Snippet(ref snip)   => write!(f, "{}", snip),
 
             EOF                 => write!(f, "EOF"),
         }
@@ -116,6 +120,7 @@ macro_rules! keywords(
 
 keywords! {
     Rules   => "rules",
+    If      => "if",
     Add     => "add",
     Sub     => "sub",
     Mul     => "mul",

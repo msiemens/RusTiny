@@ -16,7 +16,7 @@ pub struct Lexer<'a> {
     pos: usize,
     curr: Option<char>,
 
-    lineno: usize
+    lineno: usize,
 }
 
 impl<'a> Lexer<'a> {
@@ -37,7 +37,7 @@ impl<'a> Lexer<'a> {
 
             iter: iter,
 
-            lineno: 1
+            lineno: 1,
         }
     }
 
@@ -131,6 +131,18 @@ impl<'a> Lexer<'a> {
         self.eat_all(|c| *c != '\n');
     }
 
+    pub fn tokenize_snippet(&mut self) -> Ident {
+        debug!("tokenizing a snippet");
+
+        let start = self.pos;
+        self.collect(|c| *c != '}');
+        self.bump();
+
+        let rust_code = &self.source[start + 1..self.pos - 1];
+
+        return Ident::new(rust_code);
+    }
+
     /// Tokenize an identifier
     fn tokenize_ident(&mut self) -> Token {
         debug!("tokenizing an ident");
@@ -204,7 +216,8 @@ impl<'a> Lexer<'a> {
 
             '+' => emit!(self, Token::Plus),
 
-            '-' => emit!(self, Token::Minus),
+            '-' => emit!(self, next: '>' => Token::Arrow;
+                               default: Token::Minus),
 
             '*' => emit!(self, Token::Asterisk),
 

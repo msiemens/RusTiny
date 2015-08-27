@@ -36,8 +36,8 @@ impl<'a, W: Write> PrettyPrinter<'a, W> {
 
     fn print_symbol(&mut self, symbol: &Symbol) {
         match *symbol {
-            Symbol::Static   { ref binding, ref value } => self.print_static(&binding, &***value),
-            Symbol::Constant { ref binding, ref value } => self.print_constant(&binding, &***value),
+            Symbol::Static   { ref binding, ref value } => self.print_static(&binding, &value),
+            Symbol::Constant { ref binding, ref value } => self.print_constant(&binding, &value),
             Symbol::Function {
                 ref name,
                 ref bindings,
@@ -90,7 +90,7 @@ impl<'a, W: Write> PrettyPrinter<'a, W> {
         if let Expression::Unit = **block.expr {}
         else {
             self.print_indent();
-            self.print_expression(&**block.expr);
+            self.print_expression(&block.expr);
             write!(self.out, "\n").ok();
         }
 

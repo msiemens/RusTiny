@@ -1,7 +1,3 @@
-//! Rule parser
-//!
-//! TODO: Docs!
-
 use driver::interner::Ident;
 use driver::session;
 use front::ast::{Node, Span};
@@ -317,7 +313,7 @@ impl<'a> Parser<'a> {
                 // Some mnemonics have the same name as some IR keywords,
                 // thus we need to extract them
                 self.bump();
-                Node::new(Ident::new(&*format!("{}", kw)), lo + self.span)
+                Node::new(Ident::new(&format!("{}", kw)), lo + self.span)
             },
             _ => self.unexpected_token(Some("a mnemonic"))
         };
@@ -521,15 +517,36 @@ impl<'a> Parser<'a> {
 
         self.expect(Token::RBracket);
 
+        let cond = if self.eat(Token::Keyword(Keyword::If)) {
+            let snippet = self.lexer.tokenize_snippet();
+            self.bump();
+
+            Some(snippet)
+        } else {
+            None
+        };
+
         Node::new(Pattern {
             ir_patterns: patterns,
-            last: last
+            last: last,
+            cond: cond
         }, lo + self.span)
     }
 
-    fn parse_impl(&mut self) -> Node<Vec<Node<AsmInstr>>> {
+    fn parse_rust_impl(&mut self) -> Node<Ident> {
+        // Grammar: LBRACE <Rust code> RBRACE
+        debug!("parsing a rust impl");
+        let lo = self.span;
+
+        let snippet = self.lexer.tokenize_snippet();
+        self.bump();
+
+        Node::new(snippet, lo + self.span)
+    }
+
+    fn parse_asm_impl(&mut self) -> Node<Vec<Node<AsmInstr>>> {
         // Grammar: LBRACE (asm SEMICOLON)+ RBRACE
-        debug!("parsing an impl");
+        debug!("parsing an asm impl");
         let lo = self.span;
 
         let mut instructions = Vec::new();
@@ -555,13 +572,17 @@ impl<'a> Parser<'a> {
 
         let pattern = self.parse_pattern();
 
-        self.expect(Token::FatArrow);
-
-        let asm = self.parse_impl();
+        let implementation = if self.eat(Token::Arrow) {
+            Impl::Rust(self.parse_rust_impl())
+        } else if self.eat(Token::FatArrow) {
+            Impl::Asm(self.parse_asm_impl())
+        } else {
+            self.unexpected_token(None);
+        };
 
         Node::new(Rule {
             pattern: pattern,
-            asm: asm,
+            implementation: implementation,
         }, lo + self.span)
     }
 }

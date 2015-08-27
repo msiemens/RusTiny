@@ -35,7 +35,7 @@ impl Translator {
                 self.trans_call(&func.unwrap_ident(), &args[..], block, dest);
             },
             ast::Expression::Group(ref expr) => {
-                self.trans_expr(&**expr, block, dest);
+                self.trans_expr(&expr, block, dest);
             },
             ast::Expression::Infix { op, ref lhs, ref rhs } => {
                 self.trans_infix(op, lhs, rhs, block, dest)

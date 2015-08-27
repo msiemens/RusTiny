@@ -1,3 +1,20 @@
+//! The Instruction Selection Rule Compiler
+//!
+//! We need a lot of rules how to select assembler instructions based on our
+//! IR. The rules are described in `rules.ins.rs` and compiled to `rules.rs`.
+//! The compiler used for this task is described in this module. While the
+//! lexer and parser are quite straightforward, this file is a real mess.
+//! It's full of ugly string formatting and repeating code.
+//! Nonetheless, it seems to work.
+//!
+//! The basic idea of the instruction selector is based on *Introduction to
+//! Compiler Design*, chapter 7 which proposes a greedy algorithm. Basically,
+//! We compare the IR code with a list of possible matches where the more
+//! complex patterns are listed before simpler patterns.
+//!
+//! TODO: Liveness analysis for registers
+//!
+
 mod ast;
 mod tokens;
 mod lexer;
@@ -27,6 +44,7 @@ pub fn compile_rules(input: &str, filename: &str) -> String {
 use driver::interner::Ident;
 use middle::ir;
 use back::machine;
+use back::machine::cconv;
 use back::machine::instructions as asm;
 use back::machine::MachineRegister;
 
@@ -56,19 +74,29 @@ fn translate_rule(rule: &Rule) -> String {
     for pattern in &rule.pattern.ir_patterns {
         update_pattern_types(pattern, &mut arg_types);
     }
-    rule.pattern.last.as_ref().map(|l| update_pattern_last_types(&*l, &mut arg_types));
-    rule.asm.iter().inspect(|instr| {
-        instr.args.iter().inspect(|arg| {
-            if let AsmArg::NewRegister(name) = ***arg {
-                arg_types.insert(*name, IrArg::Register(*name));
-            }
-        }).all(|_| true);
-    }).all(|_| true);
+    rule.pattern.last.as_ref().map(|l| update_pattern_last_types(&l, &mut arg_types));
 
     let mut s = "        ".to_owned();
-    s.push_str(&*translate_pattern(&*rule.pattern));
+    s.push_str(&translate_pattern(&rule.pattern));
     s.push_str(" => {\n");
-    s.push_str(&*translate_asm(&*rule.asm, &arg_types));
+
+    match rule.implementation {
+        Impl::Asm(ref asm) => {
+            asm.iter().inspect(|instr| {
+                instr.args.iter().inspect(|arg| {
+                    if let AsmArg::NewRegister(name) = ***arg {
+                        arg_types.insert(*name, IrArg::Register(*name));
+                    }
+                }).all(|_| true);
+            }).all(|_| true);
+
+            s.push_str(&translate_asm(&asm, &arg_types));
+        },
+        Impl::Rust(source) => {
+            s.push_str(&source);
+        }
+    };
+
     s.push_str(&format!("            {}\n", rule.pattern.ir_patterns.len()));
     s.push_str("        }");
 
@@ -76,62 +104,28 @@ fn translate_rule(rule: &Rule) -> String {
 }
 
 fn update_pattern_types(pattern: &IrPattern, map: &mut HashMap<Ident, IrArg>) {
+    macro_rules! binop {
+        ($map:ident, $dest:ident, $lhs:ident, $rhs:ident) => {
+            {
+                $map.insert($dest.0, IrArg::Register($dest.0));
+                $map.insert($lhs.get_name(), (**$lhs).clone());
+                $map.insert($rhs.get_name(), (**$rhs).clone());
+            }
+        }
+    }
+
     match *pattern {
-        IrPattern::Add(ref dest, ref lhs, ref rhs) => {
-            map.insert(dest.0, IrArg::Register(dest.0));
-            map.insert(lhs.get_name(), (**lhs).clone());
-            map.insert(rhs.get_name(), (**rhs).clone());
-        },
-        IrPattern::Sub(ref dest, ref lhs, ref rhs) => {
-            map.insert(dest.0, IrArg::Register(dest.0));
-            map.insert(lhs.get_name(), (**lhs).clone());
-            map.insert(rhs.get_name(), (**rhs).clone());
-        },
-        IrPattern::Mul(ref dest, ref lhs, ref rhs) => {
-            map.insert(dest.0, IrArg::Register(dest.0));
-            map.insert(lhs.get_name(), (**lhs).clone());
-            map.insert(rhs.get_name(), (**rhs).clone());
-        },
-        IrPattern::Div(ref dest, ref lhs, ref rhs) => {
-            map.insert(dest.0, IrArg::Register(dest.0));
-            map.insert(lhs.get_name(), (**lhs).clone());
-            map.insert(rhs.get_name(), (**rhs).clone());
-        },
-        IrPattern::Pow(ref dest, ref lhs, ref rhs) => {
-            map.insert(dest.0, IrArg::Register(dest.0));
-            map.insert(lhs.get_name(), (**lhs).clone());
-            map.insert(rhs.get_name(), (**rhs).clone());
-        },
-        IrPattern::Mod(ref dest, ref lhs, ref rhs) => {
-            map.insert(dest.0, IrArg::Register(dest.0));
-            map.insert(lhs.get_name(), (**lhs).clone());
-            map.insert(rhs.get_name(), (**rhs).clone());
-        },
-        IrPattern::Shl(ref dest, ref lhs, ref rhs) => {
-            map.insert(dest.0, IrArg::Register(dest.0));
-            map.insert(lhs.get_name(), (**lhs).clone());
-            map.insert(rhs.get_name(), (**rhs).clone());
-        },
-        IrPattern::Shr(ref dest, ref lhs, ref rhs) => {
-            map.insert(dest.0, IrArg::Register(dest.0));
-            map.insert(lhs.get_name(), (**lhs).clone());
-            map.insert(rhs.get_name(), (**rhs).clone());
-        },
-        IrPattern::And(ref dest, ref lhs, ref rhs) => {
-            map.insert(dest.0, IrArg::Register(dest.0));
-            map.insert(lhs.get_name(), (**lhs).clone());
-            map.insert(rhs.get_name(), (**rhs).clone());
-        },
-        IrPattern::Or(ref dest, ref lhs, ref rhs) => {
-            map.insert(dest.0, IrArg::Register(dest.0));
-            map.insert(lhs.get_name(), (**lhs).clone());
-            map.insert(rhs.get_name(), (**rhs).clone());
-        },
-        IrPattern::Xor(ref dest, ref lhs, ref rhs) => {
-            map.insert(dest.0, IrArg::Register(dest.0));
-            map.insert(lhs.get_name(), (**lhs).clone());
-            map.insert(rhs.get_name(), (**rhs).clone());
-        },
+        IrPattern::Add(ref dest, ref lhs, ref rhs) => binop!(map, dest, lhs, rhs),
+        IrPattern::Sub(ref dest, ref lhs, ref rhs) => binop!(map, dest, lhs, rhs),
+        IrPattern::Mul(ref dest, ref lhs, ref rhs) => binop!(map, dest, lhs, rhs),
+        IrPattern::Div(ref dest, ref lhs, ref rhs) => binop!(map, dest, lhs, rhs),
+        IrPattern::Pow(ref dest, ref lhs, ref rhs) => binop!(map, dest, lhs, rhs),
+        IrPattern::Mod(ref dest, ref lhs, ref rhs) => binop!(map, dest, lhs, rhs),
+        IrPattern::Shl(ref dest, ref lhs, ref rhs) => binop!(map, dest, lhs, rhs),
+        IrPattern::Shr(ref dest, ref lhs, ref rhs) => binop!(map, dest, lhs, rhs),
+        IrPattern::And(ref dest, ref lhs, ref rhs) => binop!(map, dest, lhs, rhs),
+        IrPattern::Or (ref dest, ref lhs, ref rhs) => binop!(map, dest, lhs, rhs),
+        IrPattern::Xor(ref dest, ref lhs, ref rhs) => binop!(map, dest, lhs, rhs),
         IrPattern::Neg(ref dest, ref arg) => {
             map.insert(dest.0, IrArg::Register(dest.0));
             map.insert(arg.get_name(), (**arg).clone());
@@ -140,36 +134,12 @@ fn update_pattern_types(pattern: &IrPattern, map: &mut HashMap<Ident, IrArg>) {
             map.insert(dest.0, IrArg::Register(dest.0));
             map.insert(arg.get_name(), (**arg).clone());
         },
-        IrPattern::CmpLt(ref dest, ref lhs, ref rhs) => {
-            map.insert(dest.0, IrArg::Register(dest.0));
-            map.insert(lhs.get_name(), (**lhs).clone());
-            map.insert(rhs.get_name(), (**rhs).clone());
-        },
-        IrPattern::CmpLe(ref dest, ref lhs, ref rhs) => {
-            map.insert(dest.0, IrArg::Register(dest.0));
-            map.insert(lhs.get_name(), (**lhs).clone());
-            map.insert(rhs.get_name(), (**rhs).clone());
-        },
-        IrPattern::CmpEq(ref dest, ref lhs, ref rhs) => {
-            map.insert(dest.0, IrArg::Register(dest.0));
-            map.insert(lhs.get_name(), (**lhs).clone());
-            map.insert(rhs.get_name(), (**rhs).clone());
-        },
-        IrPattern::CmpNe(ref dest, ref lhs, ref rhs) => {
-            map.insert(dest.0, IrArg::Register(dest.0));
-            map.insert(lhs.get_name(), (**lhs).clone());
-            map.insert(rhs.get_name(), (**rhs).clone());
-        },
-        IrPattern::CmpGe(ref dest, ref lhs, ref rhs) => {
-            map.insert(dest.0, IrArg::Register(dest.0));
-            map.insert(lhs.get_name(), (**lhs).clone());
-            map.insert(rhs.get_name(), (**rhs).clone());
-        },
-        IrPattern::CmpGt(ref dest, ref lhs, ref rhs) => {
-            map.insert(dest.0, IrArg::Register(dest.0));
-            map.insert(lhs.get_name(), (**lhs).clone());
-            map.insert(rhs.get_name(), (**rhs).clone());
-        },
+        IrPattern::CmpLt(ref dest, ref lhs, ref rhs) => binop!(map, dest, lhs, rhs),
+        IrPattern::CmpLe(ref dest, ref lhs, ref rhs) => binop!(map, dest, lhs, rhs),
+        IrPattern::CmpEq(ref dest, ref lhs, ref rhs) => binop!(map, dest, lhs, rhs),
+        IrPattern::CmpNe(ref dest, ref lhs, ref rhs) => binop!(map, dest, lhs, rhs),
+        IrPattern::CmpGe(ref dest, ref lhs, ref rhs) => binop!(map, dest, lhs, rhs),
+        IrPattern::CmpGt(ref dest, ref lhs, ref rhs) => binop!(map, dest, lhs, rhs),
         IrPattern::Alloca(ref dest) => {
             map.insert(dest.0, IrArg::Register(dest.0));
         },
@@ -202,7 +172,7 @@ fn update_pattern_last_types(pattern: &IrPatternLast, map: &mut HashMap<Ident, I
 fn translate_pattern(pattern: &Pattern) -> String {
     let mut s = "[".to_owned();
     let patterns: Vec<_> = pattern.ir_patterns.iter().map(|p| translate_ir_pattern(p)).collect();
-    s.push_str(&*patterns.join(", "));
+    s.push_str(&patterns.join(", "));
 
     match pattern.last {
         Some(ref last) => {
@@ -211,12 +181,16 @@ fn translate_pattern(pattern: &Pattern) -> String {
                 s.push_str(", ");
             }
 
-            s.push_str(&*translate_ir_pattern_last(&**last));
+            s.push_str(&translate_ir_pattern_last(&last));
         },
         None => s.push_str(", ..")
     }
 
     s.push_str("]");
+
+    if let Some(snippet) = pattern.cond {
+        s.push_str(&format!(" if {}", snippet));
+    }
 
     s
 }
@@ -375,7 +349,7 @@ fn translate_ir_pattern_last(ir_pattern_last: &IrPatternLast) -> String {
         },
         IrPatternLast::Jmp(ref dest) => {
             format!("IrLine::CFInstruction(&ir::ControlFlowInstruction::Jump {{ dest: {} }})",
-                    translate_ir_label(&*dest))
+                    translate_ir_label(&dest))
         },
     }
 }
@@ -409,10 +383,10 @@ fn translate_asm(asm: &[Node<AsmInstr>], types: &HashMap<Ident, IrArg>) -> Strin
         }))
     }).all(|_| true);
 
-    s.push_str(&*new_regs.join(""));
+    s.push_str(&new_regs.join(""));
 
     let instrs: Vec<_> = asm.iter().map(|i| translate_asm_instr(i, types)).collect();
-    s.push_str(&*instrs.join("\n            "));
+    s.push_str(&instrs.join("\n            "));
     s.push_str("\n");
 
     s

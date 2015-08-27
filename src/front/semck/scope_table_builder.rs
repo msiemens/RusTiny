@@ -60,7 +60,7 @@ impl<'a> ScopeTableBuilder<'a> {
         let symbol = if let Some(symbol) = self.sytbl.lookup_symbol(name) {
             symbol
         } else {
-            fatal_at!("no such function: `{}`", &*name; expr);
+            fatal_at!("no such function: `{}`", &name; expr);
             return
         };
 
@@ -78,7 +78,7 @@ impl<'a> ScopeTableBuilder<'a> {
 
         match self.sytbl.resolve_variable(current_scope, name) {
             Some(..) => {},
-            None => fatal_at!("variable `{}` not declared", &*name; name)
+            None => fatal_at!("variable `{}` not declared", &name; name)
         };
     }
 
@@ -151,7 +151,7 @@ impl<'v> Visitor<'v> for ScopeTableBuilder<'v> {
 
 pub fn run(program: &Program) {
     let symbol_table = &session().symbol_table;
-    let mut visitor = ScopeTableBuilder::new(&*symbol_table);
+    let mut visitor = ScopeTableBuilder::new(&symbol_table);
     walk_program(&mut visitor, program);
 
     session().abort_if_errors();

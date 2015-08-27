@@ -2,6 +2,7 @@
 use driver::interner::Ident;
 use middle::ir;
 use back::machine;
+use back::machine::cconv;
 use back::machine::instructions as asm;
 use back::machine::MachineRegister;
 
@@ -197,19 +198,19 @@ pub fn trans_instr(instr: &[ir::Instruction],
             code.emit_instruction(asm::Instruction::new(Ident::new("not"), vec![asm::Argument::Register(asm::Register::VirtualRegister(dst))]));
             1
         },
-        [IrLine::Instruction(&ir::Instruction::Cmp { cmp: ir::CmpOp::Lt, lhs: ir::Value::Register(ir::Register(lhs)), rhs: ir::Value::Register(ir::Register(rhs)), dst: ir::Register(dst) }), IrLine::CFInstruction(&ir::ControlFlowInstruction::Branch { cond: ir::Value::Register(ir::Register(cond)), conseq: ir::Label(conseq), altern: ir::Label(altern) })] => {
+        [IrLine::Instruction(&ir::Instruction::Cmp { cmp: ir::CmpOp::Lt, lhs: ir::Value::Register(ir::Register(lhs)), rhs: ir::Value::Register(ir::Register(rhs)), dst: ir::Register(dst) }), IrLine::CFInstruction(&ir::ControlFlowInstruction::Branch { cond: ir::Value::Register(ir::Register(cond)), conseq: ir::Label(conseq), altern: ir::Label(altern) })] if dst == cond  => {
             code.emit_instruction(asm::Instruction::new(Ident::new("cmp"), vec![asm::Argument::Register(asm::Register::VirtualRegister(lhs)), asm::Argument::Register(asm::Register::VirtualRegister(rhs))]));
             code.emit_instruction(asm::Instruction::new(Ident::new("jl"), vec![asm::Argument::Label(conseq)]));
             code.emit_instruction(asm::Instruction::new(Ident::new("jmp"), vec![asm::Argument::Label(altern)]));
             1
         },
-        [IrLine::Instruction(&ir::Instruction::Cmp { cmp: ir::CmpOp::Lt, lhs: ir::Value::Register(ir::Register(lhs)), rhs: ir::Value::Immediate(ir::Immediate(rhs)), dst: ir::Register(dst) }), IrLine::CFInstruction(&ir::ControlFlowInstruction::Branch { cond: ir::Value::Register(ir::Register(cond)), conseq: ir::Label(conseq), altern: ir::Label(altern) })] => {
+        [IrLine::Instruction(&ir::Instruction::Cmp { cmp: ir::CmpOp::Lt, lhs: ir::Value::Register(ir::Register(lhs)), rhs: ir::Value::Immediate(ir::Immediate(rhs)), dst: ir::Register(dst) }), IrLine::CFInstruction(&ir::ControlFlowInstruction::Branch { cond: ir::Value::Register(ir::Register(cond)), conseq: ir::Label(conseq), altern: ir::Label(altern) })] if dst == cond  => {
             code.emit_instruction(asm::Instruction::new(Ident::new("cmp"), vec![asm::Argument::Register(asm::Register::VirtualRegister(lhs)), asm::Argument::Immediate(rhs as machine::Word)]));
             code.emit_instruction(asm::Instruction::new(Ident::new("jl"), vec![asm::Argument::Label(conseq)]));
             code.emit_instruction(asm::Instruction::new(Ident::new("jmp"), vec![asm::Argument::Label(altern)]));
             1
         },
-        [IrLine::Instruction(&ir::Instruction::Cmp { cmp: ir::CmpOp::Lt, lhs: ir::Value::Immediate(ir::Immediate(lhs)), rhs: ir::Value::Register(ir::Register(rhs)), dst: ir::Register(dst) }), IrLine::CFInstruction(&ir::ControlFlowInstruction::Branch { cond: ir::Value::Register(ir::Register(cond)), conseq: ir::Label(conseq), altern: ir::Label(altern) })] => {
+        [IrLine::Instruction(&ir::Instruction::Cmp { cmp: ir::CmpOp::Lt, lhs: ir::Value::Immediate(ir::Immediate(lhs)), rhs: ir::Value::Register(ir::Register(rhs)), dst: ir::Register(dst) }), IrLine::CFInstruction(&ir::ControlFlowInstruction::Branch { cond: ir::Value::Register(ir::Register(cond)), conseq: ir::Label(conseq), altern: ir::Label(altern) })] if dst == cond  => {
             code.emit_instruction(asm::Instruction::new(Ident::new("cmp"), vec![asm::Argument::Register(asm::Register::VirtualRegister(rhs)), asm::Argument::Immediate(lhs as machine::Word)]));
             code.emit_instruction(asm::Instruction::new(Ident::new("jge"), vec![asm::Argument::Label(altern)]));
             code.emit_instruction(asm::Instruction::new(Ident::new("jmp"), vec![asm::Argument::Label(conseq)]));
@@ -236,19 +237,19 @@ pub fn trans_instr(instr: &[ir::Instruction],
             code.emit_instruction(asm::Instruction::new(Ident::new("movzx"), vec![asm::Argument::Register(asm::Register::VirtualRegister(dst)), asm::Argument::Register(asm::Register::MachineRegister(MachineRegister::CL))]));
             1
         },
-        [IrLine::Instruction(&ir::Instruction::Cmp { cmp: ir::CmpOp::Le, lhs: ir::Value::Register(ir::Register(lhs)), rhs: ir::Value::Register(ir::Register(rhs)), dst: ir::Register(dst) }), IrLine::CFInstruction(&ir::ControlFlowInstruction::Branch { cond: ir::Value::Register(ir::Register(cond)), conseq: ir::Label(conseq), altern: ir::Label(altern) })] => {
+        [IrLine::Instruction(&ir::Instruction::Cmp { cmp: ir::CmpOp::Le, lhs: ir::Value::Register(ir::Register(lhs)), rhs: ir::Value::Register(ir::Register(rhs)), dst: ir::Register(dst) }), IrLine::CFInstruction(&ir::ControlFlowInstruction::Branch { cond: ir::Value::Register(ir::Register(cond)), conseq: ir::Label(conseq), altern: ir::Label(altern) })] if dst == cond  => {
             code.emit_instruction(asm::Instruction::new(Ident::new("cmp"), vec![asm::Argument::Register(asm::Register::VirtualRegister(lhs)), asm::Argument::Register(asm::Register::VirtualRegister(rhs))]));
             code.emit_instruction(asm::Instruction::new(Ident::new("jle"), vec![asm::Argument::Label(conseq)]));
             code.emit_instruction(asm::Instruction::new(Ident::new("jmp"), vec![asm::Argument::Label(altern)]));
             1
         },
-        [IrLine::Instruction(&ir::Instruction::Cmp { cmp: ir::CmpOp::Le, lhs: ir::Value::Register(ir::Register(lhs)), rhs: ir::Value::Immediate(ir::Immediate(rhs)), dst: ir::Register(dst) }), IrLine::CFInstruction(&ir::ControlFlowInstruction::Branch { cond: ir::Value::Register(ir::Register(cond)), conseq: ir::Label(conseq), altern: ir::Label(altern) })] => {
+        [IrLine::Instruction(&ir::Instruction::Cmp { cmp: ir::CmpOp::Le, lhs: ir::Value::Register(ir::Register(lhs)), rhs: ir::Value::Immediate(ir::Immediate(rhs)), dst: ir::Register(dst) }), IrLine::CFInstruction(&ir::ControlFlowInstruction::Branch { cond: ir::Value::Register(ir::Register(cond)), conseq: ir::Label(conseq), altern: ir::Label(altern) })] if dst == cond  => {
             code.emit_instruction(asm::Instruction::new(Ident::new("cmp"), vec![asm::Argument::Register(asm::Register::VirtualRegister(lhs)), asm::Argument::Immediate(rhs as machine::Word)]));
             code.emit_instruction(asm::Instruction::new(Ident::new("jle"), vec![asm::Argument::Label(conseq)]));
             code.emit_instruction(asm::Instruction::new(Ident::new("jmp"), vec![asm::Argument::Label(altern)]));
             1
         },
-        [IrLine::Instruction(&ir::Instruction::Cmp { cmp: ir::CmpOp::Le, lhs: ir::Value::Immediate(ir::Immediate(lhs)), rhs: ir::Value::Register(ir::Register(rhs)), dst: ir::Register(dst) }), IrLine::CFInstruction(&ir::ControlFlowInstruction::Branch { cond: ir::Value::Register(ir::Register(cond)), conseq: ir::Label(conseq), altern: ir::Label(altern) })] => {
+        [IrLine::Instruction(&ir::Instruction::Cmp { cmp: ir::CmpOp::Le, lhs: ir::Value::Immediate(ir::Immediate(lhs)), rhs: ir::Value::Register(ir::Register(rhs)), dst: ir::Register(dst) }), IrLine::CFInstruction(&ir::ControlFlowInstruction::Branch { cond: ir::Value::Register(ir::Register(cond)), conseq: ir::Label(conseq), altern: ir::Label(altern) })] if dst == cond  => {
             code.emit_instruction(asm::Instruction::new(Ident::new("cmp"), vec![asm::Argument::Register(asm::Register::VirtualRegister(rhs)), asm::Argument::Immediate(lhs as machine::Word)]));
             code.emit_instruction(asm::Instruction::new(Ident::new("jg"), vec![asm::Argument::Label(altern)]));
             code.emit_instruction(asm::Instruction::new(Ident::new("jmp"), vec![asm::Argument::Label(conseq)]));
@@ -275,19 +276,19 @@ pub fn trans_instr(instr: &[ir::Instruction],
             code.emit_instruction(asm::Instruction::new(Ident::new("movzx"), vec![asm::Argument::Register(asm::Register::VirtualRegister(dst)), asm::Argument::Register(asm::Register::MachineRegister(MachineRegister::CL))]));
             1
         },
-        [IrLine::Instruction(&ir::Instruction::Cmp { cmp: ir::CmpOp::Ge, lhs: ir::Value::Register(ir::Register(lhs)), rhs: ir::Value::Register(ir::Register(rhs)), dst: ir::Register(dst) }), IrLine::CFInstruction(&ir::ControlFlowInstruction::Branch { cond: ir::Value::Register(ir::Register(cond)), conseq: ir::Label(conseq), altern: ir::Label(altern) })] => {
+        [IrLine::Instruction(&ir::Instruction::Cmp { cmp: ir::CmpOp::Ge, lhs: ir::Value::Register(ir::Register(lhs)), rhs: ir::Value::Register(ir::Register(rhs)), dst: ir::Register(dst) }), IrLine::CFInstruction(&ir::ControlFlowInstruction::Branch { cond: ir::Value::Register(ir::Register(cond)), conseq: ir::Label(conseq), altern: ir::Label(altern) })] if dst == cond  => {
             code.emit_instruction(asm::Instruction::new(Ident::new("cmp"), vec![asm::Argument::Register(asm::Register::VirtualRegister(lhs)), asm::Argument::Register(asm::Register::VirtualRegister(rhs))]));
             code.emit_instruction(asm::Instruction::new(Ident::new("jge"), vec![asm::Argument::Label(conseq)]));
             code.emit_instruction(asm::Instruction::new(Ident::new("jmp"), vec![asm::Argument::Label(altern)]));
             1
         },
-        [IrLine::Instruction(&ir::Instruction::Cmp { cmp: ir::CmpOp::Ge, lhs: ir::Value::Register(ir::Register(lhs)), rhs: ir::Value::Immediate(ir::Immediate(rhs)), dst: ir::Register(dst) }), IrLine::CFInstruction(&ir::ControlFlowInstruction::Branch { cond: ir::Value::Register(ir::Register(cond)), conseq: ir::Label(conseq), altern: ir::Label(altern) })] => {
+        [IrLine::Instruction(&ir::Instruction::Cmp { cmp: ir::CmpOp::Ge, lhs: ir::Value::Register(ir::Register(lhs)), rhs: ir::Value::Immediate(ir::Immediate(rhs)), dst: ir::Register(dst) }), IrLine::CFInstruction(&ir::ControlFlowInstruction::Branch { cond: ir::Value::Register(ir::Register(cond)), conseq: ir::Label(conseq), altern: ir::Label(altern) })] if dst == cond  => {
             code.emit_instruction(asm::Instruction::new(Ident::new("cmp"), vec![asm::Argument::Register(asm::Register::VirtualRegister(lhs)), asm::Argument::Immediate(rhs as machine::Word)]));
             code.emit_instruction(asm::Instruction::new(Ident::new("jge"), vec![asm::Argument::Label(conseq)]));
             code.emit_instruction(asm::Instruction::new(Ident::new("jmp"), vec![asm::Argument::Label(altern)]));
             1
         },
-        [IrLine::Instruction(&ir::Instruction::Cmp { cmp: ir::CmpOp::Ge, lhs: ir::Value::Immediate(ir::Immediate(lhs)), rhs: ir::Value::Register(ir::Register(rhs)), dst: ir::Register(dst) }), IrLine::CFInstruction(&ir::ControlFlowInstruction::Branch { cond: ir::Value::Register(ir::Register(cond)), conseq: ir::Label(conseq), altern: ir::Label(altern) })] => {
+        [IrLine::Instruction(&ir::Instruction::Cmp { cmp: ir::CmpOp::Ge, lhs: ir::Value::Immediate(ir::Immediate(lhs)), rhs: ir::Value::Register(ir::Register(rhs)), dst: ir::Register(dst) }), IrLine::CFInstruction(&ir::ControlFlowInstruction::Branch { cond: ir::Value::Register(ir::Register(cond)), conseq: ir::Label(conseq), altern: ir::Label(altern) })] if dst == cond  => {
             code.emit_instruction(asm::Instruction::new(Ident::new("cmp"), vec![asm::Argument::Register(asm::Register::VirtualRegister(rhs)), asm::Argument::Immediate(lhs as machine::Word)]));
             code.emit_instruction(asm::Instruction::new(Ident::new("jl"), vec![asm::Argument::Label(altern)]));
             code.emit_instruction(asm::Instruction::new(Ident::new("jmp"), vec![asm::Argument::Label(conseq)]));
@@ -314,19 +315,19 @@ pub fn trans_instr(instr: &[ir::Instruction],
             code.emit_instruction(asm::Instruction::new(Ident::new("movzx"), vec![asm::Argument::Register(asm::Register::VirtualRegister(dst)), asm::Argument::Register(asm::Register::MachineRegister(MachineRegister::CL))]));
             1
         },
-        [IrLine::Instruction(&ir::Instruction::Cmp { cmp: ir::CmpOp::Gt, lhs: ir::Value::Register(ir::Register(lhs)), rhs: ir::Value::Register(ir::Register(rhs)), dst: ir::Register(dst) }), IrLine::CFInstruction(&ir::ControlFlowInstruction::Branch { cond: ir::Value::Register(ir::Register(cond)), conseq: ir::Label(conseq), altern: ir::Label(altern) })] => {
+        [IrLine::Instruction(&ir::Instruction::Cmp { cmp: ir::CmpOp::Gt, lhs: ir::Value::Register(ir::Register(lhs)), rhs: ir::Value::Register(ir::Register(rhs)), dst: ir::Register(dst) }), IrLine::CFInstruction(&ir::ControlFlowInstruction::Branch { cond: ir::Value::Register(ir::Register(cond)), conseq: ir::Label(conseq), altern: ir::Label(altern) })] if dst == cond  => {
             code.emit_instruction(asm::Instruction::new(Ident::new("cmp"), vec![asm::Argument::Register(asm::Register::VirtualRegister(lhs)), asm::Argument::Register(asm::Register::VirtualRegister(rhs))]));
             code.emit_instruction(asm::Instruction::new(Ident::new("jg"), vec![asm::Argument::Label(conseq)]));
             code.emit_instruction(asm::Instruction::new(Ident::new("jmp"), vec![asm::Argument::Label(altern)]));
             1
         },
-        [IrLine::Instruction(&ir::Instruction::Cmp { cmp: ir::CmpOp::Gt, lhs: ir::Value::Register(ir::Register(lhs)), rhs: ir::Value::Immediate(ir::Immediate(rhs)), dst: ir::Register(dst) }), IrLine::CFInstruction(&ir::ControlFlowInstruction::Branch { cond: ir::Value::Register(ir::Register(cond)), conseq: ir::Label(conseq), altern: ir::Label(altern) })] => {
+        [IrLine::Instruction(&ir::Instruction::Cmp { cmp: ir::CmpOp::Gt, lhs: ir::Value::Register(ir::Register(lhs)), rhs: ir::Value::Immediate(ir::Immediate(rhs)), dst: ir::Register(dst) }), IrLine::CFInstruction(&ir::ControlFlowInstruction::Branch { cond: ir::Value::Register(ir::Register(cond)), conseq: ir::Label(conseq), altern: ir::Label(altern) })] if dst == cond  => {
             code.emit_instruction(asm::Instruction::new(Ident::new("cmp"), vec![asm::Argument::Register(asm::Register::VirtualRegister(lhs)), asm::Argument::Immediate(rhs as machine::Word)]));
             code.emit_instruction(asm::Instruction::new(Ident::new("jg"), vec![asm::Argument::Label(conseq)]));
             code.emit_instruction(asm::Instruction::new(Ident::new("jmp"), vec![asm::Argument::Label(altern)]));
             1
         },
-        [IrLine::Instruction(&ir::Instruction::Cmp { cmp: ir::CmpOp::Gt, lhs: ir::Value::Immediate(ir::Immediate(lhs)), rhs: ir::Value::Register(ir::Register(rhs)), dst: ir::Register(dst) }), IrLine::CFInstruction(&ir::ControlFlowInstruction::Branch { cond: ir::Value::Register(ir::Register(cond)), conseq: ir::Label(conseq), altern: ir::Label(altern) })] => {
+        [IrLine::Instruction(&ir::Instruction::Cmp { cmp: ir::CmpOp::Gt, lhs: ir::Value::Immediate(ir::Immediate(lhs)), rhs: ir::Value::Register(ir::Register(rhs)), dst: ir::Register(dst) }), IrLine::CFInstruction(&ir::ControlFlowInstruction::Branch { cond: ir::Value::Register(ir::Register(cond)), conseq: ir::Label(conseq), altern: ir::Label(altern) })] if dst == cond  => {
             code.emit_instruction(asm::Instruction::new(Ident::new("cmp"), vec![asm::Argument::Register(asm::Register::VirtualRegister(rhs)), asm::Argument::Immediate(lhs as machine::Word)]));
             code.emit_instruction(asm::Instruction::new(Ident::new("jle"), vec![asm::Argument::Label(altern)]));
             code.emit_instruction(asm::Instruction::new(Ident::new("jmp"), vec![asm::Argument::Label(conseq)]));
@@ -353,19 +354,19 @@ pub fn trans_instr(instr: &[ir::Instruction],
             code.emit_instruction(asm::Instruction::new(Ident::new("movzx"), vec![asm::Argument::Register(asm::Register::VirtualRegister(dst)), asm::Argument::Register(asm::Register::MachineRegister(MachineRegister::CL))]));
             1
         },
-        [IrLine::Instruction(&ir::Instruction::Cmp { cmp: ir::CmpOp::Eq, lhs: ir::Value::Register(ir::Register(lhs)), rhs: ir::Value::Register(ir::Register(rhs)), dst: ir::Register(dst) }), IrLine::CFInstruction(&ir::ControlFlowInstruction::Branch { cond: ir::Value::Register(ir::Register(cond)), conseq: ir::Label(conseq), altern: ir::Label(altern) })] => {
+        [IrLine::Instruction(&ir::Instruction::Cmp { cmp: ir::CmpOp::Eq, lhs: ir::Value::Register(ir::Register(lhs)), rhs: ir::Value::Register(ir::Register(rhs)), dst: ir::Register(dst) }), IrLine::CFInstruction(&ir::ControlFlowInstruction::Branch { cond: ir::Value::Register(ir::Register(cond)), conseq: ir::Label(conseq), altern: ir::Label(altern) })] if dst == cond  => {
             code.emit_instruction(asm::Instruction::new(Ident::new("cmp"), vec![asm::Argument::Register(asm::Register::VirtualRegister(lhs)), asm::Argument::Register(asm::Register::VirtualRegister(rhs))]));
             code.emit_instruction(asm::Instruction::new(Ident::new("je"), vec![asm::Argument::Label(conseq)]));
             code.emit_instruction(asm::Instruction::new(Ident::new("jmp"), vec![asm::Argument::Label(altern)]));
             1
         },
-        [IrLine::Instruction(&ir::Instruction::Cmp { cmp: ir::CmpOp::Eq, lhs: ir::Value::Register(ir::Register(lhs)), rhs: ir::Value::Immediate(ir::Immediate(rhs)), dst: ir::Register(dst) }), IrLine::CFInstruction(&ir::ControlFlowInstruction::Branch { cond: ir::Value::Register(ir::Register(cond)), conseq: ir::Label(conseq), altern: ir::Label(altern) })] => {
+        [IrLine::Instruction(&ir::Instruction::Cmp { cmp: ir::CmpOp::Eq, lhs: ir::Value::Register(ir::Register(lhs)), rhs: ir::Value::Immediate(ir::Immediate(rhs)), dst: ir::Register(dst) }), IrLine::CFInstruction(&ir::ControlFlowInstruction::Branch { cond: ir::Value::Register(ir::Register(cond)), conseq: ir::Label(conseq), altern: ir::Label(altern) })] if dst == cond  => {
             code.emit_instruction(asm::Instruction::new(Ident::new("cmp"), vec![asm::Argument::Register(asm::Register::VirtualRegister(lhs)), asm::Argument::Immediate(rhs as machine::Word)]));
             code.emit_instruction(asm::Instruction::new(Ident::new("je"), vec![asm::Argument::Label(conseq)]));
             code.emit_instruction(asm::Instruction::new(Ident::new("jmp"), vec![asm::Argument::Label(altern)]));
             1
         },
-        [IrLine::Instruction(&ir::Instruction::Cmp { cmp: ir::CmpOp::Eq, lhs: ir::Value::Immediate(ir::Immediate(lhs)), rhs: ir::Value::Register(ir::Register(rhs)), dst: ir::Register(dst) }), IrLine::CFInstruction(&ir::ControlFlowInstruction::Branch { cond: ir::Value::Register(ir::Register(cond)), conseq: ir::Label(conseq), altern: ir::Label(altern) })] => {
+        [IrLine::Instruction(&ir::Instruction::Cmp { cmp: ir::CmpOp::Eq, lhs: ir::Value::Immediate(ir::Immediate(lhs)), rhs: ir::Value::Register(ir::Register(rhs)), dst: ir::Register(dst) }), IrLine::CFInstruction(&ir::ControlFlowInstruction::Branch { cond: ir::Value::Register(ir::Register(cond)), conseq: ir::Label(conseq), altern: ir::Label(altern) })] if dst == cond  => {
             code.emit_instruction(asm::Instruction::new(Ident::new("cmp"), vec![asm::Argument::Register(asm::Register::VirtualRegister(rhs)), asm::Argument::Immediate(lhs as machine::Word)]));
             code.emit_instruction(asm::Instruction::new(Ident::new("jne"), vec![asm::Argument::Label(altern)]));
             code.emit_instruction(asm::Instruction::new(Ident::new("jmp"), vec![asm::Argument::Label(conseq)]));
@@ -392,19 +393,19 @@ pub fn trans_instr(instr: &[ir::Instruction],
             code.emit_instruction(asm::Instruction::new(Ident::new("movzx"), vec![asm::Argument::Register(asm::Register::VirtualRegister(dst)), asm::Argument::Register(asm::Register::MachineRegister(MachineRegister::CL))]));
             1
         },
-        [IrLine::Instruction(&ir::Instruction::Cmp { cmp: ir::CmpOp::Ne, lhs: ir::Value::Register(ir::Register(lhs)), rhs: ir::Value::Register(ir::Register(rhs)), dst: ir::Register(dst) }), IrLine::CFInstruction(&ir::ControlFlowInstruction::Branch { cond: ir::Value::Register(ir::Register(cond)), conseq: ir::Label(conseq), altern: ir::Label(altern) })] => {
+        [IrLine::Instruction(&ir::Instruction::Cmp { cmp: ir::CmpOp::Ne, lhs: ir::Value::Register(ir::Register(lhs)), rhs: ir::Value::Register(ir::Register(rhs)), dst: ir::Register(dst) }), IrLine::CFInstruction(&ir::ControlFlowInstruction::Branch { cond: ir::Value::Register(ir::Register(cond)), conseq: ir::Label(conseq), altern: ir::Label(altern) })] if dst == cond  => {
             code.emit_instruction(asm::Instruction::new(Ident::new("cmp"), vec![asm::Argument::Register(asm::Register::VirtualRegister(lhs)), asm::Argument::Register(asm::Register::VirtualRegister(rhs))]));
             code.emit_instruction(asm::Instruction::new(Ident::new("jne"), vec![asm::Argument::Label(conseq)]));
             code.emit_instruction(asm::Instruction::new(Ident::new("jmp"), vec![asm::Argument::Label(altern)]));
             1
         },
-        [IrLine::Instruction(&ir::Instruction::Cmp { cmp: ir::CmpOp::Ne, lhs: ir::Value::Register(ir::Register(lhs)), rhs: ir::Value::Immediate(ir::Immediate(rhs)), dst: ir::Register(dst) }), IrLine::CFInstruction(&ir::ControlFlowInstruction::Branch { cond: ir::Value::Register(ir::Register(cond)), conseq: ir::Label(conseq), altern: ir::Label(altern) })] => {
+        [IrLine::Instruction(&ir::Instruction::Cmp { cmp: ir::CmpOp::Ne, lhs: ir::Value::Register(ir::Register(lhs)), rhs: ir::Value::Immediate(ir::Immediate(rhs)), dst: ir::Register(dst) }), IrLine::CFInstruction(&ir::ControlFlowInstruction::Branch { cond: ir::Value::Register(ir::Register(cond)), conseq: ir::Label(conseq), altern: ir::Label(altern) })] if dst == cond  => {
             code.emit_instruction(asm::Instruction::new(Ident::new("cmp"), vec![asm::Argument::Register(asm::Register::VirtualRegister(lhs)), asm::Argument::Immediate(rhs as machine::Word)]));
             code.emit_instruction(asm::Instruction::new(Ident::new("jne"), vec![asm::Argument::Label(conseq)]));
             code.emit_instruction(asm::Instruction::new(Ident::new("jmp"), vec![asm::Argument::Label(altern)]));
             1
         },
-        [IrLine::Instruction(&ir::Instruction::Cmp { cmp: ir::CmpOp::Ne, lhs: ir::Value::Immediate(ir::Immediate(lhs)), rhs: ir::Value::Register(ir::Register(rhs)), dst: ir::Register(dst) }), IrLine::CFInstruction(&ir::ControlFlowInstruction::Branch { cond: ir::Value::Register(ir::Register(cond)), conseq: ir::Label(conseq), altern: ir::Label(altern) })] => {
+        [IrLine::Instruction(&ir::Instruction::Cmp { cmp: ir::CmpOp::Ne, lhs: ir::Value::Immediate(ir::Immediate(lhs)), rhs: ir::Value::Register(ir::Register(rhs)), dst: ir::Register(dst) }), IrLine::CFInstruction(&ir::ControlFlowInstruction::Branch { cond: ir::Value::Register(ir::Register(cond)), conseq: ir::Label(conseq), altern: ir::Label(altern) })] if dst == cond  => {
             code.emit_instruction(asm::Instruction::new(Ident::new("cmp"), vec![asm::Argument::Register(asm::Register::VirtualRegister(rhs)), asm::Argument::Immediate(lhs as machine::Word)]));
             code.emit_instruction(asm::Instruction::new(Ident::new("je"), vec![asm::Argument::Label(altern)]));
             code.emit_instruction(asm::Instruction::new(Ident::new("jmp"), vec![asm::Argument::Label(conseq)]));
@@ -449,8 +450,10 @@ pub fn trans_instr(instr: &[ir::Instruction],
             1
         },
         [IrLine::Instruction(&ir::Instruction::Call { name: func, args: ref args, dst: ir::Register(dst) }), ..] => {
-            
-            1
+
+        // Note: This is Rust code, not assembler
+        cconv::translate_call(code, func, args, dst);
+                1
         },
         [IrLine::CFInstruction(&ir::ControlFlowInstruction::Return { value: Some(ir::Value::Register(ir::Register(val))) })] => {
             code.emit_instruction(asm::Instruction::new(Ident::new("leave"), vec![]));

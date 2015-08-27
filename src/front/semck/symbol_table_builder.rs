@@ -24,7 +24,7 @@ impl<'v> Visitor<'v> for SymbolTableBuilder<'v> {
 
         match self.sytbl.register_symbol(name, symbol.clone_stripped()) {
             Ok(..) => {},
-            Err(..) => fatal_at!("cannot redeclare `{}`", &*name; symbol)
+            Err(..) => fatal_at!("cannot redeclare `{}`", &name; symbol)
         };
     }
 }
