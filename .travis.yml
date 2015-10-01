@@ -6,3 +6,5 @@ before_install:
 - sudo apt-get update -qq
 - sudo apt-get install -y python3.4 python-software-properties
 script: python3.4 script/test.py
+env:
+- RUST_BACKTRACE=1
