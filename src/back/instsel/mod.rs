@@ -4,94 +4,89 @@
 //!       I'll be able to improve it later, but I need something that works
 //!       before I can get there.
 
-// TODO: Finish Instruction Selection
-// TODO: Write assembly pretty printer
+// TODO: Instruction selection for calls and function epilogue
 // TODO: Add pow intrinsics
 // TODO: Add tests
 // TODO: Implement constant folding
 // TODO: How are phi nodes handeled?
 
-#![allow(unused_variables)]  // FIXME: Remove after finishing
-
-
-mod rules;
-
-
 use driver::interner::Ident;
-use back::machine::{Instruction, Word};
+use back::machine::asm;
 use middle::ir;
 
 
 pub use self::rulecomp::compile_rules;
 
 
-//mod rules; // TODO: Include rule compilation in build.rs
+mod rules; // TODO: Include rule compilation in build.rs
 mod rulecomp;
 
 
 struct InstructionSelector<'a> {
     ir: &'a ir::Program,
-    code: Vec<Instruction>,
-    //globals: HashMap<Ident, usize>,
+    code: asm::Assembly,
 }
 
 impl<'a> InstructionSelector<'a> {
     fn new(ir: &'a ir::Program) -> InstructionSelector<'a> {
         InstructionSelector {
             ir: ir,
-            code: Vec::new(),
-            //globals: HashMap::new(),
+            code: asm::Assembly::new(),
         }
     }
 
-    fn init_global(&mut self, name: &Ident, value: Word, offset: usize) {
-        // TODO: Create a way to emit directives
+    fn trans_global(&mut self, name: Ident, value: ir::Immediate) {
+        self.code.emit_data(format!("{}:", name));
+        self.code.emit_data(format!(".long {}", name));
     }
 
-    fn trans_fn(&mut self, name: &Ident, body: &[ir::Block], args: &[Ident]) {
-        // TODO: Generate the prologue
+    fn trans_fn(&mut self, name: Ident, body: &[ir::Block], args: &[Ident]) {
+        // Function prologue
+        self.code.emit_directive(name, format!(".globl {}", name));
+        self.code.emit_instruction(name, asm::Instruction::with_label(
+            Ident::new("enter"),
+            vec![
+                asm::Argument::Immediate(0),  // Stack usage by this function
+                asm::Argument::Immediate(0),
+            ],
+            name
+        ));
 
-        /* IDEA:
+
+        // The function body
+        let mut first_block = true;
         for block in body {
-            for inst in block.inst {
-                // TODO: Translate instruction
-                match *inst {
-                    ir::Instruction::BinOp { op, lhs, rhs, dst } => {
-                        match op {
-                            ir::InfixOp::Add => {
-                                self.code.emit(instruction!(MOV lhs dst));
-                                self.code.emit(instruction!(ADD dst rhs));
-                            }
-                            ...
-                        }
-                    },
-                    ir::Instruction::UnOp { op, item, dst } => { ... },
-                    ...
-                }
+            // Don't emit the label of the first block (usually "entry-block")
+            if !first_block {
+                self.code.emit_directive(name, format!("{}:", block.label));
+            } else {
+                first_block = false;
             }
 
-            // TODO: Translate last instruction
-        }
-        // */
+            let instructions: Vec<_> = block.inst.iter().collect();
+            let mut idx = 0;
 
-        // TODO: Generate the epilogue
+            while idx < instructions.len() {
+                idx += rules::trans_instr(name, &instructions[idx..], &block.last, &mut self.code);
+            }
+
+            rules::trans_instr(name, &mut [], &block.last, &mut self.code);
+        }
+
+        // TODO: Where will the epilogue/stack cleanup codegen go?
     }
 
-    fn translate(mut self) -> Vec<Instruction> {
-        // First, initialize global variables
-        for (offset, symbol) in self.ir.iter().enumerate() {
-            if let ir::Symbol::Global { ref name, ref value } = *symbol {
-                self.init_global(name, value.val() as Word, offset);
+    fn translate(mut self) -> asm::Assembly {
+        // Translate all globals
+        for symbol in self.ir {
+            if let ir::Symbol::Global { name, value } = *symbol {
+                self.trans_global(name, value);
             }
         }
-
-        // Then initialize the stack management registers
-
-        // Execute the main method and then halt
 
         // Translate all functions
         for symbol in self.ir {
-            if let ir::Symbol::Function { ref name, ref body, ref args } = *symbol {
+            if let ir::Symbol::Function { name, ref body, ref args } = *symbol {
                 self.trans_fn(name, body, args);
             }
         }
@@ -101,7 +96,7 @@ impl<'a> InstructionSelector<'a> {
 }
 
 
-pub fn select_instructions(ir: &ir::Program) -> Vec<Instruction> {
+pub fn select_instructions(ir: &ir::Program) -> asm::Assembly {
     let is = InstructionSelector::new(ir);
     is.translate()
 }

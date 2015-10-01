@@ -32,6 +32,8 @@ import re
 
 from termcolor import cprint, colored
 
+import build
+
 
 RUSTINY_DIR = Path(__file__).resolve().parents[1]
 TEST_DIR = RUSTINY_DIR / 'tests'
@@ -282,18 +284,9 @@ def print_results():
             session.passed, session.failed))
 
 
-def refresh_compiler():
-    try:
-        subprocess.check_call(['cargo', 'build'], cwd=str(RUSTINY_DIR))
-    except subprocess.CalledProcessError:
-        cprint('Compiling the compiler failed!', 'red')
-        sys.exit(1)
-
-
-
 if __name__ == '__main__':
     cprint('Refreshing the compiler...', 'blue')
-    refresh_compiler()
+    build.run('build', release=False)
 
     cprint('Running compiler unit tests...', 'blue')
     tests_compiler()

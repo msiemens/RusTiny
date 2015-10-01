@@ -2,7 +2,7 @@ use driver::interner::Ident;
 use driver::session;
 use front::ast::{Node, Span};
 use back::machine::MachineRegister;
-use back::machine::instructions::OperandSize;
+use back::machine::asm::OperandSize;
 use back::instsel::rulecomp::ast::*;
 use back::instsel::rulecomp::lexer::Lexer;
 use back::instsel::rulecomp::tokens::{Token, Keyword};
@@ -229,10 +229,10 @@ impl<'a> Parser<'a> {
             Token::Keyword(Keyword::Ret) => {
                 self.bump();
 
-                let val = if self.token != Token::RBracket {
-                    Some(self.parse_ir_arg())
-                } else {
+                let val = if self.eat(Token::Keyword(Keyword::Void)) {
                     None
+                } else {
+                    Some(self.parse_ir_arg())
                 };
 
                 IrPatternLast::Ret(val)

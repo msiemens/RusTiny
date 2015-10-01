@@ -51,5 +51,5 @@ pub fn compile_input(source: String, input_file: String, ir_only: bool) {
     // Phase 6: Register allocation
     // Phase 7: Assembly optimization
 
-    println!("{:?}", assembly);
+    println!("{}", assembly);
 }

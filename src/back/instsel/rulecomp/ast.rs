@@ -1,7 +1,7 @@
 use driver::interner::Ident;
 use front::ast::Node;
 use back::machine::MachineRegister;
-use back::machine::instructions::OperandSize;
+use back::machine::asm::OperandSize;
 
 
 #[derive(Clone, Debug)]

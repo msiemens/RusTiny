@@ -437,16 +437,21 @@ rules!{
 
     // --- Call -----------------------------------------------------------------
 
-    [%(dst) = call func [args ..]; ..] -> {
+    [%(dst) = call callee [args ..]; ..] -> {
         // Note: This is Rust code, not assembler
-        cconv::translate_call(code, func, args, dst);
+        cconv::translate_call(func, code, callee, args, dst);
     },
 
     // --- Return/Branch/Jump ---------------------------------------------------
 
+    [ret void] => {
+        leave;  // Reset the stack pointer
+        ret;
+    },
+
     [ret %(val)] => {
-        // Reset the stack pointer
-        leave;
+        mov rax, $val;
+        leave;  // Reset the stack pointer
         ret;
     },
 

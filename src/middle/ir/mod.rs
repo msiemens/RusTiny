@@ -104,7 +104,7 @@ impl<'a> IntoIterator for &'a Program {
 
 
 
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub enum Symbol {
     Global {
         name: Ident,
@@ -118,11 +118,11 @@ pub enum Symbol {
 }
 
 
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub struct Block {
-    label: Label,
-    inst: VecDeque<Instruction>,
-    last: ControlFlowInstruction,
+    pub label: Label,
+    pub inst: VecDeque<Instruction>,
+    pub last: ControlFlowInstruction,
 }
 
 impl Block {
@@ -253,7 +253,7 @@ impl Block {
 }
 
 
-#[derive(Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq)]
 #[allow(missing_copy_implementations)]
 pub enum ControlFlowInstruction {
     Return {
@@ -271,7 +271,7 @@ pub enum ControlFlowInstruction {
 }
 
 
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub enum Instruction {
     BinOp {
         op: InfixOp,

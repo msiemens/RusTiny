@@ -33,7 +33,6 @@ pub enum Token {
     Keyword(Keyword),
     Ident(Ident),
     Literal(Ident),
-    Snippet(Ident),
 
     EOF
 }
@@ -68,7 +67,6 @@ impl fmt::Display for Token {
             Keyword(ref kw)     => write!(f, "{}", kw),
             Ident(ref id)       => write!(f, "{}", id),
             Literal(ref lit)    => write!(f, "{}", lit),
-            Snippet(ref snip)   => write!(f, "{}", snip),
 
             EOF                 => write!(f, "EOF"),
         }
@@ -153,4 +151,5 @@ keywords! {
     DWord   => "dword",
     QWord   => "qword",
     Ptr     => "ptr",
+    Void    => "void",
 }
