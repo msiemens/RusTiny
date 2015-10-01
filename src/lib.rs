@@ -1,8 +1,6 @@
-#![feature(append)]
 #![feature(hashmap_hasher)]
 #![feature(plugin)]
 #![feature(slice_patterns)]
-#![feature(split_off)]
 
 #![deny(unused_features)]
 #![deny(deprecated)]
