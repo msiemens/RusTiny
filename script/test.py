@@ -285,7 +285,6 @@ def print_results():
 
 
 if __name__ == '__main__':
-    cprint('Refreshing the compiler...', 'blue')
     build.run('build', release=False)
 
     cprint('Running compiler unit tests...', 'blue')
