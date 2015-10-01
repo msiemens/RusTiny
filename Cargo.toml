@@ -27,6 +27,3 @@ lazy_static = "*"
 log = "*"
 rustc-serialize = "*"
 term = "*"
-
-[dependencies.clippy]
-git = "https://github.com/Manishearth/rust-clippy"

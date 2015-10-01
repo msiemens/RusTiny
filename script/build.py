@@ -12,6 +12,9 @@ if os.name == 'nt':
 
 RUSTINY_DIR = Path(__file__).resolve().parents[1]
 
+CLIPPY_PATH = 'C://Users//markus//Documents//Coding//rust//cargo-clippy//target//release//deps'
+CLIPPY_ARGS = ['-Aneedless_return', '-Aneedless_lifetimes', '-L' + CLIPPY_PATH]
+
 
 def get_binary(name, release):
     if release is True:
@@ -29,19 +32,31 @@ def run(mode, release, args=None):
     cprint('Building instruction selection rules...', 'blue')
     build_rules(release)
 
+    if mode == 'check':
+        cmd = ['cargo', 'clippy'] + args + ['--'] + CLIPPY_ARGS
+
+        cprint('Running {!r} ...'.format(' '.join(cmd)), 'blue')
+        sys.exit(subprocess.call(cmd))
+
     cprint('Building compiler...', 'blue')
     build_compiler(release)
 
     if mode == 'build':
-        pass  # Nothing to do
+        cprint('Done', 'green')
     elif mode == 'run':
         compiler = RUSTINY_DIR / 'target' / 'debug' / 'rustiny'
-        sys.exit(subprocess.call([str(compiler)] + args))
+        cmd = [str(compiler)] + args
+
+        cprint('Running {!r} ...'.format(' '.join(cmd)), 'blue')
+        sys.exit(subprocess.call(cmd))
     elif mode == 'debug':
         compiler = RUSTINY_DIR / 'target' / 'debug' / 'rustiny'
-        sys.exit(subprocess.call(['gdb', '--args', str(compiler), '--'] + args))
+        cmd = ['gdb', '--args', str(compiler), '--'] + args
+
+        cprint('Running {!r} ...'.format(' '.join(cmd)), 'blue')
+        sys.exit(subprocess.call(cmd))
     else:
-        cprint(('Unexpected mode:', mode))
+        cprint(('Unexpected mode:', mode), 'red')
 
 
 def build_rules(release):
