@@ -4,8 +4,6 @@
 #![feature(slice_patterns)]
 #![feature(split_off)]
 
-#![allow(needless_return)]
-#![allow(needless_lifetimes)]
 #![deny(unused_features)]
 #![deny(deprecated)]
 #![warn(unused_variables)]
