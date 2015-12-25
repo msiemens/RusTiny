@@ -11,6 +11,7 @@ pub enum Token {
     Bang,
     Dollar,
     Percent,
+    At,
     Zero,
     Equal,
     Plus,
@@ -34,7 +35,7 @@ pub enum Token {
     Ident(Ident),
     Literal(Ident),
 
-    EOF
+    EOF,
 }
 
 impl fmt::Display for Token {
@@ -42,33 +43,34 @@ impl fmt::Display for Token {
         use self::Token::*;
 
         match *self {
-            Bang                => write!(f, "!"),
-            Dollar              => write!(f, "$"),
-            Percent             => write!(f, "%"),
-            Zero                => write!(f, "0"),
-            Equal               => write!(f, "="),
-            Plus                => write!(f, "+"),
-            Minus               => write!(f, "-"),
-            Asterisk            => write!(f, "*"),
-            Dot                 => write!(f, "."),
-            DoubleDot           => write!(f, ".."),
+            Bang => write!(f, "!"),
+            Dollar => write!(f, "$"),
+            Percent => write!(f, "%"),
+            At => write!(f, "@"),
+            Zero => write!(f, "0"),
+            Equal => write!(f, "="),
+            Plus => write!(f, "+"),
+            Minus => write!(f, "-"),
+            Asterisk => write!(f, "*"),
+            Dot => write!(f, "."),
+            DoubleDot => write!(f, ".."),
 
-            LParen              => write!(f, "("),
-            RParen              => write!(f, ")"),
-            LBracket            => write!(f, "["),
-            RBracket            => write!(f, "]"),
-            LBrace              => write!(f, "{{"),
-            RBrace              => write!(f, "}}"),
-            Comma               => write!(f, ","),
-            Semicolon           => write!(f, ";"),
-            Arrow               => write!(f, "->"),
-            FatArrow            => write!(f, "=>"),
+            LParen => write!(f, "("),
+            RParen => write!(f, ")"),
+            LBracket => write!(f, "["),
+            RBracket => write!(f, "]"),
+            LBrace => write!(f, "{{"),
+            RBrace => write!(f, "}}"),
+            Comma => write!(f, ","),
+            Semicolon => write!(f, ";"),
+            Arrow => write!(f, "->"),
+            FatArrow => write!(f, "=>"),
 
-            Keyword(ref kw)     => write!(f, "{}", kw),
-            Ident(ref id)       => write!(f, "{}", id),
-            Literal(ref lit)    => write!(f, "{}", lit),
+            Keyword(ref kw) => write!(f, "{}", kw),
+            Ident(ref id) => write!(f, "{}", id),
+            Literal(ref lit) => write!(f, "{}", lit),
 
-            EOF                 => write!(f, "EOF"),
+            EOF => write!(f, "EOF"),
         }
     }
 }

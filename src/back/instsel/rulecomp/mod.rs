@@ -73,7 +73,8 @@ pub fn trans_instr(func: Ident,
         }}
     }}
 }}
-", rules.iter().map(|r| translate_rule(r)).collect::<Vec<_>>().join(",\n"))
+",
+            rules.iter().map(|r| translate_rule(r)).collect::<Vec<_>>().join(",\n"))
 }
 
 fn translate_rule(rule: &Rule) -> String {
@@ -89,16 +90,21 @@ fn translate_rule(rule: &Rule) -> String {
 
     match rule.implementation {
         Impl::Asm(ref asm) => {
-            asm.iter().inspect(|instr| {
-                instr.args.iter().inspect(|arg| {
-                    if let AsmArg::NewRegister(name) = ***arg {
-                        arg_types.insert(*name, IrArg::Register(*name));
-                    }
-                }).all(|_| true);
-            }).all(|_| true);
+            asm.iter()
+               .inspect(|instr| {
+                   instr.args
+                        .iter()
+                        .inspect(|arg| {
+                            if let AsmArg::NewRegister(name) = ***arg {
+                                arg_types.insert(*name, IrArg::Register(*name));
+                            }
+                        })
+                        .all(|_| true);
+               })
+               .all(|_| true);
 
             s.push_str(&translate_asm(&asm, &arg_types));
-        },
+        }
         Impl::Rust(source) => {
             s.push_str(&source);
         }
@@ -365,6 +371,7 @@ fn translate_ir_arg(arg: &IrArg) -> String {
     match *arg {
         IrArg::Register(reg) => format!("ir::Value::Register(ir::Register({}))", reg),
         IrArg::Literal(lit) => format!("ir::Value::Immediate(ir::Immediate({}))", lit),
+        IrArg::Static(lit) => format!("ir::Value::Static({})", lit),
     }
 }
 
@@ -380,15 +387,17 @@ fn translate_asm(asm: &[Node<AsmInstr>], types: &HashMap<Ident, IrArg>) -> Strin
     let mut s = "            ".to_owned();
 
     let mut new_regs = Vec::new();
-    asm.iter().map(|instr| {
-        new_regs.extend(instr.args.iter().filter_map(|arg| {
-            if let AsmArg::NewRegister(name) = **arg {
-                Some(format!("let {} = Ident::new(\"{}\");\n            ", name, name))
-            } else {
-                None
-            }
-        }))
-    }).all(|_| true);
+    asm.iter()
+       .map(|instr| {
+           new_regs.extend(instr.args.iter().filter_map(|arg| {
+               if let AsmArg::NewRegister(name) = **arg {
+                   Some(format!("let {} = Ident::new(\"{}\");\n            ", name, name))
+               } else {
+                   None
+               }
+           }))
+       })
+       .all(|_| true);
 
     s.push_str(&new_regs.join(""));
 
@@ -409,12 +418,24 @@ fn translate_asm_instr(instr: &AsmInstr, types: &HashMap<Ident, IrArg>) -> Strin
 
 fn translate_asm_arg(arg: &AsmArg, types: &HashMap<Ident, IrArg>) -> String {
     match *arg {
-        AsmArg::Register(ref reg) => format!("asm::Argument::Register(asm::Register::MachineRegister(MachineRegister::{:?}))", reg),
-        AsmArg::NewRegister(ref reg) => format!("asm::Argument::Register(asm::Register::VirtualRegister({}))", reg),
-        AsmArg::IrArg(ref arg) => match *types.get(arg).unwrap() {
-            IrArg::Register(..) => format!("asm::Argument::Register(asm::Register::VirtualRegister({}))", arg),
-            IrArg::Literal(..) => format!("asm::Argument::Immediate({} as machine::Word)", arg),
-        },
+        AsmArg::Register(ref reg) => {
+            format!("asm::Argument::Register(asm::Register::MachineRegister(MachineRegister::{:?}))",
+                    reg)
+        }
+        AsmArg::NewRegister(ref reg) => {
+            format!("asm::Argument::Register(asm::Register::VirtualRegister({}))",
+                    reg)
+        }
+        AsmArg::IrArg(ref arg) => {
+            match *types.get(arg).unwrap() {
+                IrArg::Register(..) => {
+                    format!("asm::Argument::Register(asm::Register::VirtualRegister({}))",
+                            arg)
+                }
+                IrArg::Literal(..) => format!("asm::Argument::Immediate({} as machine::Word)", arg),
+                IrArg::Static(..) => format!("asm::Argument::Address({})", arg),
+            }
+        }
         AsmArg::Literal(ref lit) => format!("asm::Argument::Immediate({})", lit),
         AsmArg::Label(ref target) => format!("asm::Argument::Label({})", target),
         AsmArg::Indirect { ref size, ref base, ref index, ref disp } => {

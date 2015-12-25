@@ -54,14 +54,16 @@ pub enum IrPatternLast {
 #[derive(Clone, Debug)]
 pub enum IrArg {
     Register(Ident),
-    Literal(Ident)
+    Literal(Ident),
+    Static(Ident),
 }
 
 impl IrArg {
     pub fn get_name(&self) -> Ident {
         match *self {
             IrArg::Register(id) => id,
-            IrArg::Literal(id) => id
+            IrArg::Literal(id) => id,
+            IrArg::Static(id) => id,
         }
     }
 }
@@ -95,6 +97,6 @@ pub enum AsmArg {
         size: Option<OperandSize>,
         base: Option<Box<AsmArg>>,
         index: Option<(Box<AsmArg>, u32)>,
-        disp: Option<i32>
-    }
+        disp: Option<i32>,
+    },
 }

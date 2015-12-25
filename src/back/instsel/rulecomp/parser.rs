@@ -350,6 +350,13 @@ impl<'a> Parser<'a> {
 
                 AsmArg::NewRegister(ident)
             },
+            Token::At => {
+                self.bump();
+                self.expect(Token::LParen);
+                let ident = self.parse_ident();
+                self.expect(Token::RParen);
+                IrArg::Static(*ident)
+            },
             Token::Dot => {
                 self.bump();
 

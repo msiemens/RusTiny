@@ -214,6 +214,8 @@ impl<'a> Lexer<'a> {
 
             '%' => emit!(self, Token::Percent),
 
+            '@' => emit!(self, Token::At),
+
             '0' => emit!(self, Token::Zero),
 
             '=' => {
@@ -247,8 +249,10 @@ impl<'a> Lexer<'a> {
 
             ';' => emit!(self, Token::Semicolon),
 
-            '/' => emit!(self, next: '/' => { self.skip_comment(); return None };
-                               default: self.fatal(format!("unexpected character: `{}`", c))),
+            '/' => {
+                emit!(self, next: '/' => { self.skip_comment(); return None };
+                               default: self.fatal(format!("unexpected character: `{}`", c)))
+            }
 
             c if c.is_alphabetic() => self.tokenize_ident(),
 
@@ -264,8 +268,8 @@ impl<'a> Lexer<'a> {
 
                 self.bump();
                 return None;
-            },
-            c => self.fatal(format!("unexpected character: `{}`", c))
+            }
+            c => self.fatal(format!("unexpected character: `{}`", c)),
         };
 
         debug!("emitted token: `{:?}`", token);

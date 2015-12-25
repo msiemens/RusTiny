@@ -70,7 +70,7 @@ impl<'a> InstructionSelector<'a> {
                 idx += rules::trans_instr(name, &instructions[idx..], &block.last, &mut self.code);
             }
 
-            rules::trans_instr(name, &mut [], &block.last, &mut self.code);
+            rules::trans_instr(name, &[], &block.last, &mut self.code);
         }
 
         // TODO: Where will the epilogue/stack cleanup codegen go?

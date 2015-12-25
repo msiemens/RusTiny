@@ -40,6 +40,7 @@ impl Instruction {
 #[derive(Copy, Clone, Debug)]
 pub enum Argument {
     Immediate(Word),
+    Address(Ident),
     Label(Ident),
 
     Register(Register),
@@ -151,6 +152,7 @@ impl fmt::Display for Argument {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match *self {
             Argument::Immediate(ref val) => write!(f, "{}", val),
+            Argument::Address(ref val) => write!(f, "{}", val),
             Argument::Label(ref label) => write!(f, "{}", label),
             Argument::Register(ref reg) => write!(f, "{}", reg),
             Argument::Indirect { size, base, index, disp } => {
