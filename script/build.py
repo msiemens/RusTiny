@@ -56,7 +56,7 @@ def run(mode, release, args=None):
         cprint('Running {!r} ...'.format(' '.join(cmd)), 'blue')
         sys.exit(subprocess.call(cmd))
     else:
-        cprint(('Unexpected mode:', mode), 'red')
+        cprint('Unexpected mode: {}'.format(mode), 'red')
 
 
 def build_rules(release):
@@ -88,7 +88,7 @@ def build_compiler(release):
     try:
         subprocess.check_call(args, cwd=str(RUSTINY_DIR))
     except subprocess.CalledProcessError:
-        cprint('Building the compiler', 'red')
+        cprint('Error', 'red')
         sys.exit(1)
 
 
