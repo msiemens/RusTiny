@@ -19,6 +19,10 @@ rules!{
         mov $dst, $lhs;
         add $dst, $rhs;
     },
+    [%(dst) = add 0(lhs), 0(rhs); ..] => {
+        mov $dst, $lhs;
+        add $dst, $rhs;
+    },
 
     // Subtraction
     [%(dst) = sub %(lhs), %(rhs); ..] => {
@@ -33,6 +37,10 @@ rules!{
         mov $dst, $lhs;
         sub $dst, $rhs;
     },
+    [%(dst) = sub 0(lhs), 0(rhs); ..] => {
+        mov $dst, $lhs;
+        sub $dst, $rhs;
+    },
 
     // Multiplication
     [%(dst) = mul %(lhs), %(rhs); ..] => {
@@ -41,11 +49,16 @@ rules!{
     },
     [%(dst) = mul %(lhs), 0(rhs); ..] => {
         // Use the three-operand form
-        imu $dst, $lhs, $rhs;
+        imul $dst, $lhs, $rhs;
     },
     [%(dst) = mul 0(lhs), %(rhs); ..] => {
         // Use the three-operand form
-        imu $dst, $rhs, $lhs;
+        imul $dst, $rhs, $lhs;
+    },
+    [%(dst) = mul 0(lhs), 0(rhs); ..] => {
+        // Use the three-operand form
+        mov $dst, $lhs;
+        imul $dst, $rhs;
     },
 
     // Integer division
@@ -66,6 +79,13 @@ rules!{
         xor rdx, rdx;
         mov rax, $lhs;
         idiv $rhs;
+        mov $dst, rax;
+    },
+    [%(dst) = div 0(lhs), 0(rhs); ..] => {
+        mov %(tmp), $rhs;  // Create a temporary virtual register
+        xor rdx, rdx;
+        mov rax, $lhs;
+        idiv $tmp;
         mov $dst, rax;
     },
 
@@ -92,6 +112,13 @@ rules!{
         idiv $rhs;
         mov $dst, rdx;
     },
+    [%(dst) = mod 0(lhs), 0(rhs); ..] => {
+        mov %(tmp), $rhs;  // Create a temporary virtual register
+        xor rdx, rdx;
+        mov rax, $lhs;
+        idiv $tmp;
+        mov $dst, rdx;
+    },
 
     // Shift left
     [%(dst) = shl %(lhs), %(rhs); ..] => {
@@ -107,6 +134,10 @@ rules!{
         mov $dst, $lhs;
         mov rcx, $rhs;
         sal $dst, cl;
+    },
+    [%(dst) = shl 0(lhs), 0(rhs); ..] => {
+        mov $dst, $lhs;
+        sal $dst, $rhs;
     },
 
     // Shift right
@@ -124,6 +155,10 @@ rules!{
         mov rcx, $rhs;
         sar $dst, cl;
     },
+    [%(dst) = shr 0(lhs), 0(rhs); ..] => {
+        mov $dst, $lhs;
+        sar $dst, $rhs;
+    },
 
     // And
     [%(dst) = and %(lhs), %(rhs); ..] => {
@@ -135,6 +170,10 @@ rules!{
         and $dst, $rhs;
     },
     [%(dst) = and 0(lhs), %(rhs); ..] => {
+        mov $dst, $lhs;
+        and $dst, $rhs;
+    },
+    [%(dst) = and 0(lhs), 0(rhs); ..] => {
         mov $dst, $lhs;
         and $dst, $rhs;
     },
@@ -152,6 +191,10 @@ rules!{
         mov $dst, $lhs;
         or $dst, $rhs;
     },
+    [%(dst) = or 0(lhs), 0(rhs); ..] => {
+        mov $dst, $lhs;
+        or $dst, $rhs;
+    },
 
     // Xor
     [%(dst) = xor %(lhs), %(rhs); ..] => {
@@ -166,15 +209,27 @@ rules!{
         mov $dst, $lhs;
         xor $dst, $rhs;
     },
+    [%(dst) = xor 0(lhs), 0(rhs); ..] => {
+        mov $dst, $lhs;
+        xor $dst, $rhs;
+    },
 
     // Unary negation (2s complement)
     [%(dst) = neg %(item); ..] => {
         mov $dst, $item;
         neg $dst;
     },
+    [%(dst) = neg 0(item); ..] => {
+        mov $dst, $item;
+        neg $dst;
+    },
 
     // Unary negation (1s complement)
     [%(dst) = not %(item); ..] => {
+        mov $dst, $item;
+        not $dst;
+    },
+    [%(dst) = not 0(item); ..] => {
         mov $dst, $item;
         not $dst;
     },
@@ -425,9 +480,14 @@ rules!{
         mov $dst, rsp;
         sub rsi, 4;
     },
+
     [%(dst) = load %(src); ..] => {
         mov $dst, qword ptr [$src];
     },
+    [%(dst) = load @(src); ..] => {
+        mov $dst, qword ptr [$src];
+    },
+
     [store %(val), %(dst); ..] => {
         mov qword ptr [$dst], $val;
     },
@@ -457,6 +517,12 @@ rules!{
 
     [br %(cond), conseq, altern] => {
         test $cond, 1;
+        je .conseq;
+        jmp .altern;
+    },
+    [br 0(cond), conseq, altern] => {
+        mov %(tmp), $cond;
+        test $tmp, 1;
         je .conseq;
         jmp .altern;
     },

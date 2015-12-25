@@ -33,7 +33,7 @@ impl<'a> Parser<'a> {
     pub fn parse(&mut self) -> Vec<Node<Rule>> {
         // Grammar: kw_rules BANG LBRACE rule+ RBRACKET
         debug!("Starting parsing");
-        let lo = self.span;
+        //let lo = self.span;
 
         let mut rules = Vec::new();
 
@@ -292,6 +292,13 @@ impl<'a> Parser<'a> {
                 self.expect(Token::RParen);
                 IrArg::Literal(*ident)
             },
+            Token::At => {
+                self.bump();
+                self.expect(Token::LParen);
+                let ident = self.parse_ident();
+                self.expect(Token::RParen);
+                IrArg::Static(*ident)
+            },
             _ => self.unexpected_token(Some("one of '%' | '0'"))
         };
 
@@ -349,13 +356,6 @@ impl<'a> Parser<'a> {
                 self.expect(Token::RParen);
 
                 AsmArg::NewRegister(ident)
-            },
-            Token::At => {
-                self.bump();
-                self.expect(Token::LParen);
-                let ident = self.parse_ident();
-                self.expect(Token::RParen);
-                IrArg::Static(*ident)
             },
             Token::Dot => {
                 self.bump();
