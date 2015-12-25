@@ -26,8 +26,9 @@ impl<'a> Lexer<'a> {
     pub fn new(source: &'a str, _: &'a str) -> Lexer<'a> {
         let mut iter = source.char_indices();
         let (pos, curr) = iter.next()
-            .map(|(p, c)| (p, Some(c)))  // Make `curr` an Option
-            .unwrap_or_else(|| (0, None));  // Set `curr` to None
+            .map_or_else(|| (0, None), |(p, c)| (p, Some(c)));
+            //.map(|(p, c)| (p, Some(c)))  // Make `curr` an Option
+            //.unwrap_or_else(|| (0, None));  // Set `curr` to None
 
         Lexer {
             source: source,

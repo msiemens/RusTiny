@@ -32,7 +32,7 @@ pub fn read_file(input_path: &str) -> String {
             fatal!("{} is not UTF-8 encoed", input_path);
             session().abort();
         }
-    }
+    };
 }
 
 

@@ -77,13 +77,13 @@ impl<'a> SymbolTable {
     /// Panics when the scope doesn't exist
     pub fn lookup_variable(&self, scope: ast::NodeId, name: &Ident) -> Option<Variable> {
         let scopes = self.scopes.borrow();
-        scopes[&scope].vars.get(name).map(|v| *v)
+        scopes[&scope].vars.get(name).cloned()
     }
 
     /// Look up a symbol
     pub fn lookup_symbol(&self, name: &Ident) -> Option<ast::Symbol> {
         let symbols = self.symbols.borrow();
-        symbols.get(name).map(|s| s.clone())  // FIXME: Without clone?
+        symbols.get(name).cloned()  // FIXME: Without clone?
     }
 
     /// Look up a function's argument types and the return type
@@ -124,7 +124,7 @@ impl<'a> SymbolTable {
                 return Some(Variable { ty: binding.ty, reg: None })
             }
             Some(_) | None => return None  // Variable not found or refers to a function
-        }
+        };
     }
 
     // FIXME: Somehow collapse with resolve_variable or macro
@@ -152,7 +152,7 @@ impl<'a> SymbolTable {
                 return Some(VariableKind::Constant)
             }
             Some(_) | None => return None  // Variable not found or refers to a function
-        }
+        };
     }
 
 

@@ -26,8 +26,10 @@ impl<'a> Lexer<'a> {
     pub fn new(source: &'a str, _: &'a str) -> Lexer<'a> {
         let mut iter = source.char_indices();
         let (pos, curr) = iter.next()
-            .map(|(p, c)| (p, Some(c)))  // Make `curr` an Option
-            .unwrap_or_else(|| (0, None));  // Set `curr` to None
+                              .map_or_else(|| (0, None), |(p, c)| (p, Some(c)));
+        // FIXME: Document
+        // .map(|(p, c)| (p, Some(c)))  // Make `curr` an Option
+        // .unwrap_or_else(|| (0, None));  // Set `curr` to None
 
         Lexer {
             source: source,
@@ -119,8 +121,11 @@ impl<'a> Lexer<'a> {
     fn eat_all<F>(&mut self, cond: F)
             where F: Fn(&char) -> bool {
         while let Some(c) = self.curr {
-            if cond(&c) { self.bump(); }
-            else { break; }
+            if cond(&c) {
+                self.bump();
+            } else {
+                break;
+            }
         }
     }
 
@@ -211,8 +216,10 @@ impl<'a> Lexer<'a> {
 
             '0' => emit!(self, Token::Zero),
 
-            '=' => emit!(self, next: '>' => Token::FatArrow;
-                               default: Token::Equal),
+            '=' => {
+                emit!(self, next: '>' => Token::FatArrow;
+                               default: Token::Equal)
+            }
 
             '+' => emit!(self, Token::Plus),
 
@@ -251,7 +258,7 @@ impl<'a> Lexer<'a> {
                 // Skip whitespaces of any type
                 if c == '\n' {
                     self.lineno += 1;
-                    //let offset = if self.nextch() == Some('\r') { 2 } else { 1 };
+                    // let offset = if self.nextch() == Some('\r') { 2 } else { 1 };
                     session().codemap.new_line(BytePos(self.pos as u32))
                 }
 
