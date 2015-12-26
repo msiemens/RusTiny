@@ -108,7 +108,9 @@ pub fn walk_statement<'v, V>(visitor: &mut V, stmt: &'v Node<Statement>)
             visitor.visit_binding(&binding);
             visitor.visit_expression(&value);
         },
-        Statement::Expression { ref val } => visitor.visit_expression(&val)
+        Statement::Expression { ref val } => {
+            visitor.visit_expression(&val)
+        }
     }
 }
 
@@ -138,7 +140,9 @@ pub fn walk_expression<'v, V>(visitor: &mut V, expr: &'v Node<Expression>)
                 visitor.visit_expression(&arg);
             }
         },
-        Expression::Group(ref expr) => visitor.visit_expression(&expr),
+        Expression::Group(ref expr) => {
+            visitor.visit_expression(&expr)
+        },
         Expression::Infix { op: _, ref lhs, ref rhs } => {
             visitor.visit_expression(&lhs);
             visitor.visit_expression(&rhs);

@@ -8,6 +8,7 @@ use front::ast;
 
 
 mod trans;
+pub mod visit;
 
 
 pub use middle::ir::trans::translate;

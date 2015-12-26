@@ -37,7 +37,7 @@ impl<'a> InstructionSelector<'a> {
 
     fn trans_global(&mut self, name: Ident, value: ir::Immediate) {
         self.code.emit_data(format!("{}:", name));
-        self.code.emit_data(format!(".long {}", name));
+        self.code.emit_data(format!(".long {}", value));
     }
 
     fn trans_fn(&mut self, name: Ident, body: &[ir::Block], args: &[Ident]) {
@@ -51,7 +51,6 @@ impl<'a> InstructionSelector<'a> {
             ],
             name
         ));
-
 
         // The function body
         let mut first_block = true;
