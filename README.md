@@ -24,7 +24,7 @@ The general data flow looks something like this:
 - `front`: Translates the source file into an Abstract Syntax Tree representation
 - `middle`: Checks the AST for correctness, transforms it to an Intermediate Representation
   and performs optimizations
-- `back`: Translates the IR to Tiny Assembly code
+- `back`: Translates the IR to ~~Tiny Assembly code~~ x86-64 assembly
 
 ## Helpful Resources
 
