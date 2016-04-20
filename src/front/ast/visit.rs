@@ -50,7 +50,7 @@ pub trait Visitor<'v> : Sized {
 }
 
 
-pub fn walk_program<'v, V>(visitor: &mut V, program: &'v Program)
+pub fn walk_program<'v, V>(visitor: &mut V, program: &'v [Node<Symbol>])
         where V: Visitor<'v>
 {
     for symbol in program {
@@ -63,11 +63,8 @@ pub fn walk_symbol<'v, V>(visitor: &mut V, symbol: &'v Node<Symbol>)
 {
     match **symbol {
         // FIXME: Visit value too?
-        Symbol::Static { ref binding, .. } => {
-            visitor.visit_binding(&binding);
-        },
-        // FIXME: Visit value too?
-        Symbol::Constant { ref binding, .. } => {
+        Symbol::Static { ref binding, .. }
+        | Symbol::Constant { ref binding, .. } => {
             visitor.visit_binding(&binding);
         },
         Symbol::Function { ref name, ref bindings, ref ret_ty, ref body } => {
@@ -119,15 +116,12 @@ pub fn walk_expression<'v, V>(visitor: &mut V, expr: &'v Node<Expression>)
         where V: Visitor<'v>
 {
     match **expr {
-        Expression::Literal { .. } => {},
         Expression::Variable { ref name } => {
             visitor.visit_ident(&name)
         },
-        Expression::Assign { ref lhs, ref rhs } => {
-            visitor.visit_expression(&lhs);
-            visitor.visit_expression(&rhs);
-        },
-        Expression::AssignOp { op: _, ref lhs, ref rhs } => {
+        Expression::Assign { ref lhs, ref rhs }
+        | Expression::AssignOp { ref lhs, ref rhs, .. }
+        | Expression::Infix { ref lhs, ref rhs, .. } => {
             visitor.visit_expression(&lhs);
             visitor.visit_expression(&rhs);
         },
@@ -143,11 +137,7 @@ pub fn walk_expression<'v, V>(visitor: &mut V, expr: &'v Node<Expression>)
         Expression::Group(ref expr) => {
             visitor.visit_expression(&expr)
         },
-        Expression::Infix { op: _, ref lhs, ref rhs } => {
-            visitor.visit_expression(&lhs);
-            visitor.visit_expression(&rhs);
-        },
-        Expression::Prefix { op: _, ref item } => {
+        Expression::Prefix { ref item, .. } => {
             visitor.visit_expression(&item);
         },
         Expression::If { ref cond, ref conseq, ref altern } => {
@@ -161,7 +151,6 @@ pub fn walk_expression<'v, V>(visitor: &mut V, expr: &'v Node<Expression>)
             visitor.visit_expression(&cond);
             visitor.visit_block(&body);
         },
-        Expression::Break => {},
-        Expression::Unit => {}
+        Expression::Literal { .. } | Expression::Break | Expression::Unit => {}
     }
 }

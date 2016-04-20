@@ -33,7 +33,7 @@ impl<'v> Visitor<'v> for BreakVerifier {
     }
 }
 
-pub fn run(program: &Program) {
+pub fn run(program: &[Node<Symbol>]) {
     let mut visitor = BreakVerifier::new();
     walk_program(&mut visitor, program);
 }

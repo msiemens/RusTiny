@@ -13,7 +13,7 @@ enum Associativity {
     Right
 }
 
-/// RusTiny operator precedence
+/// `RusTiny` operator precedence
 enum Precedence {
     Call        = 13,
     //Prefix      = 12,

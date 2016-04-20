@@ -64,14 +64,12 @@ impl<'a> TypeCheck<'a> {
             // There was an explicit return. Thus, the body has to evaluate
             // to ().
             self.type_check(implicit_ret_ty, Type::Unit, body);
-        } else {
+        } else if implicit_ret_ty == Type::Unit && return_ty != Type::Unit {
             // There was NO explicit return. Thus, the body has to evaluate
             // to the return type from the function signature.
-            if implicit_ret_ty == Type::Unit && return_ty != Type::Unit {
-                fatal_at!("missing return value/return statement"; body);
-            } else {
-                self.type_check(implicit_ret_ty, return_ty, body);
-            }
+            fatal_at!("missing return value/return statement"; body);
+        } else {
+            self.type_check(implicit_ret_ty, return_ty, body);
         }
     }
 
@@ -302,13 +300,11 @@ impl<'a> TypeCheck<'a> {
 impl<'v> Visitor<'v> for TypeCheck<'v> {
     fn visit_symbol(&mut self, symbol: &'v Node<Symbol>) {
         match **symbol {
-            Symbol::Function { name: _, bindings: _, ref ret_ty, ref body } => {
+            Symbol::Function { ref ret_ty, ref body, .. } => {
                 self.check_fn(*ret_ty, body);
             },
-            Symbol::Static { ref binding, ref value } => {
-                self.check_expression(value, Some(binding.ty));
-            },
-            Symbol::Constant { ref binding, ref value } => {
+            Symbol::Static { ref binding, ref value }
+            | Symbol::Constant { ref binding, ref value } => {
                 self.check_expression(value, Some(binding.ty));
             }
         }
@@ -316,7 +312,7 @@ impl<'v> Visitor<'v> for TypeCheck<'v> {
 }
 
 
-pub fn run(program: &Program) {
+pub fn run(program: &[Node<Symbol>]) {
     let symbol_table = &session().symbol_table;
     let mut visitor = TypeCheck::new(symbol_table);
     walk_program(&mut visitor, program);

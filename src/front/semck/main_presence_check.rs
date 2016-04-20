@@ -27,7 +27,7 @@ impl<'v> Visitor<'v> for MainPresenceCheck {
     }
 }
 
-pub fn run(program: &Program) {
+pub fn run(program: &[Node<Symbol>]) {
     let mut visitor = MainPresenceCheck::new();
     walk_program(&mut visitor, program);
 

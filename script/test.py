@@ -20,6 +20,10 @@ using special comments:
     //! ERROR([line]:[col]): [ERROR MESSAGE]
     //! ERROR: [ERROR MESSAGE]
 
+Tests can be skipped using:
+
+    //! SKIP
+
 """
 
 from collections import namedtuple
@@ -61,7 +65,7 @@ class CompilerError:
 
     def __repr__(self):
         if self.line and self.col:
-            return 'Error in {}:{}: {}'.format(self.line, self.col, self.error)
+            return 'Error in line {}:{}: {}'.format(self.line, self.col, self.error)
         else:
             return 'Error: {}'.format(self.error)
 
@@ -79,6 +83,7 @@ class Session:
     def __init__(self):
         self.passed = 0
         self.failed = 0
+        self.skipped = 0
         self.failures = []
 
     def start(self, name):
@@ -94,6 +99,11 @@ class Session:
 
         self.failures.append(failure)
         self.failed += 1
+
+    def skip(self):
+        cprint('skipped', 'yellow')
+
+        self.skipped += 1
 
 session = Session()
 
@@ -161,6 +171,11 @@ def collect_categorized_tests(name):
             yield cat.name, test
 
 
+def test_is_skip(filename):
+    with filename.open(encoding='utf-8') as f:
+        return '//! SKIP' in (line.strip() for line in f.readlines())
+
+
 def tests_compiler():
     try:
         subprocess.check_call(['cargo', 'test'], cwd=str(RUSTINY_DIR))
@@ -175,6 +190,10 @@ def tests_compile_fail():
     for category, test in collect_categorized_tests('compile-fail'):
         test_name = test.name
         print('Testing {}/{} ... '.format(category, test_name), end='')
+
+        if test_is_skip(test):
+            session.skip()
+            continue
 
         expectations = parse_expectations(test)
         cresult = compile_file(test)
@@ -208,6 +227,10 @@ def tests_run_pass():
         test_name = test.parts[-1]
         print('Testing {}/{} ... '.format(category, test_name), end='')
 
+        if test_is_skip(test):
+            session.skip()
+            continue
+
         cresult = compile_file(test)
 
         # Verify errors
@@ -230,6 +253,10 @@ def tests_ir():
         test_name = test.parts[-1]
         print('Testing {} ... '.format(test_name), end='')
 
+        if test_is_skip(test):
+            session.skip()
+            continue
+
         # Get generated IR
         cresult = compile_file(test, ['--ir'])
 
@@ -247,16 +274,27 @@ def tests_ir():
         if generated_ir == expected_ir:
             session.success()
         else:
+            output = '\n   {}\n{}\n\n   {}\n{}'.format(
+                colored('Expected IR:', 'cyan'),
+                expected_ir,
+                colored('Generated IR:', 'cyan')
+            )
             session.failure(FailedTest(test, test_name, None, None,
-                            None, '\n   {}\n{}\n\n   {}\n{}'.format(colored('Expected IR:', 'cyan'), expected_ir, colored('Generated IR:', 'cyan'), generated_ir)))
+                            None, output, generated_ir))
 
 
 def print_results():
     print()
 
+    pluralize_tests = lambda n: str(n) + (' tests' if n > 1 else ' test')
+
     if session.failed > 0:
-        cprint('{} tests failed; '.format(session.failed), 'red', end='')
-        print('{} tests passed'.format(session.passed))
+        cprint('{} failed; '.format(pluralize_tests(session.failed)),
+               'red', end='')
+        if session.skipped:
+            cprint('{} skipped; '.format(pluralize_tests(session.skipped)),
+                   'yellow', end='')
+        cprint('{} passed'.format(pluralize_tests(session.passed)), 'green')
 
         for failure in session.failures:
             print()
@@ -279,9 +317,11 @@ def print_results():
                 print('   ' + '\n   '.join(failure.output.splitlines()))
 
     else:
-        print('{}'.format(
-            colored('{} tests passed'.format(session.passed), 'green'),
-            session.passed, session.failed))
+        if session.skipped:
+            cprint('{} skipped; '.format(pluralize_tests(session.skipped)),
+                   'yellow', end='')
+
+        cprint('{} passed'.format(pluralize_tests(session.passed)), 'green')
 
 
 if __name__ == '__main__':
@@ -290,6 +330,7 @@ if __name__ == '__main__':
     cprint('Running compiler unit tests...', 'blue')
     tests_compiler()
 
+    os.environ['COLORED_OUTPUT'] = 'off'
     tests_compile_fail()
     print()
     tests_run_pass()

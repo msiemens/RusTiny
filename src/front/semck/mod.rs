@@ -2,7 +2,7 @@
 //!
 //! Make sure the source program makes sense.
 
-use front::ast::Program;
+use front::ast::{Node, Symbol};
 
 
 mod break_verifier;
@@ -12,7 +12,7 @@ mod scope_table_builder;
 mod symbol_table_builder;
 
 
-pub fn run(program: &Program) {
+pub fn run(program: &[Node<Symbol>]) {
     main_presence_check::run(program);
     lvalue_check::run(program);
     break_verifier::run(program);

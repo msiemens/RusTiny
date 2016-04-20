@@ -15,7 +15,7 @@ pub mod codemap;
 mod error;
 pub mod interner;
 pub mod symbol_table;
-pub mod session;
+mod session;
 
 
 /// The main entry point for compiling a file
@@ -46,7 +46,7 @@ pub fn compile_input(source: String, input_file: String, ir_only: bool) {
 
     // --- Back end -------------------------------------------------------------
     // Phase 5: Machine code generation
-    let ir_liveness = middle::calculate_liveness(&ir);
+    middle::calculate_liveness(&ir);
     let assembly = back::select_instructions(&ir);
 
     // Phase 6: Register allocation

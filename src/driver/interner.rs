@@ -2,7 +2,7 @@
 //!
 //! # Motivation
 //!
-//! In a RusTiny source file, many strings are repeated often (`fn`, variable names).
+//! In a `RusTiny` source file, many strings are repeated often (`fn`, variable names).
 //! Instead of having these in memory multiple times (e.g. one `fn` per function),
 //! we store them in a string intern pool and use a unique ID instead.
 //!

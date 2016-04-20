@@ -4,7 +4,7 @@ use driver::interner::Ident;
 use driver;
 use driver::symbol_table::VariableKind;
 use front::ast;
-use middle::ir::{self, Register};
+use middle::ir;
 use middle::ir::trans::{Dest, Translator};
 
 impl Translator {

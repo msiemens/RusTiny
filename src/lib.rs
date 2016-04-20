@@ -8,7 +8,8 @@
 #![warn(unused_imports)]
 #![warn(dead_code)]
 #![warn(missing_copy_implementations)]
-#![allow(while_let_loop)]
+#![allow(new_without_default)]
+#![allow(while_let_loop)]  // Clippy is buggy here with multiple if lets
 //#![warn(missing_docs)]
 
 extern crate ansi_term;

@@ -12,7 +12,7 @@
 //! In `driver::session::session()` we only can hand out an immutable reference
 //! to the current Session. Thus, to modify the current session, its members
 //! have to rely on interior mutability (methods looking immutable but
-//! actually modifying the session, implemented by a RefCell).
+//! actually modifying the session, implemented by a `RefCell`).
 //! This isn't a really clean solution either, but it's better than the
 //! alternatives IMO.
 

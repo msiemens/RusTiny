@@ -28,10 +28,10 @@
 //!    parent.
 //! 2. The parent determines a storage location for its children's values.
 //!
-//! In *ItCD* the first approach is preferred because sub-expressions might
-//! alter some values needed by the parent (e.g. `x + (x = 2)` (?). I think
-//! such behaviour it not possible in RusTiny. Therefore, I might rewrite the
-//! translator to use the first approach instead.
+//! In *Introduction to Compiler Design* the first approach is preferred because
+//! sub-expressions might alter some values needed by the parent (e.g.
+//! `x + (x = 2)` (?). I think such behaviour it not possible in `RusTiny`.
+//! Therefore, I might rewrite the translator to use the first approach instead.
 //!
 //! # Implementation notes
 //!
@@ -87,7 +87,7 @@ struct FunctionContext {
 /// But sometimes we just want the computation and don't care about where the
 /// the result is stored. This behaviour can be requested by using `Dest::Ignore`
 #[derive(Clone, Copy, Debug)]
-enum Dest {
+pub enum Dest {
     Store(Register),
     Ignore
 }
@@ -127,7 +127,7 @@ impl Translator {
 
     /// Get the next free label with a given base name (e.g. `id` -> `id2`)
     fn next_free_label(&mut self, basename: Ident) -> ir::Label {
-        let ref mut next_label = self.fcx().next_label;
+        let next_label = &mut self.fcx().next_label;
 
         *next_label.entry(basename).or_insert(0) += 1;
 
@@ -221,7 +221,7 @@ impl Translator {
         self.fcx = Some(FunctionContext {
             body: Vec::new(),
             registers: HashSet::new(),
-            return_slot: if !is_void { Some(ret_slot) } else { None },
+            return_slot: if is_void { None } else { Some(ret_slot) },
             scope: body.id,
             next_register: 0,
             next_label: HashMap::new(),
@@ -242,10 +242,10 @@ impl Translator {
         }
 
         // Translate ast block
-        if ret_ty != ast::Type::Unit {
-            self.trans_block(body, &mut block, Dest::Store(ret_slot));
-        } else {
+        if ret_ty == ast::Type::Unit {
             self.trans_block(body, &mut block, Dest::Ignore);
+        } else {
+            self.trans_block(body, &mut block, Dest::Store(ret_slot));
         }
 
         // Finalize the function
@@ -342,7 +342,7 @@ impl<'v> Visitor<'v> for Translator {
 }
 
 
-pub fn translate(ast: &ast::Program) -> ir::Program {
+pub fn translate(ast: &[ast::Node<ast::Symbol>]) -> ir::Program {
     let mut visitor = Translator::new();
     walk_program(&mut visitor, ast);
 

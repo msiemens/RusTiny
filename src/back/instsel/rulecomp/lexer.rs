@@ -145,7 +145,7 @@ impl<'a> Lexer<'a> {
 
         let rust_code = &self.source[start + 1..self.pos - 1];
 
-        return Ident::new(rust_code);
+        Ident::new(rust_code)
     }
 
     /// Tokenize an identifier

@@ -35,7 +35,7 @@ def run(mode, release, args=None):
         cprint('Running {!r} ...'.format(' '.join(cmd)), 'blue')
         sys.exit(subprocess.call(cmd))
 
-    cprint('Building compiler...', 'blue')
+    cprint('Building compiler...', 'blue', end=' ')
     build_compiler(release)
 
     if mode == 'build':

@@ -31,14 +31,14 @@ impl LValueCheck {
 impl<'v> Visitor<'v> for LValueCheck {
     fn visit_expression(&mut self, expr: &'v Node<Expression>) {
         match **expr {
-            Expression::Assign { ref lhs, .. } => self.check_expr(lhs),
-            Expression::AssignOp { ref lhs, .. } => self.check_expr(lhs),
+            Expression::Assign { ref lhs, .. }
+            | Expression::AssignOp { ref lhs, .. } => self.check_expr(lhs),
             _ => { walk_expression(self, expr) }
         }
     }
 }
 
-pub fn run(program: &Program) {
+pub fn run(program: &[Node<Symbol>]) {
     let mut visitor = LValueCheck::new();
     walk_program(&mut visitor, program);
 }

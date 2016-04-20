@@ -1,4 +1,4 @@
-//! All tokens that RusTiny understands
+//! All tokens that the rule parser understands
 
 use std::fmt;
 use driver;

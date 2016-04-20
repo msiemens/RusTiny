@@ -67,8 +67,8 @@ pub enum OperandSize {
 
 #[derive(Copy, Clone, Debug)]
 pub enum Register {
-    MachineRegister(MachineRegister),
-    VirtualRegister(Ident),
+    Machine(MachineRegister),
+    Virtual(Ident),
 }
 
 
@@ -87,11 +87,11 @@ impl Assembly {
     }
 
     pub fn emit_instruction(&mut self, f: Ident, i: Instruction) {
-        self.code.entry(f).or_insert(Vec::new()).push(AssemblyLine::Instruction(i));
+        self.code.entry(f).or_insert_with(Vec::new).push(AssemblyLine::Instruction(i));
     }
 
     pub fn emit_directive(&mut self, f: Ident, d: String) {
-        self.code.entry(f).or_insert(Vec::new()).push(AssemblyLine::Directive(d));
+        self.code.entry(f).or_insert_with(Vec::new).push(AssemblyLine::Directive(d));
     }
 
     pub fn emit_data(&mut self, d: String) {
@@ -149,6 +149,7 @@ impl fmt::Display for Instruction {
 }
 
 impl fmt::Display for Argument {
+    #[allow(useless_format)]
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match *self {
             Argument::Immediate(ref val) => write!(f, "{}", val),
@@ -182,8 +183,8 @@ impl fmt::Display for Argument {
 impl fmt::Display for Register {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match *self {
-            Register::MachineRegister(reg) => write!(f, "{}", reg),
-            Register::VirtualRegister(reg) => write!(f, "%{}", reg),
+            Register::Machine(reg) => write!(f, "{}", reg),
+            Register::Virtual(reg) => write!(f, "%{}", reg),
         }
     }
 }

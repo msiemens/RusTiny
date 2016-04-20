@@ -40,7 +40,7 @@ impl<'a> InstructionSelector<'a> {
         self.code.emit_data(format!(".long {}", value));
     }
 
-    fn trans_fn(&mut self, name: Ident, body: &[ir::Block], args: &[Ident]) {
+    fn trans_fn(&mut self, name: Ident, body: &[ir::Block], _: &[Ident]) {
         // Function prologue
         self.code.emit_directive(name, format!(".globl {}", name));
         self.code.emit_instruction(name, asm::Instruction::with_label(
@@ -55,11 +55,11 @@ impl<'a> InstructionSelector<'a> {
         // The function body
         let mut first_block = true;
         for block in body {
-            // Don't emit the label of the first block (usually "entry-block")
-            if !first_block {
-                self.code.emit_directive(name, format!("{}:", block.label));
-            } else {
+            if first_block {
+                // Don't emit the label of the first block (usually "entry-block")
                 first_block = false;
+            } else {
+                self.code.emit_directive(name, format!("{}:", block.label));
             }
 
             let instructions: Vec<_> = block.inst.iter().collect();

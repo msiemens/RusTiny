@@ -7,7 +7,7 @@
 //! or showing a snippet of the offending code. The codemap allows to
 //! get the source location of a Span by keeping track of all newlines.
 //!
-//! Should RusTiny get support for modules, the codemap would be responsible
+//! Should `RusTiny` get support for modules, the codemap would be responsible
 //! to resolve the file name, too.
 //!
 //! # Implementation notes

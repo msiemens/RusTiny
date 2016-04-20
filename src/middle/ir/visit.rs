@@ -37,7 +37,7 @@ pub fn walk_symbol<'v, V>(visitor: &mut V, symbol: &'v Symbol)
         where V: Visitor<'v>
 {
     match *symbol {
-    	Symbol::Global { ref name, value: _ } => {
+    	Symbol::Global { ref name, .. } => {
     		visitor.visit_ident(*name);
     		// visitor.visit_value(value); <-- is an Immediate
     	},
@@ -69,18 +69,14 @@ pub fn walk_instruction<'v, V>(visitor: &mut V, instr: &'v Instruction)
         where V: Visitor<'v>
 {
 	match *instr {
-		Instruction::BinOp { op: _, ref lhs, ref rhs, ref dst } => {
+		Instruction::BinOp { ref lhs, ref rhs, ref dst, .. }
+		| Instruction::Cmp { ref lhs, ref rhs, ref dst, .. } => {
 			visitor.visit_value(*lhs);
 			visitor.visit_value(*rhs);
 			visitor.visit_register(*dst);
 		},
-		Instruction::UnOp { op: _, ref item, ref dst } => {
+		Instruction::UnOp { ref item, ref dst, .. } => {
 			visitor.visit_value(*item);
-			visitor.visit_register(*dst);
-		},
-		Instruction::Cmp { cmp: _, ref lhs, ref rhs, ref dst } => {
-			visitor.visit_value(*lhs);
-			visitor.visit_value(*rhs);
 			visitor.visit_register(*dst);
 		},
 		Instruction::Alloca { ref dst } => {

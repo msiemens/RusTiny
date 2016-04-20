@@ -7,7 +7,6 @@ extern crate env_logger;
 extern crate rustc_serialize;
 extern crate rustiny;
 
-use docopt::Docopt;
 use rustiny::util::{read_file, write_file};
 
 docopt!(Args derive Debug, "

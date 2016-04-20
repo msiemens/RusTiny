@@ -30,7 +30,7 @@ impl<'v> Visitor<'v> for SymbolTableBuilder<'v> {
 }
 
 
-pub fn run(program: &Program) {
+pub fn run(program: &[Node<Symbol>]) {
     let symbol_table = &session().symbol_table;
     let mut visitor = SymbolTableBuilder::new(symbol_table);
     walk_program(&mut visitor, program);

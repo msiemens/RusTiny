@@ -128,32 +128,30 @@ fn update_pattern_types(pattern: &IrPattern, map: &mut HashMap<Ident, IrArg>) {
     }
 
     match *pattern {
-        IrPattern::Add(ref dest, ref lhs, ref rhs) => binop!(map, dest, lhs, rhs),
-        IrPattern::Sub(ref dest, ref lhs, ref rhs) => binop!(map, dest, lhs, rhs),
-        IrPattern::Mul(ref dest, ref lhs, ref rhs) => binop!(map, dest, lhs, rhs),
-        IrPattern::Div(ref dest, ref lhs, ref rhs) => binop!(map, dest, lhs, rhs),
-        IrPattern::Pow(ref dest, ref lhs, ref rhs) => binop!(map, dest, lhs, rhs),
-        IrPattern::Mod(ref dest, ref lhs, ref rhs) => binop!(map, dest, lhs, rhs),
-        IrPattern::Shl(ref dest, ref lhs, ref rhs) => binop!(map, dest, lhs, rhs),
-        IrPattern::Shr(ref dest, ref lhs, ref rhs) => binop!(map, dest, lhs, rhs),
-        IrPattern::And(ref dest, ref lhs, ref rhs) => binop!(map, dest, lhs, rhs),
-        IrPattern::Or (ref dest, ref lhs, ref rhs) => binop!(map, dest, lhs, rhs),
-        IrPattern::Xor(ref dest, ref lhs, ref rhs) => binop!(map, dest, lhs, rhs),
-        IrPattern::Neg(ref dest, ref arg) => {
+        IrPattern::Add(ref dest, ref lhs, ref rhs)
+        | IrPattern::Sub(ref dest, ref lhs, ref rhs)
+        | IrPattern::Mul(ref dest, ref lhs, ref rhs)
+        | IrPattern::Div(ref dest, ref lhs, ref rhs)
+        | IrPattern::Pow(ref dest, ref lhs, ref rhs)
+        | IrPattern::Mod(ref dest, ref lhs, ref rhs)
+        | IrPattern::Shl(ref dest, ref lhs, ref rhs)
+        | IrPattern::Shr(ref dest, ref lhs, ref rhs)
+        | IrPattern::And(ref dest, ref lhs, ref rhs)
+        | IrPattern::Or (ref dest, ref lhs, ref rhs)
+        | IrPattern::Xor(ref dest, ref lhs, ref rhs)
+        | IrPattern::CmpLt(ref dest, ref lhs, ref rhs)
+        | IrPattern::CmpLe(ref dest, ref lhs, ref rhs)
+        | IrPattern::CmpEq(ref dest, ref lhs, ref rhs)
+        | IrPattern::CmpNe(ref dest, ref lhs, ref rhs)
+        | IrPattern::CmpGe(ref dest, ref lhs, ref rhs)
+        | IrPattern::CmpGt(ref dest, ref lhs, ref rhs) => binop!(map, dest, lhs, rhs),
+        IrPattern::Neg(ref dest, ref arg)
+        | IrPattern::Not(ref dest, ref arg) => {
             map.insert(dest.0, IrArg::Register(dest.0));
             map.insert(arg.get_name(), (**arg).clone());
         },
-        IrPattern::Not(ref dest, ref arg) => {
-            map.insert(dest.0, IrArg::Register(dest.0));
-            map.insert(arg.get_name(), (**arg).clone());
-        },
-        IrPattern::CmpLt(ref dest, ref lhs, ref rhs) => binop!(map, dest, lhs, rhs),
-        IrPattern::CmpLe(ref dest, ref lhs, ref rhs) => binop!(map, dest, lhs, rhs),
-        IrPattern::CmpEq(ref dest, ref lhs, ref rhs) => binop!(map, dest, lhs, rhs),
-        IrPattern::CmpNe(ref dest, ref lhs, ref rhs) => binop!(map, dest, lhs, rhs),
-        IrPattern::CmpGe(ref dest, ref lhs, ref rhs) => binop!(map, dest, lhs, rhs),
-        IrPattern::CmpGt(ref dest, ref lhs, ref rhs) => binop!(map, dest, lhs, rhs),
-        IrPattern::Alloca(ref dest) => {
+        IrPattern::Alloca(ref dest)
+        | IrPattern::Call(ref dest, _, _) => {
             map.insert(dest.0, IrArg::Register(dest.0));
         },
         IrPattern::Load(ref dest, ref addr) => {
@@ -163,9 +161,6 @@ fn update_pattern_types(pattern: &IrPattern, map: &mut HashMap<Ident, IrArg>) {
         IrPattern::Store(ref value, ref addr) => {
             map.insert(value.get_name(), (**value).clone());
             map.insert(addr.get_name(), (**addr).clone());
-        },
-        IrPattern::Call(ref dest, _, _) => {
-            map.insert(dest.0, IrArg::Register(dest.0));
         },
     }
 }
@@ -352,7 +347,7 @@ fn translate_ir_pattern_last(ir_pattern_last: &IrPatternLast) -> String {
                     translate_ir_arg(val))
         },
         IrPatternLast::Ret(None) => {
-            format!("IrLine::CFInstruction(&ir::ControlFlowInstruction::Return {{ value: None }})")
+            "IrLine::CFInstruction(&ir::ControlFlowInstruction::Return { value: None })".into()
         },
         IrPatternLast::Br(ref cond, ref conseq, ref altern) => {
             format!("IrLine::CFInstruction(&ir::ControlFlowInstruction::Branch {{ cond: {}, conseq: {}, altern: {} }})",
@@ -419,17 +414,17 @@ fn translate_asm_instr(instr: &AsmInstr, types: &HashMap<Ident, IrArg>) -> Strin
 fn translate_asm_arg(arg: &AsmArg, types: &HashMap<Ident, IrArg>) -> String {
     match *arg {
         AsmArg::Register(ref reg) => {
-            format!("asm::Argument::Register(asm::Register::MachineRegister(MachineRegister::{:?}))",
+            format!("asm::Argument::Register(asm::Register::Machine(MachineRegister::{:?}))",
                     reg)
         }
         AsmArg::NewRegister(ref reg) => {
-            format!("asm::Argument::Register(asm::Register::VirtualRegister({}))",
+            format!("asm::Argument::Register(asm::Register::Virtual({}))",
                     reg)
         }
         AsmArg::IrArg(ref arg) => {
             match *types.get(arg).unwrap() {
                 IrArg::Register(..) => {
-                    format!("asm::Argument::Register(asm::Register::VirtualRegister({}))",
+                    format!("asm::Argument::Register(asm::Register::Virtual({}))",
                             arg)
                 }
                 IrArg::Literal(..) => format!("asm::Argument::Immediate({} as machine::Word)", arg),
@@ -450,9 +445,9 @@ fn translate_asm_arg(arg: &AsmArg, types: &HashMap<Ident, IrArg>) -> String {
 
 fn translate_asm_arg_register(arg: &AsmArg) -> String {
     match *arg {
-        AsmArg::Register(ref reg) => format!("asm::Register::MachineRegister(MachineRegister::{:?})", reg),
-        AsmArg::NewRegister(ref reg) => format!("asm::Register::VirtualRegister({})", reg),
-        AsmArg::IrArg(ref arg) => format!("asm::Register::VirtualRegister({})", arg),
+        AsmArg::Register(ref reg) => format!("asm::Register::Machine(MachineRegister::{:?})", reg),
+        AsmArg::NewRegister(ref reg) => format!("asm::Register::Virtual({})", reg),
+        AsmArg::IrArg(ref arg) => format!("asm::Register::Virtual({})", arg),
         _ => panic!("Expected a register, got {:?}", arg)
     }
 }

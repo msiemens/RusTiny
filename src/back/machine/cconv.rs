@@ -1,11 +1,11 @@
-//! The RusTiny calling convention
+//! The `RusTiny` calling convention
 //!
 //! https://en.wikipedia.org/wiki/X86_calling_conventions#cdecl
 //!
 
 use driver::interner::Ident;
 use middle::ir;
-use back::machine::{self, asm};
+use back::machine::asm;
 
 
 pub fn translate_call(_: Ident,

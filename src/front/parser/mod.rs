@@ -307,7 +307,7 @@ impl<'a> Parser<'a> {
             }
         }
 
-        let expr = expr.unwrap_or(Node::new(Expression::Unit, self.span));
+        let expr = expr.unwrap_or_else(|| Node::new(Expression::Unit, self.span));
 
         self.expect(Token::RBrace);
 
@@ -395,7 +395,7 @@ impl<'a> Parser<'a> {
         debug!("prefix: current token: {:?}", self.token);
 
         // Look up the prefix parselet
-        let pparselet = match PARSELET_MANAGER.lookup_prefix(self.token) {
+        let p_parselet = match PARSELET_MANAGER.lookup_prefix(self.token) {
             Some(p) => {
                 debug!("prefix: parselet: {:?}", p.name());
                 p
@@ -407,7 +407,7 @@ impl<'a> Parser<'a> {
         let token = self.token;
         let span = self.span;
         self.bump();
-        let mut left = pparselet.parse(self, token, span);
+        let mut left = p_parselet.parse(self, token, span);
 
         debug!("prefix: done");
 
@@ -415,14 +415,14 @@ impl<'a> Parser<'a> {
             debug!("infix: current token: {:?}", self.token);
 
             // Look up the infix parselet (unwrapping it!)
-            let iparselet = PARSELET_MANAGER.lookup_infix(self.token).unwrap();
-            debug!("infix: parselet: {:?}", iparselet.name());
+            let i_parselet = PARSELET_MANAGER.lookup_infix(self.token).unwrap();
+            debug!("infix: parselet: {:?}", i_parselet.name());
 
             // Parse the infix expression
             let token = self.token;
             let span = self.span;
             self.bump();
-            left = iparselet.parse(self, left, token, span);
+            left = i_parselet.parse(self, left, token, span);
 
             debug!("infix: done");
         }

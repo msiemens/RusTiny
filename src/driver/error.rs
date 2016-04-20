@@ -4,6 +4,7 @@
 //       is called every now and then.
 // IDEA: Show the source line and underline the offending token
 
+use std::env;
 use std::io::{self, Write};
 use std::process;
 use ansi_term::Colour::Red;
@@ -36,11 +37,12 @@ impl HasSourceLocation for Loc {
 }
 
 
-/// Helper that checks whether stderr is redirected
 fn colors_enabled() -> bool {
-    let stderr = term::stderr();
+    if env::var_os("COLORED_OUTPUT").and_then(|s| s.into_string().ok()) == Some("off".into()) {
+        return false;
+    }
 
-    stderr.map_or(false, |t| {
+    term::stderr().map_or(false, |t| {
         t.supports_attr(term::Attr::ForegroundColor(term::color::RED))
         && t.supports_attr(term::Attr::ForegroundColor(term::color::YELLOW))
     })
@@ -56,7 +58,7 @@ pub fn abort() -> ! {
 /// Helper for printing the `Error` string
 /// If stderr is not redirected, the string will be colored
 fn print_error(stderr: &mut io::Stderr) {
-    if !colors_enabled() {
+    if colors_enabled() {
         write!(stderr, "{}", Red.paint("Error")).ok();
     } else {
         write!(stderr, "Error").ok();

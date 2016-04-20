@@ -4,7 +4,7 @@
 //!
 //! ## Symbol table
 //!
-//! In RusTiny a symbol is either a function, a constant or a static variable.
+//! In `RusTiny` a symbol is either a function, a constant or a static variable.
 //! The symbol table maps a symbol's name to its value.
 //!
 //! ## Scopes table
@@ -61,7 +61,7 @@ impl<'a> SymbolTable {
     /// Panics when the scope doesn't exist
     pub fn register_variable(&self, scope: ast::NodeId, binding: &ast::Binding) -> Result<(), &'static str> {
         let mut scopes = self.scopes.borrow_mut();
-        let ref mut vars = scopes.get_mut(&scope)
+        let vars = &mut scopes.get_mut(&scope)
             .expect(&format!("unregistered scope: {:?}", scope))
             .vars;
 
@@ -90,7 +90,7 @@ impl<'a> SymbolTable {
     pub fn lookup_function(&self, name: &Ident) -> Option<(Vec<ast::Node<ast::Binding>>, ast::Type)> {
         let symbols = self.symbols.borrow();
         symbols.get(name).and_then(|symbol| {
-            if let ast::Symbol::Function { name: _, ref bindings, ref ret_ty, body: _ } = *symbol {
+            if let ast::Symbol::Function { ref bindings, ref ret_ty, .. } = *symbol {
                 Some((bindings.iter().cloned().collect(), *ret_ty))
             } else {
                 None
@@ -117,10 +117,8 @@ impl<'a> SymbolTable {
 
         // Look up in static/const symbols
         match self.lookup_symbol(name) {
-            Some(ast::Symbol::Static { ref binding, value: _ }) => {
-                return Some(Variable { ty: binding.ty, reg: None })
-            },
-            Some(ast::Symbol::Constant { ref binding, value: _ }) => {
+            Some(ast::Symbol::Static { ref binding, .. })
+            | Some(ast::Symbol::Constant { ref binding, .. }) => {
                 return Some(Variable { ty: binding.ty, reg: None })
             }
             Some(_) | None => return None  // Variable not found or refers to a function

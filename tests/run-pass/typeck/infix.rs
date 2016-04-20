@@ -1,3 +1,5 @@
+//! SKIP
+
 fn main() {
     let a: int = 2 + 2;
     let b: bool = true && false;

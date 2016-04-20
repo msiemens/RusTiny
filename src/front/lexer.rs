@@ -185,7 +185,7 @@ impl<'a> Lexer<'a> {
         self.bump();  // '\'' matched, move on
 
         let c = self.curr.unwrap_or_else(|| {
-            self.fatal(format!("expected a char, found EOF"));
+            self.fatal("expected a char, found EOF".into());
         });
         let tok = if c == '\\' {
             // Escaped char, let's take a look on one more char
@@ -194,7 +194,7 @@ impl<'a> Lexer<'a> {
                 Some('n')  => Token::Char('\n'),
                 Some('\'') => Token::Char('\''),
                 Some(c) => self.fatal(format!("unsupported or invalid escape sequence: \\{}", c)),
-                None => self.fatal(format!("expected escaped char, found EOF"))
+                None => self.fatal("expected escaped char, found EOF".into())
             }
         } else {
             Token::Char(c)

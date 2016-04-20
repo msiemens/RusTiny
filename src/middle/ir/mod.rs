@@ -1,4 +1,3 @@
-use std::cell::Cell;
 use std::collections::VecDeque;
 use std::fmt;
 use std::iter::IntoIterator;
@@ -13,24 +12,6 @@ pub mod visit;
 
 
 pub use middle::ir::trans::translate;
-
-
-//#[derive(Clone, Copy, Debug, PartialEq)]
-//pub struct UsageId(u32);
-//
-//impl UsageId {
-//    pub fn new() -> UsageId {
-//        thread_local!{
-//            static CURRENT_ID: Cell<u32> = Cell::new(0)
-//        };
-//
-//        CURRENT_ID.with(|c| {
-//            let id = c.get();
-//            c.set(id + 1);
-//            UsageId(id)
-//        })
-//    }
-//}
 
 
 #[derive(Clone, Copy, Debug, PartialEq, Hash)]
@@ -98,6 +79,7 @@ impl Program {
         self.0.push(s);
     }
 
+    #[allow(needless_lifetimes)]  // Actually not so needless it seems
     pub fn iter<'a>(&'a self) -> slice::Iter<'a, Symbol> {
         self.0.iter()
     }
@@ -365,8 +347,8 @@ impl InfixOp {
             ast::BinOp::Div => InfixOp::Div,
             ast::BinOp::Mod => InfixOp::Mod,
             ast::BinOp::Pow => InfixOp::Pow,
-            ast::BinOp::And => InfixOp::And,
-            ast::BinOp::Or => InfixOp::Or,
+            ast::BinOp::And => panic!("Untranslated logical AND"),
+            ast::BinOp::Or => panic!("Untranslated logical OR"),
             ast::BinOp::BitXor => InfixOp::Xor,
             ast::BinOp::BitAnd => InfixOp::And,
             ast::BinOp::BitOr => InfixOp::Or,

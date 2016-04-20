@@ -23,504 +23,504 @@ pub fn trans_instr(func: Ident,
 
     match &*lines {
         [IrLine::Instruction(&ir::Instruction::BinOp { op: ir::InfixOp::Add, lhs: ir::Value::Register(ir::Register(lhs)), rhs: ir::Value::Register(ir::Register(rhs)), dst: ir::Register(dst) }), ..] => {
-            code.emit_instruction(func, asm::Instruction::new(Ident::new("mov"), vec![asm::Argument::Register(asm::Register::VirtualRegister(dst)), asm::Argument::Register(asm::Register::VirtualRegister(lhs))]));
-            code.emit_instruction(func, asm::Instruction::new(Ident::new("add"), vec![asm::Argument::Register(asm::Register::VirtualRegister(dst)), asm::Argument::Register(asm::Register::VirtualRegister(rhs))]));
+            code.emit_instruction(func, asm::Instruction::new(Ident::new("mov"), vec![asm::Argument::Register(asm::Register::Virtual(dst)), asm::Argument::Register(asm::Register::Virtual(lhs))]));
+            code.emit_instruction(func, asm::Instruction::new(Ident::new("add"), vec![asm::Argument::Register(asm::Register::Virtual(dst)), asm::Argument::Register(asm::Register::Virtual(rhs))]));
             1
         },
         [IrLine::Instruction(&ir::Instruction::BinOp { op: ir::InfixOp::Add, lhs: ir::Value::Register(ir::Register(lhs)), rhs: ir::Value::Immediate(ir::Immediate(rhs)), dst: ir::Register(dst) }), ..] => {
-            code.emit_instruction(func, asm::Instruction::new(Ident::new("mov"), vec![asm::Argument::Register(asm::Register::VirtualRegister(dst)), asm::Argument::Register(asm::Register::VirtualRegister(lhs))]));
-            code.emit_instruction(func, asm::Instruction::new(Ident::new("add"), vec![asm::Argument::Register(asm::Register::VirtualRegister(dst)), asm::Argument::Immediate(rhs as machine::Word)]));
+            code.emit_instruction(func, asm::Instruction::new(Ident::new("mov"), vec![asm::Argument::Register(asm::Register::Virtual(dst)), asm::Argument::Register(asm::Register::Virtual(lhs))]));
+            code.emit_instruction(func, asm::Instruction::new(Ident::new("add"), vec![asm::Argument::Register(asm::Register::Virtual(dst)), asm::Argument::Immediate(rhs as machine::Word)]));
             1
         },
         [IrLine::Instruction(&ir::Instruction::BinOp { op: ir::InfixOp::Add, lhs: ir::Value::Immediate(ir::Immediate(lhs)), rhs: ir::Value::Register(ir::Register(rhs)), dst: ir::Register(dst) }), ..] => {
-            code.emit_instruction(func, asm::Instruction::new(Ident::new("mov"), vec![asm::Argument::Register(asm::Register::VirtualRegister(dst)), asm::Argument::Immediate(lhs as machine::Word)]));
-            code.emit_instruction(func, asm::Instruction::new(Ident::new("add"), vec![asm::Argument::Register(asm::Register::VirtualRegister(dst)), asm::Argument::Register(asm::Register::VirtualRegister(rhs))]));
+            code.emit_instruction(func, asm::Instruction::new(Ident::new("mov"), vec![asm::Argument::Register(asm::Register::Virtual(dst)), asm::Argument::Immediate(lhs as machine::Word)]));
+            code.emit_instruction(func, asm::Instruction::new(Ident::new("add"), vec![asm::Argument::Register(asm::Register::Virtual(dst)), asm::Argument::Register(asm::Register::Virtual(rhs))]));
             1
         },
         [IrLine::Instruction(&ir::Instruction::BinOp { op: ir::InfixOp::Add, lhs: ir::Value::Immediate(ir::Immediate(lhs)), rhs: ir::Value::Immediate(ir::Immediate(rhs)), dst: ir::Register(dst) }), ..] => {
-            code.emit_instruction(func, asm::Instruction::new(Ident::new("mov"), vec![asm::Argument::Register(asm::Register::VirtualRegister(dst)), asm::Argument::Immediate(lhs as machine::Word)]));
-            code.emit_instruction(func, asm::Instruction::new(Ident::new("add"), vec![asm::Argument::Register(asm::Register::VirtualRegister(dst)), asm::Argument::Immediate(rhs as machine::Word)]));
+            code.emit_instruction(func, asm::Instruction::new(Ident::new("mov"), vec![asm::Argument::Register(asm::Register::Virtual(dst)), asm::Argument::Immediate(lhs as machine::Word)]));
+            code.emit_instruction(func, asm::Instruction::new(Ident::new("add"), vec![asm::Argument::Register(asm::Register::Virtual(dst)), asm::Argument::Immediate(rhs as machine::Word)]));
             1
         },
         [IrLine::Instruction(&ir::Instruction::BinOp { op: ir::InfixOp::Sub, lhs: ir::Value::Register(ir::Register(lhs)), rhs: ir::Value::Register(ir::Register(rhs)), dst: ir::Register(dst) }), ..] => {
-            code.emit_instruction(func, asm::Instruction::new(Ident::new("mov"), vec![asm::Argument::Register(asm::Register::VirtualRegister(dst)), asm::Argument::Register(asm::Register::VirtualRegister(lhs))]));
-            code.emit_instruction(func, asm::Instruction::new(Ident::new("sub"), vec![asm::Argument::Register(asm::Register::VirtualRegister(dst)), asm::Argument::Register(asm::Register::VirtualRegister(rhs))]));
+            code.emit_instruction(func, asm::Instruction::new(Ident::new("mov"), vec![asm::Argument::Register(asm::Register::Virtual(dst)), asm::Argument::Register(asm::Register::Virtual(lhs))]));
+            code.emit_instruction(func, asm::Instruction::new(Ident::new("sub"), vec![asm::Argument::Register(asm::Register::Virtual(dst)), asm::Argument::Register(asm::Register::Virtual(rhs))]));
             1
         },
         [IrLine::Instruction(&ir::Instruction::BinOp { op: ir::InfixOp::Sub, lhs: ir::Value::Register(ir::Register(lhs)), rhs: ir::Value::Immediate(ir::Immediate(rhs)), dst: ir::Register(dst) }), ..] => {
-            code.emit_instruction(func, asm::Instruction::new(Ident::new("mov"), vec![asm::Argument::Register(asm::Register::VirtualRegister(dst)), asm::Argument::Register(asm::Register::VirtualRegister(lhs))]));
-            code.emit_instruction(func, asm::Instruction::new(Ident::new("sub"), vec![asm::Argument::Register(asm::Register::VirtualRegister(dst)), asm::Argument::Immediate(rhs as machine::Word)]));
+            code.emit_instruction(func, asm::Instruction::new(Ident::new("mov"), vec![asm::Argument::Register(asm::Register::Virtual(dst)), asm::Argument::Register(asm::Register::Virtual(lhs))]));
+            code.emit_instruction(func, asm::Instruction::new(Ident::new("sub"), vec![asm::Argument::Register(asm::Register::Virtual(dst)), asm::Argument::Immediate(rhs as machine::Word)]));
             1
         },
         [IrLine::Instruction(&ir::Instruction::BinOp { op: ir::InfixOp::Sub, lhs: ir::Value::Immediate(ir::Immediate(lhs)), rhs: ir::Value::Register(ir::Register(rhs)), dst: ir::Register(dst) }), ..] => {
-            code.emit_instruction(func, asm::Instruction::new(Ident::new("mov"), vec![asm::Argument::Register(asm::Register::VirtualRegister(dst)), asm::Argument::Immediate(lhs as machine::Word)]));
-            code.emit_instruction(func, asm::Instruction::new(Ident::new("sub"), vec![asm::Argument::Register(asm::Register::VirtualRegister(dst)), asm::Argument::Register(asm::Register::VirtualRegister(rhs))]));
+            code.emit_instruction(func, asm::Instruction::new(Ident::new("mov"), vec![asm::Argument::Register(asm::Register::Virtual(dst)), asm::Argument::Immediate(lhs as machine::Word)]));
+            code.emit_instruction(func, asm::Instruction::new(Ident::new("sub"), vec![asm::Argument::Register(asm::Register::Virtual(dst)), asm::Argument::Register(asm::Register::Virtual(rhs))]));
             1
         },
         [IrLine::Instruction(&ir::Instruction::BinOp { op: ir::InfixOp::Sub, lhs: ir::Value::Immediate(ir::Immediate(lhs)), rhs: ir::Value::Immediate(ir::Immediate(rhs)), dst: ir::Register(dst) }), ..] => {
-            code.emit_instruction(func, asm::Instruction::new(Ident::new("mov"), vec![asm::Argument::Register(asm::Register::VirtualRegister(dst)), asm::Argument::Immediate(lhs as machine::Word)]));
-            code.emit_instruction(func, asm::Instruction::new(Ident::new("sub"), vec![asm::Argument::Register(asm::Register::VirtualRegister(dst)), asm::Argument::Immediate(rhs as machine::Word)]));
+            code.emit_instruction(func, asm::Instruction::new(Ident::new("mov"), vec![asm::Argument::Register(asm::Register::Virtual(dst)), asm::Argument::Immediate(lhs as machine::Word)]));
+            code.emit_instruction(func, asm::Instruction::new(Ident::new("sub"), vec![asm::Argument::Register(asm::Register::Virtual(dst)), asm::Argument::Immediate(rhs as machine::Word)]));
             1
         },
         [IrLine::Instruction(&ir::Instruction::BinOp { op: ir::InfixOp::Mul, lhs: ir::Value::Register(ir::Register(lhs)), rhs: ir::Value::Register(ir::Register(rhs)), dst: ir::Register(dst) }), ..] => {
-            code.emit_instruction(func, asm::Instruction::new(Ident::new("mov"), vec![asm::Argument::Register(asm::Register::VirtualRegister(dst)), asm::Argument::Register(asm::Register::VirtualRegister(lhs))]));
-            code.emit_instruction(func, asm::Instruction::new(Ident::new("imul"), vec![asm::Argument::Register(asm::Register::VirtualRegister(dst)), asm::Argument::Register(asm::Register::VirtualRegister(rhs))]));
+            code.emit_instruction(func, asm::Instruction::new(Ident::new("mov"), vec![asm::Argument::Register(asm::Register::Virtual(dst)), asm::Argument::Register(asm::Register::Virtual(lhs))]));
+            code.emit_instruction(func, asm::Instruction::new(Ident::new("imul"), vec![asm::Argument::Register(asm::Register::Virtual(dst)), asm::Argument::Register(asm::Register::Virtual(rhs))]));
             1
         },
         [IrLine::Instruction(&ir::Instruction::BinOp { op: ir::InfixOp::Mul, lhs: ir::Value::Register(ir::Register(lhs)), rhs: ir::Value::Immediate(ir::Immediate(rhs)), dst: ir::Register(dst) }), ..] => {
-            code.emit_instruction(func, asm::Instruction::new(Ident::new("imul"), vec![asm::Argument::Register(asm::Register::VirtualRegister(dst)), asm::Argument::Register(asm::Register::VirtualRegister(lhs)), asm::Argument::Immediate(rhs as machine::Word)]));
+            code.emit_instruction(func, asm::Instruction::new(Ident::new("imul"), vec![asm::Argument::Register(asm::Register::Virtual(dst)), asm::Argument::Register(asm::Register::Virtual(lhs)), asm::Argument::Immediate(rhs as machine::Word)]));
             1
         },
         [IrLine::Instruction(&ir::Instruction::BinOp { op: ir::InfixOp::Mul, lhs: ir::Value::Immediate(ir::Immediate(lhs)), rhs: ir::Value::Register(ir::Register(rhs)), dst: ir::Register(dst) }), ..] => {
-            code.emit_instruction(func, asm::Instruction::new(Ident::new("imul"), vec![asm::Argument::Register(asm::Register::VirtualRegister(dst)), asm::Argument::Register(asm::Register::VirtualRegister(rhs)), asm::Argument::Immediate(lhs as machine::Word)]));
+            code.emit_instruction(func, asm::Instruction::new(Ident::new("imul"), vec![asm::Argument::Register(asm::Register::Virtual(dst)), asm::Argument::Register(asm::Register::Virtual(rhs)), asm::Argument::Immediate(lhs as machine::Word)]));
             1
         },
         [IrLine::Instruction(&ir::Instruction::BinOp { op: ir::InfixOp::Mul, lhs: ir::Value::Immediate(ir::Immediate(lhs)), rhs: ir::Value::Immediate(ir::Immediate(rhs)), dst: ir::Register(dst) }), ..] => {
-            code.emit_instruction(func, asm::Instruction::new(Ident::new("mov"), vec![asm::Argument::Register(asm::Register::VirtualRegister(dst)), asm::Argument::Immediate(lhs as machine::Word)]));
-            code.emit_instruction(func, asm::Instruction::new(Ident::new("imul"), vec![asm::Argument::Register(asm::Register::VirtualRegister(dst)), asm::Argument::Immediate(rhs as machine::Word)]));
+            code.emit_instruction(func, asm::Instruction::new(Ident::new("mov"), vec![asm::Argument::Register(asm::Register::Virtual(dst)), asm::Argument::Immediate(lhs as machine::Word)]));
+            code.emit_instruction(func, asm::Instruction::new(Ident::new("imul"), vec![asm::Argument::Register(asm::Register::Virtual(dst)), asm::Argument::Immediate(rhs as machine::Word)]));
             1
         },
         [IrLine::Instruction(&ir::Instruction::BinOp { op: ir::InfixOp::Div, lhs: ir::Value::Register(ir::Register(lhs)), rhs: ir::Value::Register(ir::Register(rhs)), dst: ir::Register(dst) }), ..] => {
-            code.emit_instruction(func, asm::Instruction::new(Ident::new("xor"), vec![asm::Argument::Register(asm::Register::MachineRegister(MachineRegister::RDX)), asm::Argument::Register(asm::Register::MachineRegister(MachineRegister::RDX))]));
-            code.emit_instruction(func, asm::Instruction::new(Ident::new("mov"), vec![asm::Argument::Register(asm::Register::MachineRegister(MachineRegister::RAX)), asm::Argument::Register(asm::Register::VirtualRegister(lhs))]));
-            code.emit_instruction(func, asm::Instruction::new(Ident::new("idiv"), vec![asm::Argument::Register(asm::Register::VirtualRegister(rhs))]));
-            code.emit_instruction(func, asm::Instruction::new(Ident::new("mov"), vec![asm::Argument::Register(asm::Register::VirtualRegister(dst)), asm::Argument::Register(asm::Register::MachineRegister(MachineRegister::RAX))]));
+            code.emit_instruction(func, asm::Instruction::new(Ident::new("xor"), vec![asm::Argument::Register(asm::Register::Machine(MachineRegister::RDX)), asm::Argument::Register(asm::Register::Machine(MachineRegister::RDX))]));
+            code.emit_instruction(func, asm::Instruction::new(Ident::new("mov"), vec![asm::Argument::Register(asm::Register::Machine(MachineRegister::RAX)), asm::Argument::Register(asm::Register::Virtual(lhs))]));
+            code.emit_instruction(func, asm::Instruction::new(Ident::new("idiv"), vec![asm::Argument::Register(asm::Register::Virtual(rhs))]));
+            code.emit_instruction(func, asm::Instruction::new(Ident::new("mov"), vec![asm::Argument::Register(asm::Register::Virtual(dst)), asm::Argument::Register(asm::Register::Machine(MachineRegister::RAX))]));
             1
         },
         [IrLine::Instruction(&ir::Instruction::BinOp { op: ir::InfixOp::Div, lhs: ir::Value::Register(ir::Register(lhs)), rhs: ir::Value::Immediate(ir::Immediate(rhs)), dst: ir::Register(dst) }), ..] => {
             let tmp = Ident::new("tmp");
-            code.emit_instruction(func, asm::Instruction::new(Ident::new("mov"), vec![asm::Argument::Register(asm::Register::VirtualRegister(tmp)), asm::Argument::Immediate(rhs as machine::Word)]));
-            code.emit_instruction(func, asm::Instruction::new(Ident::new("xor"), vec![asm::Argument::Register(asm::Register::MachineRegister(MachineRegister::RDX)), asm::Argument::Register(asm::Register::MachineRegister(MachineRegister::RDX))]));
-            code.emit_instruction(func, asm::Instruction::new(Ident::new("mov"), vec![asm::Argument::Register(asm::Register::MachineRegister(MachineRegister::RAX)), asm::Argument::Register(asm::Register::VirtualRegister(lhs))]));
-            code.emit_instruction(func, asm::Instruction::new(Ident::new("idiv"), vec![asm::Argument::Register(asm::Register::VirtualRegister(tmp))]));
-            code.emit_instruction(func, asm::Instruction::new(Ident::new("mov"), vec![asm::Argument::Register(asm::Register::VirtualRegister(dst)), asm::Argument::Register(asm::Register::MachineRegister(MachineRegister::RAX))]));
+            code.emit_instruction(func, asm::Instruction::new(Ident::new("mov"), vec![asm::Argument::Register(asm::Register::Virtual(tmp)), asm::Argument::Immediate(rhs as machine::Word)]));
+            code.emit_instruction(func, asm::Instruction::new(Ident::new("xor"), vec![asm::Argument::Register(asm::Register::Machine(MachineRegister::RDX)), asm::Argument::Register(asm::Register::Machine(MachineRegister::RDX))]));
+            code.emit_instruction(func, asm::Instruction::new(Ident::new("mov"), vec![asm::Argument::Register(asm::Register::Machine(MachineRegister::RAX)), asm::Argument::Register(asm::Register::Virtual(lhs))]));
+            code.emit_instruction(func, asm::Instruction::new(Ident::new("idiv"), vec![asm::Argument::Register(asm::Register::Virtual(tmp))]));
+            code.emit_instruction(func, asm::Instruction::new(Ident::new("mov"), vec![asm::Argument::Register(asm::Register::Virtual(dst)), asm::Argument::Register(asm::Register::Machine(MachineRegister::RAX))]));
             1
         },
         [IrLine::Instruction(&ir::Instruction::BinOp { op: ir::InfixOp::Div, lhs: ir::Value::Immediate(ir::Immediate(lhs)), rhs: ir::Value::Register(ir::Register(rhs)), dst: ir::Register(dst) }), ..] => {
-            code.emit_instruction(func, asm::Instruction::new(Ident::new("xor"), vec![asm::Argument::Register(asm::Register::MachineRegister(MachineRegister::RDX)), asm::Argument::Register(asm::Register::MachineRegister(MachineRegister::RDX))]));
-            code.emit_instruction(func, asm::Instruction::new(Ident::new("mov"), vec![asm::Argument::Register(asm::Register::MachineRegister(MachineRegister::RAX)), asm::Argument::Immediate(lhs as machine::Word)]));
-            code.emit_instruction(func, asm::Instruction::new(Ident::new("idiv"), vec![asm::Argument::Register(asm::Register::VirtualRegister(rhs))]));
-            code.emit_instruction(func, asm::Instruction::new(Ident::new("mov"), vec![asm::Argument::Register(asm::Register::VirtualRegister(dst)), asm::Argument::Register(asm::Register::MachineRegister(MachineRegister::RAX))]));
+            code.emit_instruction(func, asm::Instruction::new(Ident::new("xor"), vec![asm::Argument::Register(asm::Register::Machine(MachineRegister::RDX)), asm::Argument::Register(asm::Register::Machine(MachineRegister::RDX))]));
+            code.emit_instruction(func, asm::Instruction::new(Ident::new("mov"), vec![asm::Argument::Register(asm::Register::Machine(MachineRegister::RAX)), asm::Argument::Immediate(lhs as machine::Word)]));
+            code.emit_instruction(func, asm::Instruction::new(Ident::new("idiv"), vec![asm::Argument::Register(asm::Register::Virtual(rhs))]));
+            code.emit_instruction(func, asm::Instruction::new(Ident::new("mov"), vec![asm::Argument::Register(asm::Register::Virtual(dst)), asm::Argument::Register(asm::Register::Machine(MachineRegister::RAX))]));
             1
         },
         [IrLine::Instruction(&ir::Instruction::BinOp { op: ir::InfixOp::Div, lhs: ir::Value::Immediate(ir::Immediate(lhs)), rhs: ir::Value::Immediate(ir::Immediate(rhs)), dst: ir::Register(dst) }), ..] => {
             let tmp = Ident::new("tmp");
-            code.emit_instruction(func, asm::Instruction::new(Ident::new("mov"), vec![asm::Argument::Register(asm::Register::VirtualRegister(tmp)), asm::Argument::Immediate(rhs as machine::Word)]));
-            code.emit_instruction(func, asm::Instruction::new(Ident::new("xor"), vec![asm::Argument::Register(asm::Register::MachineRegister(MachineRegister::RDX)), asm::Argument::Register(asm::Register::MachineRegister(MachineRegister::RDX))]));
-            code.emit_instruction(func, asm::Instruction::new(Ident::new("mov"), vec![asm::Argument::Register(asm::Register::MachineRegister(MachineRegister::RAX)), asm::Argument::Immediate(lhs as machine::Word)]));
-            code.emit_instruction(func, asm::Instruction::new(Ident::new("idiv"), vec![asm::Argument::Register(asm::Register::VirtualRegister(tmp))]));
-            code.emit_instruction(func, asm::Instruction::new(Ident::new("mov"), vec![asm::Argument::Register(asm::Register::VirtualRegister(dst)), asm::Argument::Register(asm::Register::MachineRegister(MachineRegister::RAX))]));
+            code.emit_instruction(func, asm::Instruction::new(Ident::new("mov"), vec![asm::Argument::Register(asm::Register::Virtual(tmp)), asm::Argument::Immediate(rhs as machine::Word)]));
+            code.emit_instruction(func, asm::Instruction::new(Ident::new("xor"), vec![asm::Argument::Register(asm::Register::Machine(MachineRegister::RDX)), asm::Argument::Register(asm::Register::Machine(MachineRegister::RDX))]));
+            code.emit_instruction(func, asm::Instruction::new(Ident::new("mov"), vec![asm::Argument::Register(asm::Register::Machine(MachineRegister::RAX)), asm::Argument::Immediate(lhs as machine::Word)]));
+            code.emit_instruction(func, asm::Instruction::new(Ident::new("idiv"), vec![asm::Argument::Register(asm::Register::Virtual(tmp))]));
+            code.emit_instruction(func, asm::Instruction::new(Ident::new("mov"), vec![asm::Argument::Register(asm::Register::Virtual(dst)), asm::Argument::Register(asm::Register::Machine(MachineRegister::RAX))]));
             1
         },
         [IrLine::Instruction(&ir::Instruction::BinOp { op: ir::InfixOp::Mod, lhs: ir::Value::Register(ir::Register(lhs)), rhs: ir::Value::Register(ir::Register(rhs)), dst: ir::Register(dst) }), ..] => {
-            code.emit_instruction(func, asm::Instruction::new(Ident::new("xor"), vec![asm::Argument::Register(asm::Register::MachineRegister(MachineRegister::RDX)), asm::Argument::Register(asm::Register::MachineRegister(MachineRegister::RDX))]));
-            code.emit_instruction(func, asm::Instruction::new(Ident::new("mov"), vec![asm::Argument::Register(asm::Register::MachineRegister(MachineRegister::RAX)), asm::Argument::Register(asm::Register::VirtualRegister(lhs))]));
-            code.emit_instruction(func, asm::Instruction::new(Ident::new("idiv"), vec![asm::Argument::Register(asm::Register::VirtualRegister(rhs))]));
-            code.emit_instruction(func, asm::Instruction::new(Ident::new("mov"), vec![asm::Argument::Register(asm::Register::VirtualRegister(dst)), asm::Argument::Register(asm::Register::MachineRegister(MachineRegister::RDX))]));
+            code.emit_instruction(func, asm::Instruction::new(Ident::new("xor"), vec![asm::Argument::Register(asm::Register::Machine(MachineRegister::RDX)), asm::Argument::Register(asm::Register::Machine(MachineRegister::RDX))]));
+            code.emit_instruction(func, asm::Instruction::new(Ident::new("mov"), vec![asm::Argument::Register(asm::Register::Machine(MachineRegister::RAX)), asm::Argument::Register(asm::Register::Virtual(lhs))]));
+            code.emit_instruction(func, asm::Instruction::new(Ident::new("idiv"), vec![asm::Argument::Register(asm::Register::Virtual(rhs))]));
+            code.emit_instruction(func, asm::Instruction::new(Ident::new("mov"), vec![asm::Argument::Register(asm::Register::Virtual(dst)), asm::Argument::Register(asm::Register::Machine(MachineRegister::RDX))]));
             1
         },
         [IrLine::Instruction(&ir::Instruction::BinOp { op: ir::InfixOp::Mod, lhs: ir::Value::Register(ir::Register(lhs)), rhs: ir::Value::Immediate(ir::Immediate(rhs)), dst: ir::Register(dst) }), ..] => {
             let tmp = Ident::new("tmp");
-            code.emit_instruction(func, asm::Instruction::new(Ident::new("mov"), vec![asm::Argument::Register(asm::Register::VirtualRegister(tmp)), asm::Argument::Immediate(rhs as machine::Word)]));
-            code.emit_instruction(func, asm::Instruction::new(Ident::new("xor"), vec![asm::Argument::Register(asm::Register::MachineRegister(MachineRegister::RDX)), asm::Argument::Register(asm::Register::MachineRegister(MachineRegister::RDX))]));
-            code.emit_instruction(func, asm::Instruction::new(Ident::new("mov"), vec![asm::Argument::Register(asm::Register::MachineRegister(MachineRegister::RAX)), asm::Argument::Register(asm::Register::VirtualRegister(lhs))]));
-            code.emit_instruction(func, asm::Instruction::new(Ident::new("idiv"), vec![asm::Argument::Register(asm::Register::VirtualRegister(tmp))]));
-            code.emit_instruction(func, asm::Instruction::new(Ident::new("mov"), vec![asm::Argument::Register(asm::Register::VirtualRegister(dst)), asm::Argument::Register(asm::Register::MachineRegister(MachineRegister::RDX))]));
+            code.emit_instruction(func, asm::Instruction::new(Ident::new("mov"), vec![asm::Argument::Register(asm::Register::Virtual(tmp)), asm::Argument::Immediate(rhs as machine::Word)]));
+            code.emit_instruction(func, asm::Instruction::new(Ident::new("xor"), vec![asm::Argument::Register(asm::Register::Machine(MachineRegister::RDX)), asm::Argument::Register(asm::Register::Machine(MachineRegister::RDX))]));
+            code.emit_instruction(func, asm::Instruction::new(Ident::new("mov"), vec![asm::Argument::Register(asm::Register::Machine(MachineRegister::RAX)), asm::Argument::Register(asm::Register::Virtual(lhs))]));
+            code.emit_instruction(func, asm::Instruction::new(Ident::new("idiv"), vec![asm::Argument::Register(asm::Register::Virtual(tmp))]));
+            code.emit_instruction(func, asm::Instruction::new(Ident::new("mov"), vec![asm::Argument::Register(asm::Register::Virtual(dst)), asm::Argument::Register(asm::Register::Machine(MachineRegister::RDX))]));
             1
         },
         [IrLine::Instruction(&ir::Instruction::BinOp { op: ir::InfixOp::Mod, lhs: ir::Value::Immediate(ir::Immediate(lhs)), rhs: ir::Value::Register(ir::Register(rhs)), dst: ir::Register(dst) }), ..] => {
-            code.emit_instruction(func, asm::Instruction::new(Ident::new("xor"), vec![asm::Argument::Register(asm::Register::MachineRegister(MachineRegister::RDX)), asm::Argument::Register(asm::Register::MachineRegister(MachineRegister::RDX))]));
-            code.emit_instruction(func, asm::Instruction::new(Ident::new("mov"), vec![asm::Argument::Register(asm::Register::MachineRegister(MachineRegister::RAX)), asm::Argument::Immediate(lhs as machine::Word)]));
-            code.emit_instruction(func, asm::Instruction::new(Ident::new("idiv"), vec![asm::Argument::Register(asm::Register::VirtualRegister(rhs))]));
-            code.emit_instruction(func, asm::Instruction::new(Ident::new("mov"), vec![asm::Argument::Register(asm::Register::VirtualRegister(dst)), asm::Argument::Register(asm::Register::MachineRegister(MachineRegister::RDX))]));
+            code.emit_instruction(func, asm::Instruction::new(Ident::new("xor"), vec![asm::Argument::Register(asm::Register::Machine(MachineRegister::RDX)), asm::Argument::Register(asm::Register::Machine(MachineRegister::RDX))]));
+            code.emit_instruction(func, asm::Instruction::new(Ident::new("mov"), vec![asm::Argument::Register(asm::Register::Machine(MachineRegister::RAX)), asm::Argument::Immediate(lhs as machine::Word)]));
+            code.emit_instruction(func, asm::Instruction::new(Ident::new("idiv"), vec![asm::Argument::Register(asm::Register::Virtual(rhs))]));
+            code.emit_instruction(func, asm::Instruction::new(Ident::new("mov"), vec![asm::Argument::Register(asm::Register::Virtual(dst)), asm::Argument::Register(asm::Register::Machine(MachineRegister::RDX))]));
             1
         },
         [IrLine::Instruction(&ir::Instruction::BinOp { op: ir::InfixOp::Mod, lhs: ir::Value::Immediate(ir::Immediate(lhs)), rhs: ir::Value::Immediate(ir::Immediate(rhs)), dst: ir::Register(dst) }), ..] => {
             let tmp = Ident::new("tmp");
-            code.emit_instruction(func, asm::Instruction::new(Ident::new("mov"), vec![asm::Argument::Register(asm::Register::VirtualRegister(tmp)), asm::Argument::Immediate(rhs as machine::Word)]));
-            code.emit_instruction(func, asm::Instruction::new(Ident::new("xor"), vec![asm::Argument::Register(asm::Register::MachineRegister(MachineRegister::RDX)), asm::Argument::Register(asm::Register::MachineRegister(MachineRegister::RDX))]));
-            code.emit_instruction(func, asm::Instruction::new(Ident::new("mov"), vec![asm::Argument::Register(asm::Register::MachineRegister(MachineRegister::RAX)), asm::Argument::Immediate(lhs as machine::Word)]));
-            code.emit_instruction(func, asm::Instruction::new(Ident::new("idiv"), vec![asm::Argument::Register(asm::Register::VirtualRegister(tmp))]));
-            code.emit_instruction(func, asm::Instruction::new(Ident::new("mov"), vec![asm::Argument::Register(asm::Register::VirtualRegister(dst)), asm::Argument::Register(asm::Register::MachineRegister(MachineRegister::RDX))]));
+            code.emit_instruction(func, asm::Instruction::new(Ident::new("mov"), vec![asm::Argument::Register(asm::Register::Virtual(tmp)), asm::Argument::Immediate(rhs as machine::Word)]));
+            code.emit_instruction(func, asm::Instruction::new(Ident::new("xor"), vec![asm::Argument::Register(asm::Register::Machine(MachineRegister::RDX)), asm::Argument::Register(asm::Register::Machine(MachineRegister::RDX))]));
+            code.emit_instruction(func, asm::Instruction::new(Ident::new("mov"), vec![asm::Argument::Register(asm::Register::Machine(MachineRegister::RAX)), asm::Argument::Immediate(lhs as machine::Word)]));
+            code.emit_instruction(func, asm::Instruction::new(Ident::new("idiv"), vec![asm::Argument::Register(asm::Register::Virtual(tmp))]));
+            code.emit_instruction(func, asm::Instruction::new(Ident::new("mov"), vec![asm::Argument::Register(asm::Register::Virtual(dst)), asm::Argument::Register(asm::Register::Machine(MachineRegister::RDX))]));
             1
         },
         [IrLine::Instruction(&ir::Instruction::BinOp { op: ir::InfixOp::Shl, lhs: ir::Value::Register(ir::Register(lhs)), rhs: ir::Value::Register(ir::Register(rhs)), dst: ir::Register(dst) }), ..] => {
-            code.emit_instruction(func, asm::Instruction::new(Ident::new("mov"), vec![asm::Argument::Register(asm::Register::VirtualRegister(dst)), asm::Argument::Register(asm::Register::VirtualRegister(lhs))]));
-            code.emit_instruction(func, asm::Instruction::new(Ident::new("mov"), vec![asm::Argument::Register(asm::Register::MachineRegister(MachineRegister::RCX)), asm::Argument::Register(asm::Register::VirtualRegister(rhs))]));
-            code.emit_instruction(func, asm::Instruction::new(Ident::new("sal"), vec![asm::Argument::Register(asm::Register::VirtualRegister(dst)), asm::Argument::Register(asm::Register::MachineRegister(MachineRegister::CL))]));
+            code.emit_instruction(func, asm::Instruction::new(Ident::new("mov"), vec![asm::Argument::Register(asm::Register::Virtual(dst)), asm::Argument::Register(asm::Register::Virtual(lhs))]));
+            code.emit_instruction(func, asm::Instruction::new(Ident::new("mov"), vec![asm::Argument::Register(asm::Register::Machine(MachineRegister::RCX)), asm::Argument::Register(asm::Register::Virtual(rhs))]));
+            code.emit_instruction(func, asm::Instruction::new(Ident::new("sal"), vec![asm::Argument::Register(asm::Register::Virtual(dst)), asm::Argument::Register(asm::Register::Machine(MachineRegister::CL))]));
             1
         },
         [IrLine::Instruction(&ir::Instruction::BinOp { op: ir::InfixOp::Shl, lhs: ir::Value::Register(ir::Register(lhs)), rhs: ir::Value::Immediate(ir::Immediate(rhs)), dst: ir::Register(dst) }), ..] => {
-            code.emit_instruction(func, asm::Instruction::new(Ident::new("mov"), vec![asm::Argument::Register(asm::Register::VirtualRegister(dst)), asm::Argument::Register(asm::Register::VirtualRegister(lhs))]));
-            code.emit_instruction(func, asm::Instruction::new(Ident::new("sal"), vec![asm::Argument::Register(asm::Register::VirtualRegister(dst)), asm::Argument::Immediate(rhs as machine::Word)]));
+            code.emit_instruction(func, asm::Instruction::new(Ident::new("mov"), vec![asm::Argument::Register(asm::Register::Virtual(dst)), asm::Argument::Register(asm::Register::Virtual(lhs))]));
+            code.emit_instruction(func, asm::Instruction::new(Ident::new("sal"), vec![asm::Argument::Register(asm::Register::Virtual(dst)), asm::Argument::Immediate(rhs as machine::Word)]));
             1
         },
         [IrLine::Instruction(&ir::Instruction::BinOp { op: ir::InfixOp::Shl, lhs: ir::Value::Immediate(ir::Immediate(lhs)), rhs: ir::Value::Register(ir::Register(rhs)), dst: ir::Register(dst) }), ..] => {
-            code.emit_instruction(func, asm::Instruction::new(Ident::new("mov"), vec![asm::Argument::Register(asm::Register::VirtualRegister(dst)), asm::Argument::Immediate(lhs as machine::Word)]));
-            code.emit_instruction(func, asm::Instruction::new(Ident::new("mov"), vec![asm::Argument::Register(asm::Register::MachineRegister(MachineRegister::RCX)), asm::Argument::Register(asm::Register::VirtualRegister(rhs))]));
-            code.emit_instruction(func, asm::Instruction::new(Ident::new("sal"), vec![asm::Argument::Register(asm::Register::VirtualRegister(dst)), asm::Argument::Register(asm::Register::MachineRegister(MachineRegister::CL))]));
+            code.emit_instruction(func, asm::Instruction::new(Ident::new("mov"), vec![asm::Argument::Register(asm::Register::Virtual(dst)), asm::Argument::Immediate(lhs as machine::Word)]));
+            code.emit_instruction(func, asm::Instruction::new(Ident::new("mov"), vec![asm::Argument::Register(asm::Register::Machine(MachineRegister::RCX)), asm::Argument::Register(asm::Register::Virtual(rhs))]));
+            code.emit_instruction(func, asm::Instruction::new(Ident::new("sal"), vec![asm::Argument::Register(asm::Register::Virtual(dst)), asm::Argument::Register(asm::Register::Machine(MachineRegister::CL))]));
             1
         },
         [IrLine::Instruction(&ir::Instruction::BinOp { op: ir::InfixOp::Shl, lhs: ir::Value::Immediate(ir::Immediate(lhs)), rhs: ir::Value::Immediate(ir::Immediate(rhs)), dst: ir::Register(dst) }), ..] => {
-            code.emit_instruction(func, asm::Instruction::new(Ident::new("mov"), vec![asm::Argument::Register(asm::Register::VirtualRegister(dst)), asm::Argument::Immediate(lhs as machine::Word)]));
-            code.emit_instruction(func, asm::Instruction::new(Ident::new("sal"), vec![asm::Argument::Register(asm::Register::VirtualRegister(dst)), asm::Argument::Immediate(rhs as machine::Word)]));
+            code.emit_instruction(func, asm::Instruction::new(Ident::new("mov"), vec![asm::Argument::Register(asm::Register::Virtual(dst)), asm::Argument::Immediate(lhs as machine::Word)]));
+            code.emit_instruction(func, asm::Instruction::new(Ident::new("sal"), vec![asm::Argument::Register(asm::Register::Virtual(dst)), asm::Argument::Immediate(rhs as machine::Word)]));
             1
         },
         [IrLine::Instruction(&ir::Instruction::BinOp { op: ir::InfixOp::Shr, lhs: ir::Value::Register(ir::Register(lhs)), rhs: ir::Value::Register(ir::Register(rhs)), dst: ir::Register(dst) }), ..] => {
-            code.emit_instruction(func, asm::Instruction::new(Ident::new("mov"), vec![asm::Argument::Register(asm::Register::VirtualRegister(dst)), asm::Argument::Register(asm::Register::VirtualRegister(lhs))]));
-            code.emit_instruction(func, asm::Instruction::new(Ident::new("mov"), vec![asm::Argument::Register(asm::Register::MachineRegister(MachineRegister::RCX)), asm::Argument::Register(asm::Register::VirtualRegister(rhs))]));
-            code.emit_instruction(func, asm::Instruction::new(Ident::new("sar"), vec![asm::Argument::Register(asm::Register::VirtualRegister(dst)), asm::Argument::Register(asm::Register::MachineRegister(MachineRegister::CL))]));
+            code.emit_instruction(func, asm::Instruction::new(Ident::new("mov"), vec![asm::Argument::Register(asm::Register::Virtual(dst)), asm::Argument::Register(asm::Register::Virtual(lhs))]));
+            code.emit_instruction(func, asm::Instruction::new(Ident::new("mov"), vec![asm::Argument::Register(asm::Register::Machine(MachineRegister::RCX)), asm::Argument::Register(asm::Register::Virtual(rhs))]));
+            code.emit_instruction(func, asm::Instruction::new(Ident::new("sar"), vec![asm::Argument::Register(asm::Register::Virtual(dst)), asm::Argument::Register(asm::Register::Machine(MachineRegister::CL))]));
             1
         },
         [IrLine::Instruction(&ir::Instruction::BinOp { op: ir::InfixOp::Shr, lhs: ir::Value::Register(ir::Register(lhs)), rhs: ir::Value::Immediate(ir::Immediate(rhs)), dst: ir::Register(dst) }), ..] => {
-            code.emit_instruction(func, asm::Instruction::new(Ident::new("mov"), vec![asm::Argument::Register(asm::Register::VirtualRegister(dst)), asm::Argument::Register(asm::Register::VirtualRegister(lhs))]));
-            code.emit_instruction(func, asm::Instruction::new(Ident::new("sar"), vec![asm::Argument::Register(asm::Register::VirtualRegister(dst)), asm::Argument::Immediate(rhs as machine::Word)]));
+            code.emit_instruction(func, asm::Instruction::new(Ident::new("mov"), vec![asm::Argument::Register(asm::Register::Virtual(dst)), asm::Argument::Register(asm::Register::Virtual(lhs))]));
+            code.emit_instruction(func, asm::Instruction::new(Ident::new("sar"), vec![asm::Argument::Register(asm::Register::Virtual(dst)), asm::Argument::Immediate(rhs as machine::Word)]));
             1
         },
         [IrLine::Instruction(&ir::Instruction::BinOp { op: ir::InfixOp::Shr, lhs: ir::Value::Immediate(ir::Immediate(lhs)), rhs: ir::Value::Register(ir::Register(rhs)), dst: ir::Register(dst) }), ..] => {
-            code.emit_instruction(func, asm::Instruction::new(Ident::new("mov"), vec![asm::Argument::Register(asm::Register::VirtualRegister(dst)), asm::Argument::Immediate(lhs as machine::Word)]));
-            code.emit_instruction(func, asm::Instruction::new(Ident::new("mov"), vec![asm::Argument::Register(asm::Register::MachineRegister(MachineRegister::RCX)), asm::Argument::Register(asm::Register::VirtualRegister(rhs))]));
-            code.emit_instruction(func, asm::Instruction::new(Ident::new("sar"), vec![asm::Argument::Register(asm::Register::VirtualRegister(dst)), asm::Argument::Register(asm::Register::MachineRegister(MachineRegister::CL))]));
+            code.emit_instruction(func, asm::Instruction::new(Ident::new("mov"), vec![asm::Argument::Register(asm::Register::Virtual(dst)), asm::Argument::Immediate(lhs as machine::Word)]));
+            code.emit_instruction(func, asm::Instruction::new(Ident::new("mov"), vec![asm::Argument::Register(asm::Register::Machine(MachineRegister::RCX)), asm::Argument::Register(asm::Register::Virtual(rhs))]));
+            code.emit_instruction(func, asm::Instruction::new(Ident::new("sar"), vec![asm::Argument::Register(asm::Register::Virtual(dst)), asm::Argument::Register(asm::Register::Machine(MachineRegister::CL))]));
             1
         },
         [IrLine::Instruction(&ir::Instruction::BinOp { op: ir::InfixOp::Shr, lhs: ir::Value::Immediate(ir::Immediate(lhs)), rhs: ir::Value::Immediate(ir::Immediate(rhs)), dst: ir::Register(dst) }), ..] => {
-            code.emit_instruction(func, asm::Instruction::new(Ident::new("mov"), vec![asm::Argument::Register(asm::Register::VirtualRegister(dst)), asm::Argument::Immediate(lhs as machine::Word)]));
-            code.emit_instruction(func, asm::Instruction::new(Ident::new("sar"), vec![asm::Argument::Register(asm::Register::VirtualRegister(dst)), asm::Argument::Immediate(rhs as machine::Word)]));
+            code.emit_instruction(func, asm::Instruction::new(Ident::new("mov"), vec![asm::Argument::Register(asm::Register::Virtual(dst)), asm::Argument::Immediate(lhs as machine::Word)]));
+            code.emit_instruction(func, asm::Instruction::new(Ident::new("sar"), vec![asm::Argument::Register(asm::Register::Virtual(dst)), asm::Argument::Immediate(rhs as machine::Word)]));
             1
         },
         [IrLine::Instruction(&ir::Instruction::BinOp { op: ir::InfixOp::And, lhs: ir::Value::Register(ir::Register(lhs)), rhs: ir::Value::Register(ir::Register(rhs)), dst: ir::Register(dst) }), ..] => {
-            code.emit_instruction(func, asm::Instruction::new(Ident::new("mov"), vec![asm::Argument::Register(asm::Register::VirtualRegister(dst)), asm::Argument::Register(asm::Register::VirtualRegister(lhs))]));
-            code.emit_instruction(func, asm::Instruction::new(Ident::new("and"), vec![asm::Argument::Register(asm::Register::VirtualRegister(dst)), asm::Argument::Register(asm::Register::VirtualRegister(rhs))]));
+            code.emit_instruction(func, asm::Instruction::new(Ident::new("mov"), vec![asm::Argument::Register(asm::Register::Virtual(dst)), asm::Argument::Register(asm::Register::Virtual(lhs))]));
+            code.emit_instruction(func, asm::Instruction::new(Ident::new("and"), vec![asm::Argument::Register(asm::Register::Virtual(dst)), asm::Argument::Register(asm::Register::Virtual(rhs))]));
             1
         },
         [IrLine::Instruction(&ir::Instruction::BinOp { op: ir::InfixOp::And, lhs: ir::Value::Register(ir::Register(lhs)), rhs: ir::Value::Immediate(ir::Immediate(rhs)), dst: ir::Register(dst) }), ..] => {
-            code.emit_instruction(func, asm::Instruction::new(Ident::new("mov"), vec![asm::Argument::Register(asm::Register::VirtualRegister(dst)), asm::Argument::Register(asm::Register::VirtualRegister(lhs))]));
-            code.emit_instruction(func, asm::Instruction::new(Ident::new("and"), vec![asm::Argument::Register(asm::Register::VirtualRegister(dst)), asm::Argument::Immediate(rhs as machine::Word)]));
+            code.emit_instruction(func, asm::Instruction::new(Ident::new("mov"), vec![asm::Argument::Register(asm::Register::Virtual(dst)), asm::Argument::Register(asm::Register::Virtual(lhs))]));
+            code.emit_instruction(func, asm::Instruction::new(Ident::new("and"), vec![asm::Argument::Register(asm::Register::Virtual(dst)), asm::Argument::Immediate(rhs as machine::Word)]));
             1
         },
         [IrLine::Instruction(&ir::Instruction::BinOp { op: ir::InfixOp::And, lhs: ir::Value::Immediate(ir::Immediate(lhs)), rhs: ir::Value::Register(ir::Register(rhs)), dst: ir::Register(dst) }), ..] => {
-            code.emit_instruction(func, asm::Instruction::new(Ident::new("mov"), vec![asm::Argument::Register(asm::Register::VirtualRegister(dst)), asm::Argument::Immediate(lhs as machine::Word)]));
-            code.emit_instruction(func, asm::Instruction::new(Ident::new("and"), vec![asm::Argument::Register(asm::Register::VirtualRegister(dst)), asm::Argument::Register(asm::Register::VirtualRegister(rhs))]));
+            code.emit_instruction(func, asm::Instruction::new(Ident::new("mov"), vec![asm::Argument::Register(asm::Register::Virtual(dst)), asm::Argument::Immediate(lhs as machine::Word)]));
+            code.emit_instruction(func, asm::Instruction::new(Ident::new("and"), vec![asm::Argument::Register(asm::Register::Virtual(dst)), asm::Argument::Register(asm::Register::Virtual(rhs))]));
             1
         },
         [IrLine::Instruction(&ir::Instruction::BinOp { op: ir::InfixOp::And, lhs: ir::Value::Immediate(ir::Immediate(lhs)), rhs: ir::Value::Immediate(ir::Immediate(rhs)), dst: ir::Register(dst) }), ..] => {
-            code.emit_instruction(func, asm::Instruction::new(Ident::new("mov"), vec![asm::Argument::Register(asm::Register::VirtualRegister(dst)), asm::Argument::Immediate(lhs as machine::Word)]));
-            code.emit_instruction(func, asm::Instruction::new(Ident::new("and"), vec![asm::Argument::Register(asm::Register::VirtualRegister(dst)), asm::Argument::Immediate(rhs as machine::Word)]));
+            code.emit_instruction(func, asm::Instruction::new(Ident::new("mov"), vec![asm::Argument::Register(asm::Register::Virtual(dst)), asm::Argument::Immediate(lhs as machine::Word)]));
+            code.emit_instruction(func, asm::Instruction::new(Ident::new("and"), vec![asm::Argument::Register(asm::Register::Virtual(dst)), asm::Argument::Immediate(rhs as machine::Word)]));
             1
         },
         [IrLine::Instruction(&ir::Instruction::BinOp { op: ir::InfixOp::Or, lhs: ir::Value::Register(ir::Register(lhs)), rhs: ir::Value::Register(ir::Register(rhs)), dst: ir::Register(dst) }), ..] => {
-            code.emit_instruction(func, asm::Instruction::new(Ident::new("mov"), vec![asm::Argument::Register(asm::Register::VirtualRegister(dst)), asm::Argument::Register(asm::Register::VirtualRegister(lhs))]));
-            code.emit_instruction(func, asm::Instruction::new(Ident::new("or"), vec![asm::Argument::Register(asm::Register::VirtualRegister(dst)), asm::Argument::Register(asm::Register::VirtualRegister(rhs))]));
+            code.emit_instruction(func, asm::Instruction::new(Ident::new("mov"), vec![asm::Argument::Register(asm::Register::Virtual(dst)), asm::Argument::Register(asm::Register::Virtual(lhs))]));
+            code.emit_instruction(func, asm::Instruction::new(Ident::new("or"), vec![asm::Argument::Register(asm::Register::Virtual(dst)), asm::Argument::Register(asm::Register::Virtual(rhs))]));
             1
         },
         [IrLine::Instruction(&ir::Instruction::BinOp { op: ir::InfixOp::Or, lhs: ir::Value::Register(ir::Register(lhs)), rhs: ir::Value::Immediate(ir::Immediate(rhs)), dst: ir::Register(dst) }), ..] => {
-            code.emit_instruction(func, asm::Instruction::new(Ident::new("mov"), vec![asm::Argument::Register(asm::Register::VirtualRegister(dst)), asm::Argument::Register(asm::Register::VirtualRegister(lhs))]));
-            code.emit_instruction(func, asm::Instruction::new(Ident::new("or"), vec![asm::Argument::Register(asm::Register::VirtualRegister(dst)), asm::Argument::Immediate(rhs as machine::Word)]));
+            code.emit_instruction(func, asm::Instruction::new(Ident::new("mov"), vec![asm::Argument::Register(asm::Register::Virtual(dst)), asm::Argument::Register(asm::Register::Virtual(lhs))]));
+            code.emit_instruction(func, asm::Instruction::new(Ident::new("or"), vec![asm::Argument::Register(asm::Register::Virtual(dst)), asm::Argument::Immediate(rhs as machine::Word)]));
             1
         },
         [IrLine::Instruction(&ir::Instruction::BinOp { op: ir::InfixOp::Or, lhs: ir::Value::Immediate(ir::Immediate(lhs)), rhs: ir::Value::Register(ir::Register(rhs)), dst: ir::Register(dst) }), ..] => {
-            code.emit_instruction(func, asm::Instruction::new(Ident::new("mov"), vec![asm::Argument::Register(asm::Register::VirtualRegister(dst)), asm::Argument::Immediate(lhs as machine::Word)]));
-            code.emit_instruction(func, asm::Instruction::new(Ident::new("or"), vec![asm::Argument::Register(asm::Register::VirtualRegister(dst)), asm::Argument::Register(asm::Register::VirtualRegister(rhs))]));
+            code.emit_instruction(func, asm::Instruction::new(Ident::new("mov"), vec![asm::Argument::Register(asm::Register::Virtual(dst)), asm::Argument::Immediate(lhs as machine::Word)]));
+            code.emit_instruction(func, asm::Instruction::new(Ident::new("or"), vec![asm::Argument::Register(asm::Register::Virtual(dst)), asm::Argument::Register(asm::Register::Virtual(rhs))]));
             1
         },
         [IrLine::Instruction(&ir::Instruction::BinOp { op: ir::InfixOp::Or, lhs: ir::Value::Immediate(ir::Immediate(lhs)), rhs: ir::Value::Immediate(ir::Immediate(rhs)), dst: ir::Register(dst) }), ..] => {
-            code.emit_instruction(func, asm::Instruction::new(Ident::new("mov"), vec![asm::Argument::Register(asm::Register::VirtualRegister(dst)), asm::Argument::Immediate(lhs as machine::Word)]));
-            code.emit_instruction(func, asm::Instruction::new(Ident::new("or"), vec![asm::Argument::Register(asm::Register::VirtualRegister(dst)), asm::Argument::Immediate(rhs as machine::Word)]));
+            code.emit_instruction(func, asm::Instruction::new(Ident::new("mov"), vec![asm::Argument::Register(asm::Register::Virtual(dst)), asm::Argument::Immediate(lhs as machine::Word)]));
+            code.emit_instruction(func, asm::Instruction::new(Ident::new("or"), vec![asm::Argument::Register(asm::Register::Virtual(dst)), asm::Argument::Immediate(rhs as machine::Word)]));
             1
         },
         [IrLine::Instruction(&ir::Instruction::BinOp { op: ir::InfixOp::Xor, lhs: ir::Value::Register(ir::Register(lhs)), rhs: ir::Value::Register(ir::Register(rhs)), dst: ir::Register(dst) }), ..] => {
-            code.emit_instruction(func, asm::Instruction::new(Ident::new("mov"), vec![asm::Argument::Register(asm::Register::VirtualRegister(dst)), asm::Argument::Register(asm::Register::VirtualRegister(lhs))]));
-            code.emit_instruction(func, asm::Instruction::new(Ident::new("xor"), vec![asm::Argument::Register(asm::Register::VirtualRegister(dst)), asm::Argument::Register(asm::Register::VirtualRegister(rhs))]));
+            code.emit_instruction(func, asm::Instruction::new(Ident::new("mov"), vec![asm::Argument::Register(asm::Register::Virtual(dst)), asm::Argument::Register(asm::Register::Virtual(lhs))]));
+            code.emit_instruction(func, asm::Instruction::new(Ident::new("xor"), vec![asm::Argument::Register(asm::Register::Virtual(dst)), asm::Argument::Register(asm::Register::Virtual(rhs))]));
             1
         },
         [IrLine::Instruction(&ir::Instruction::BinOp { op: ir::InfixOp::Xor, lhs: ir::Value::Register(ir::Register(lhs)), rhs: ir::Value::Immediate(ir::Immediate(rhs)), dst: ir::Register(dst) }), ..] => {
-            code.emit_instruction(func, asm::Instruction::new(Ident::new("mov"), vec![asm::Argument::Register(asm::Register::VirtualRegister(dst)), asm::Argument::Register(asm::Register::VirtualRegister(lhs))]));
-            code.emit_instruction(func, asm::Instruction::new(Ident::new("xor"), vec![asm::Argument::Register(asm::Register::VirtualRegister(dst)), asm::Argument::Immediate(rhs as machine::Word)]));
+            code.emit_instruction(func, asm::Instruction::new(Ident::new("mov"), vec![asm::Argument::Register(asm::Register::Virtual(dst)), asm::Argument::Register(asm::Register::Virtual(lhs))]));
+            code.emit_instruction(func, asm::Instruction::new(Ident::new("xor"), vec![asm::Argument::Register(asm::Register::Virtual(dst)), asm::Argument::Immediate(rhs as machine::Word)]));
             1
         },
         [IrLine::Instruction(&ir::Instruction::BinOp { op: ir::InfixOp::Xor, lhs: ir::Value::Immediate(ir::Immediate(lhs)), rhs: ir::Value::Register(ir::Register(rhs)), dst: ir::Register(dst) }), ..] => {
-            code.emit_instruction(func, asm::Instruction::new(Ident::new("mov"), vec![asm::Argument::Register(asm::Register::VirtualRegister(dst)), asm::Argument::Immediate(lhs as machine::Word)]));
-            code.emit_instruction(func, asm::Instruction::new(Ident::new("xor"), vec![asm::Argument::Register(asm::Register::VirtualRegister(dst)), asm::Argument::Register(asm::Register::VirtualRegister(rhs))]));
+            code.emit_instruction(func, asm::Instruction::new(Ident::new("mov"), vec![asm::Argument::Register(asm::Register::Virtual(dst)), asm::Argument::Immediate(lhs as machine::Word)]));
+            code.emit_instruction(func, asm::Instruction::new(Ident::new("xor"), vec![asm::Argument::Register(asm::Register::Virtual(dst)), asm::Argument::Register(asm::Register::Virtual(rhs))]));
             1
         },
         [IrLine::Instruction(&ir::Instruction::BinOp { op: ir::InfixOp::Xor, lhs: ir::Value::Immediate(ir::Immediate(lhs)), rhs: ir::Value::Immediate(ir::Immediate(rhs)), dst: ir::Register(dst) }), ..] => {
-            code.emit_instruction(func, asm::Instruction::new(Ident::new("mov"), vec![asm::Argument::Register(asm::Register::VirtualRegister(dst)), asm::Argument::Immediate(lhs as machine::Word)]));
-            code.emit_instruction(func, asm::Instruction::new(Ident::new("xor"), vec![asm::Argument::Register(asm::Register::VirtualRegister(dst)), asm::Argument::Immediate(rhs as machine::Word)]));
+            code.emit_instruction(func, asm::Instruction::new(Ident::new("mov"), vec![asm::Argument::Register(asm::Register::Virtual(dst)), asm::Argument::Immediate(lhs as machine::Word)]));
+            code.emit_instruction(func, asm::Instruction::new(Ident::new("xor"), vec![asm::Argument::Register(asm::Register::Virtual(dst)), asm::Argument::Immediate(rhs as machine::Word)]));
             1
         },
         [IrLine::Instruction(&ir::Instruction::UnOp { op: ir::PrefixOp::Neg, item: ir::Value::Register(ir::Register(item)), dst: ir::Register(dst) }), ..] => {
-            code.emit_instruction(func, asm::Instruction::new(Ident::new("mov"), vec![asm::Argument::Register(asm::Register::VirtualRegister(dst)), asm::Argument::Register(asm::Register::VirtualRegister(item))]));
-            code.emit_instruction(func, asm::Instruction::new(Ident::new("neg"), vec![asm::Argument::Register(asm::Register::VirtualRegister(dst))]));
+            code.emit_instruction(func, asm::Instruction::new(Ident::new("mov"), vec![asm::Argument::Register(asm::Register::Virtual(dst)), asm::Argument::Register(asm::Register::Virtual(item))]));
+            code.emit_instruction(func, asm::Instruction::new(Ident::new("neg"), vec![asm::Argument::Register(asm::Register::Virtual(dst))]));
             1
         },
         [IrLine::Instruction(&ir::Instruction::UnOp { op: ir::PrefixOp::Neg, item: ir::Value::Immediate(ir::Immediate(item)), dst: ir::Register(dst) }), ..] => {
-            code.emit_instruction(func, asm::Instruction::new(Ident::new("mov"), vec![asm::Argument::Register(asm::Register::VirtualRegister(dst)), asm::Argument::Immediate(item as machine::Word)]));
-            code.emit_instruction(func, asm::Instruction::new(Ident::new("neg"), vec![asm::Argument::Register(asm::Register::VirtualRegister(dst))]));
+            code.emit_instruction(func, asm::Instruction::new(Ident::new("mov"), vec![asm::Argument::Register(asm::Register::Virtual(dst)), asm::Argument::Immediate(item as machine::Word)]));
+            code.emit_instruction(func, asm::Instruction::new(Ident::new("neg"), vec![asm::Argument::Register(asm::Register::Virtual(dst))]));
             1
         },
         [IrLine::Instruction(&ir::Instruction::UnOp { op: ir::PrefixOp::Not, item: ir::Value::Register(ir::Register(item)), dst: ir::Register(dst) }), ..] => {
-            code.emit_instruction(func, asm::Instruction::new(Ident::new("mov"), vec![asm::Argument::Register(asm::Register::VirtualRegister(dst)), asm::Argument::Register(asm::Register::VirtualRegister(item))]));
-            code.emit_instruction(func, asm::Instruction::new(Ident::new("not"), vec![asm::Argument::Register(asm::Register::VirtualRegister(dst))]));
+            code.emit_instruction(func, asm::Instruction::new(Ident::new("mov"), vec![asm::Argument::Register(asm::Register::Virtual(dst)), asm::Argument::Register(asm::Register::Virtual(item))]));
+            code.emit_instruction(func, asm::Instruction::new(Ident::new("not"), vec![asm::Argument::Register(asm::Register::Virtual(dst))]));
             1
         },
         [IrLine::Instruction(&ir::Instruction::UnOp { op: ir::PrefixOp::Not, item: ir::Value::Immediate(ir::Immediate(item)), dst: ir::Register(dst) }), ..] => {
-            code.emit_instruction(func, asm::Instruction::new(Ident::new("mov"), vec![asm::Argument::Register(asm::Register::VirtualRegister(dst)), asm::Argument::Immediate(item as machine::Word)]));
-            code.emit_instruction(func, asm::Instruction::new(Ident::new("not"), vec![asm::Argument::Register(asm::Register::VirtualRegister(dst))]));
+            code.emit_instruction(func, asm::Instruction::new(Ident::new("mov"), vec![asm::Argument::Register(asm::Register::Virtual(dst)), asm::Argument::Immediate(item as machine::Word)]));
+            code.emit_instruction(func, asm::Instruction::new(Ident::new("not"), vec![asm::Argument::Register(asm::Register::Virtual(dst))]));
             1
         },
         [IrLine::Instruction(&ir::Instruction::Cmp { cmp: ir::CmpOp::Lt, lhs: ir::Value::Register(ir::Register(lhs)), rhs: ir::Value::Register(ir::Register(rhs)), dst: ir::Register(dst) }), IrLine::CFInstruction(&ir::ControlFlowInstruction::Branch { cond: ir::Value::Register(ir::Register(cond)), conseq: ir::Label(conseq), altern: ir::Label(altern) })] if dst == cond  => {
-            code.emit_instruction(func, asm::Instruction::new(Ident::new("cmp"), vec![asm::Argument::Register(asm::Register::VirtualRegister(lhs)), asm::Argument::Register(asm::Register::VirtualRegister(rhs))]));
+            code.emit_instruction(func, asm::Instruction::new(Ident::new("cmp"), vec![asm::Argument::Register(asm::Register::Virtual(lhs)), asm::Argument::Register(asm::Register::Virtual(rhs))]));
             code.emit_instruction(func, asm::Instruction::new(Ident::new("jl"), vec![asm::Argument::Label(conseq)]));
             code.emit_instruction(func, asm::Instruction::new(Ident::new("jmp"), vec![asm::Argument::Label(altern)]));
             1
         },
         [IrLine::Instruction(&ir::Instruction::Cmp { cmp: ir::CmpOp::Lt, lhs: ir::Value::Register(ir::Register(lhs)), rhs: ir::Value::Immediate(ir::Immediate(rhs)), dst: ir::Register(dst) }), IrLine::CFInstruction(&ir::ControlFlowInstruction::Branch { cond: ir::Value::Register(ir::Register(cond)), conseq: ir::Label(conseq), altern: ir::Label(altern) })] if dst == cond  => {
-            code.emit_instruction(func, asm::Instruction::new(Ident::new("cmp"), vec![asm::Argument::Register(asm::Register::VirtualRegister(lhs)), asm::Argument::Immediate(rhs as machine::Word)]));
+            code.emit_instruction(func, asm::Instruction::new(Ident::new("cmp"), vec![asm::Argument::Register(asm::Register::Virtual(lhs)), asm::Argument::Immediate(rhs as machine::Word)]));
             code.emit_instruction(func, asm::Instruction::new(Ident::new("jl"), vec![asm::Argument::Label(conseq)]));
             code.emit_instruction(func, asm::Instruction::new(Ident::new("jmp"), vec![asm::Argument::Label(altern)]));
             1
         },
         [IrLine::Instruction(&ir::Instruction::Cmp { cmp: ir::CmpOp::Lt, lhs: ir::Value::Immediate(ir::Immediate(lhs)), rhs: ir::Value::Register(ir::Register(rhs)), dst: ir::Register(dst) }), IrLine::CFInstruction(&ir::ControlFlowInstruction::Branch { cond: ir::Value::Register(ir::Register(cond)), conseq: ir::Label(conseq), altern: ir::Label(altern) })] if dst == cond  => {
-            code.emit_instruction(func, asm::Instruction::new(Ident::new("cmp"), vec![asm::Argument::Register(asm::Register::VirtualRegister(rhs)), asm::Argument::Immediate(lhs as machine::Word)]));
+            code.emit_instruction(func, asm::Instruction::new(Ident::new("cmp"), vec![asm::Argument::Register(asm::Register::Virtual(rhs)), asm::Argument::Immediate(lhs as machine::Word)]));
             code.emit_instruction(func, asm::Instruction::new(Ident::new("jge"), vec![asm::Argument::Label(altern)]));
             code.emit_instruction(func, asm::Instruction::new(Ident::new("jmp"), vec![asm::Argument::Label(conseq)]));
             1
         },
         [IrLine::Instruction(&ir::Instruction::Cmp { cmp: ir::CmpOp::Lt, lhs: ir::Value::Register(ir::Register(lhs)), rhs: ir::Value::Register(ir::Register(rhs)), dst: ir::Register(dst) }), ..] => {
-            code.emit_instruction(func, asm::Instruction::new(Ident::new("cmp"), vec![asm::Argument::Register(asm::Register::VirtualRegister(lhs)), asm::Argument::Register(asm::Register::VirtualRegister(rhs))]));
-            code.emit_instruction(func, asm::Instruction::new(Ident::new("setl"), vec![asm::Argument::Register(asm::Register::MachineRegister(MachineRegister::CL))]));
-            code.emit_instruction(func, asm::Instruction::new(Ident::new("and"), vec![asm::Argument::Register(asm::Register::MachineRegister(MachineRegister::CL)), asm::Argument::Immediate(1)]));
-            code.emit_instruction(func, asm::Instruction::new(Ident::new("movzx"), vec![asm::Argument::Register(asm::Register::VirtualRegister(dst)), asm::Argument::Register(asm::Register::MachineRegister(MachineRegister::CL))]));
+            code.emit_instruction(func, asm::Instruction::new(Ident::new("cmp"), vec![asm::Argument::Register(asm::Register::Virtual(lhs)), asm::Argument::Register(asm::Register::Virtual(rhs))]));
+            code.emit_instruction(func, asm::Instruction::new(Ident::new("setl"), vec![asm::Argument::Register(asm::Register::Machine(MachineRegister::CL))]));
+            code.emit_instruction(func, asm::Instruction::new(Ident::new("and"), vec![asm::Argument::Register(asm::Register::Machine(MachineRegister::CL)), asm::Argument::Immediate(1)]));
+            code.emit_instruction(func, asm::Instruction::new(Ident::new("movzx"), vec![asm::Argument::Register(asm::Register::Virtual(dst)), asm::Argument::Register(asm::Register::Machine(MachineRegister::CL))]));
             1
         },
         [IrLine::Instruction(&ir::Instruction::Cmp { cmp: ir::CmpOp::Lt, lhs: ir::Value::Register(ir::Register(lhs)), rhs: ir::Value::Immediate(ir::Immediate(rhs)), dst: ir::Register(dst) }), ..] => {
-            code.emit_instruction(func, asm::Instruction::new(Ident::new("cmp"), vec![asm::Argument::Register(asm::Register::VirtualRegister(lhs)), asm::Argument::Immediate(rhs as machine::Word)]));
-            code.emit_instruction(func, asm::Instruction::new(Ident::new("setl"), vec![asm::Argument::Register(asm::Register::MachineRegister(MachineRegister::CL))]));
-            code.emit_instruction(func, asm::Instruction::new(Ident::new("and"), vec![asm::Argument::Register(asm::Register::MachineRegister(MachineRegister::CL)), asm::Argument::Immediate(1)]));
-            code.emit_instruction(func, asm::Instruction::new(Ident::new("movzx"), vec![asm::Argument::Register(asm::Register::VirtualRegister(dst)), asm::Argument::Register(asm::Register::MachineRegister(MachineRegister::CL))]));
+            code.emit_instruction(func, asm::Instruction::new(Ident::new("cmp"), vec![asm::Argument::Register(asm::Register::Virtual(lhs)), asm::Argument::Immediate(rhs as machine::Word)]));
+            code.emit_instruction(func, asm::Instruction::new(Ident::new("setl"), vec![asm::Argument::Register(asm::Register::Machine(MachineRegister::CL))]));
+            code.emit_instruction(func, asm::Instruction::new(Ident::new("and"), vec![asm::Argument::Register(asm::Register::Machine(MachineRegister::CL)), asm::Argument::Immediate(1)]));
+            code.emit_instruction(func, asm::Instruction::new(Ident::new("movzx"), vec![asm::Argument::Register(asm::Register::Virtual(dst)), asm::Argument::Register(asm::Register::Machine(MachineRegister::CL))]));
             1
         },
         [IrLine::Instruction(&ir::Instruction::Cmp { cmp: ir::CmpOp::Lt, lhs: ir::Value::Immediate(ir::Immediate(lhs)), rhs: ir::Value::Register(ir::Register(rhs)), dst: ir::Register(dst) }), ..] => {
-            code.emit_instruction(func, asm::Instruction::new(Ident::new("cmp"), vec![asm::Argument::Register(asm::Register::VirtualRegister(rhs)), asm::Argument::Immediate(lhs as machine::Word)]));
-            code.emit_instruction(func, asm::Instruction::new(Ident::new("setge"), vec![asm::Argument::Register(asm::Register::MachineRegister(MachineRegister::CL))]));
-            code.emit_instruction(func, asm::Instruction::new(Ident::new("and"), vec![asm::Argument::Register(asm::Register::MachineRegister(MachineRegister::CL)), asm::Argument::Immediate(1)]));
-            code.emit_instruction(func, asm::Instruction::new(Ident::new("movzx"), vec![asm::Argument::Register(asm::Register::VirtualRegister(dst)), asm::Argument::Register(asm::Register::MachineRegister(MachineRegister::CL))]));
+            code.emit_instruction(func, asm::Instruction::new(Ident::new("cmp"), vec![asm::Argument::Register(asm::Register::Virtual(rhs)), asm::Argument::Immediate(lhs as machine::Word)]));
+            code.emit_instruction(func, asm::Instruction::new(Ident::new("setge"), vec![asm::Argument::Register(asm::Register::Machine(MachineRegister::CL))]));
+            code.emit_instruction(func, asm::Instruction::new(Ident::new("and"), vec![asm::Argument::Register(asm::Register::Machine(MachineRegister::CL)), asm::Argument::Immediate(1)]));
+            code.emit_instruction(func, asm::Instruction::new(Ident::new("movzx"), vec![asm::Argument::Register(asm::Register::Virtual(dst)), asm::Argument::Register(asm::Register::Machine(MachineRegister::CL))]));
             1
         },
         [IrLine::Instruction(&ir::Instruction::Cmp { cmp: ir::CmpOp::Le, lhs: ir::Value::Register(ir::Register(lhs)), rhs: ir::Value::Register(ir::Register(rhs)), dst: ir::Register(dst) }), IrLine::CFInstruction(&ir::ControlFlowInstruction::Branch { cond: ir::Value::Register(ir::Register(cond)), conseq: ir::Label(conseq), altern: ir::Label(altern) })] if dst == cond  => {
-            code.emit_instruction(func, asm::Instruction::new(Ident::new("cmp"), vec![asm::Argument::Register(asm::Register::VirtualRegister(lhs)), asm::Argument::Register(asm::Register::VirtualRegister(rhs))]));
+            code.emit_instruction(func, asm::Instruction::new(Ident::new("cmp"), vec![asm::Argument::Register(asm::Register::Virtual(lhs)), asm::Argument::Register(asm::Register::Virtual(rhs))]));
             code.emit_instruction(func, asm::Instruction::new(Ident::new("jle"), vec![asm::Argument::Label(conseq)]));
             code.emit_instruction(func, asm::Instruction::new(Ident::new("jmp"), vec![asm::Argument::Label(altern)]));
             1
         },
         [IrLine::Instruction(&ir::Instruction::Cmp { cmp: ir::CmpOp::Le, lhs: ir::Value::Register(ir::Register(lhs)), rhs: ir::Value::Immediate(ir::Immediate(rhs)), dst: ir::Register(dst) }), IrLine::CFInstruction(&ir::ControlFlowInstruction::Branch { cond: ir::Value::Register(ir::Register(cond)), conseq: ir::Label(conseq), altern: ir::Label(altern) })] if dst == cond  => {
-            code.emit_instruction(func, asm::Instruction::new(Ident::new("cmp"), vec![asm::Argument::Register(asm::Register::VirtualRegister(lhs)), asm::Argument::Immediate(rhs as machine::Word)]));
+            code.emit_instruction(func, asm::Instruction::new(Ident::new("cmp"), vec![asm::Argument::Register(asm::Register::Virtual(lhs)), asm::Argument::Immediate(rhs as machine::Word)]));
             code.emit_instruction(func, asm::Instruction::new(Ident::new("jle"), vec![asm::Argument::Label(conseq)]));
             code.emit_instruction(func, asm::Instruction::new(Ident::new("jmp"), vec![asm::Argument::Label(altern)]));
             1
         },
         [IrLine::Instruction(&ir::Instruction::Cmp { cmp: ir::CmpOp::Le, lhs: ir::Value::Immediate(ir::Immediate(lhs)), rhs: ir::Value::Register(ir::Register(rhs)), dst: ir::Register(dst) }), IrLine::CFInstruction(&ir::ControlFlowInstruction::Branch { cond: ir::Value::Register(ir::Register(cond)), conseq: ir::Label(conseq), altern: ir::Label(altern) })] if dst == cond  => {
-            code.emit_instruction(func, asm::Instruction::new(Ident::new("cmp"), vec![asm::Argument::Register(asm::Register::VirtualRegister(rhs)), asm::Argument::Immediate(lhs as machine::Word)]));
+            code.emit_instruction(func, asm::Instruction::new(Ident::new("cmp"), vec![asm::Argument::Register(asm::Register::Virtual(rhs)), asm::Argument::Immediate(lhs as machine::Word)]));
             code.emit_instruction(func, asm::Instruction::new(Ident::new("jg"), vec![asm::Argument::Label(altern)]));
             code.emit_instruction(func, asm::Instruction::new(Ident::new("jmp"), vec![asm::Argument::Label(conseq)]));
             1
         },
         [IrLine::Instruction(&ir::Instruction::Cmp { cmp: ir::CmpOp::Le, lhs: ir::Value::Register(ir::Register(lhs)), rhs: ir::Value::Register(ir::Register(rhs)), dst: ir::Register(dst) }), ..] => {
-            code.emit_instruction(func, asm::Instruction::new(Ident::new("cmp"), vec![asm::Argument::Register(asm::Register::VirtualRegister(lhs)), asm::Argument::Register(asm::Register::VirtualRegister(rhs))]));
-            code.emit_instruction(func, asm::Instruction::new(Ident::new("setle"), vec![asm::Argument::Register(asm::Register::MachineRegister(MachineRegister::CL))]));
-            code.emit_instruction(func, asm::Instruction::new(Ident::new("and"), vec![asm::Argument::Register(asm::Register::MachineRegister(MachineRegister::CL)), asm::Argument::Immediate(1)]));
-            code.emit_instruction(func, asm::Instruction::new(Ident::new("movzx"), vec![asm::Argument::Register(asm::Register::VirtualRegister(dst)), asm::Argument::Register(asm::Register::MachineRegister(MachineRegister::CL))]));
+            code.emit_instruction(func, asm::Instruction::new(Ident::new("cmp"), vec![asm::Argument::Register(asm::Register::Virtual(lhs)), asm::Argument::Register(asm::Register::Virtual(rhs))]));
+            code.emit_instruction(func, asm::Instruction::new(Ident::new("setle"), vec![asm::Argument::Register(asm::Register::Machine(MachineRegister::CL))]));
+            code.emit_instruction(func, asm::Instruction::new(Ident::new("and"), vec![asm::Argument::Register(asm::Register::Machine(MachineRegister::CL)), asm::Argument::Immediate(1)]));
+            code.emit_instruction(func, asm::Instruction::new(Ident::new("movzx"), vec![asm::Argument::Register(asm::Register::Virtual(dst)), asm::Argument::Register(asm::Register::Machine(MachineRegister::CL))]));
             1
         },
         [IrLine::Instruction(&ir::Instruction::Cmp { cmp: ir::CmpOp::Le, lhs: ir::Value::Register(ir::Register(lhs)), rhs: ir::Value::Immediate(ir::Immediate(rhs)), dst: ir::Register(dst) }), ..] => {
-            code.emit_instruction(func, asm::Instruction::new(Ident::new("cmp"), vec![asm::Argument::Register(asm::Register::VirtualRegister(lhs)), asm::Argument::Immediate(rhs as machine::Word)]));
-            code.emit_instruction(func, asm::Instruction::new(Ident::new("setle"), vec![asm::Argument::Register(asm::Register::MachineRegister(MachineRegister::CL))]));
-            code.emit_instruction(func, asm::Instruction::new(Ident::new("and"), vec![asm::Argument::Register(asm::Register::MachineRegister(MachineRegister::CL)), asm::Argument::Immediate(1)]));
-            code.emit_instruction(func, asm::Instruction::new(Ident::new("movzx"), vec![asm::Argument::Register(asm::Register::VirtualRegister(dst)), asm::Argument::Register(asm::Register::MachineRegister(MachineRegister::CL))]));
+            code.emit_instruction(func, asm::Instruction::new(Ident::new("cmp"), vec![asm::Argument::Register(asm::Register::Virtual(lhs)), asm::Argument::Immediate(rhs as machine::Word)]));
+            code.emit_instruction(func, asm::Instruction::new(Ident::new("setle"), vec![asm::Argument::Register(asm::Register::Machine(MachineRegister::CL))]));
+            code.emit_instruction(func, asm::Instruction::new(Ident::new("and"), vec![asm::Argument::Register(asm::Register::Machine(MachineRegister::CL)), asm::Argument::Immediate(1)]));
+            code.emit_instruction(func, asm::Instruction::new(Ident::new("movzx"), vec![asm::Argument::Register(asm::Register::Virtual(dst)), asm::Argument::Register(asm::Register::Machine(MachineRegister::CL))]));
             1
         },
         [IrLine::Instruction(&ir::Instruction::Cmp { cmp: ir::CmpOp::Le, lhs: ir::Value::Immediate(ir::Immediate(lhs)), rhs: ir::Value::Register(ir::Register(rhs)), dst: ir::Register(dst) }), ..] => {
-            code.emit_instruction(func, asm::Instruction::new(Ident::new("cmp"), vec![asm::Argument::Register(asm::Register::VirtualRegister(rhs)), asm::Argument::Immediate(lhs as machine::Word)]));
-            code.emit_instruction(func, asm::Instruction::new(Ident::new("setg"), vec![asm::Argument::Register(asm::Register::MachineRegister(MachineRegister::CL))]));
-            code.emit_instruction(func, asm::Instruction::new(Ident::new("and"), vec![asm::Argument::Register(asm::Register::MachineRegister(MachineRegister::CL)), asm::Argument::Immediate(1)]));
-            code.emit_instruction(func, asm::Instruction::new(Ident::new("movzx"), vec![asm::Argument::Register(asm::Register::VirtualRegister(dst)), asm::Argument::Register(asm::Register::MachineRegister(MachineRegister::CL))]));
+            code.emit_instruction(func, asm::Instruction::new(Ident::new("cmp"), vec![asm::Argument::Register(asm::Register::Virtual(rhs)), asm::Argument::Immediate(lhs as machine::Word)]));
+            code.emit_instruction(func, asm::Instruction::new(Ident::new("setg"), vec![asm::Argument::Register(asm::Register::Machine(MachineRegister::CL))]));
+            code.emit_instruction(func, asm::Instruction::new(Ident::new("and"), vec![asm::Argument::Register(asm::Register::Machine(MachineRegister::CL)), asm::Argument::Immediate(1)]));
+            code.emit_instruction(func, asm::Instruction::new(Ident::new("movzx"), vec![asm::Argument::Register(asm::Register::Virtual(dst)), asm::Argument::Register(asm::Register::Machine(MachineRegister::CL))]));
             1
         },
         [IrLine::Instruction(&ir::Instruction::Cmp { cmp: ir::CmpOp::Ge, lhs: ir::Value::Register(ir::Register(lhs)), rhs: ir::Value::Register(ir::Register(rhs)), dst: ir::Register(dst) }), IrLine::CFInstruction(&ir::ControlFlowInstruction::Branch { cond: ir::Value::Register(ir::Register(cond)), conseq: ir::Label(conseq), altern: ir::Label(altern) })] if dst == cond  => {
-            code.emit_instruction(func, asm::Instruction::new(Ident::new("cmp"), vec![asm::Argument::Register(asm::Register::VirtualRegister(lhs)), asm::Argument::Register(asm::Register::VirtualRegister(rhs))]));
+            code.emit_instruction(func, asm::Instruction::new(Ident::new("cmp"), vec![asm::Argument::Register(asm::Register::Virtual(lhs)), asm::Argument::Register(asm::Register::Virtual(rhs))]));
             code.emit_instruction(func, asm::Instruction::new(Ident::new("jge"), vec![asm::Argument::Label(conseq)]));
             code.emit_instruction(func, asm::Instruction::new(Ident::new("jmp"), vec![asm::Argument::Label(altern)]));
             1
         },
         [IrLine::Instruction(&ir::Instruction::Cmp { cmp: ir::CmpOp::Ge, lhs: ir::Value::Register(ir::Register(lhs)), rhs: ir::Value::Immediate(ir::Immediate(rhs)), dst: ir::Register(dst) }), IrLine::CFInstruction(&ir::ControlFlowInstruction::Branch { cond: ir::Value::Register(ir::Register(cond)), conseq: ir::Label(conseq), altern: ir::Label(altern) })] if dst == cond  => {
-            code.emit_instruction(func, asm::Instruction::new(Ident::new("cmp"), vec![asm::Argument::Register(asm::Register::VirtualRegister(lhs)), asm::Argument::Immediate(rhs as machine::Word)]));
+            code.emit_instruction(func, asm::Instruction::new(Ident::new("cmp"), vec![asm::Argument::Register(asm::Register::Virtual(lhs)), asm::Argument::Immediate(rhs as machine::Word)]));
             code.emit_instruction(func, asm::Instruction::new(Ident::new("jge"), vec![asm::Argument::Label(conseq)]));
             code.emit_instruction(func, asm::Instruction::new(Ident::new("jmp"), vec![asm::Argument::Label(altern)]));
             1
         },
         [IrLine::Instruction(&ir::Instruction::Cmp { cmp: ir::CmpOp::Ge, lhs: ir::Value::Immediate(ir::Immediate(lhs)), rhs: ir::Value::Register(ir::Register(rhs)), dst: ir::Register(dst) }), IrLine::CFInstruction(&ir::ControlFlowInstruction::Branch { cond: ir::Value::Register(ir::Register(cond)), conseq: ir::Label(conseq), altern: ir::Label(altern) })] if dst == cond  => {
-            code.emit_instruction(func, asm::Instruction::new(Ident::new("cmp"), vec![asm::Argument::Register(asm::Register::VirtualRegister(rhs)), asm::Argument::Immediate(lhs as machine::Word)]));
+            code.emit_instruction(func, asm::Instruction::new(Ident::new("cmp"), vec![asm::Argument::Register(asm::Register::Virtual(rhs)), asm::Argument::Immediate(lhs as machine::Word)]));
             code.emit_instruction(func, asm::Instruction::new(Ident::new("jl"), vec![asm::Argument::Label(altern)]));
             code.emit_instruction(func, asm::Instruction::new(Ident::new("jmp"), vec![asm::Argument::Label(conseq)]));
             1
         },
         [IrLine::Instruction(&ir::Instruction::Cmp { cmp: ir::CmpOp::Ge, lhs: ir::Value::Register(ir::Register(lhs)), rhs: ir::Value::Register(ir::Register(rhs)), dst: ir::Register(dst) }), ..] => {
-            code.emit_instruction(func, asm::Instruction::new(Ident::new("cmp"), vec![asm::Argument::Register(asm::Register::VirtualRegister(lhs)), asm::Argument::Register(asm::Register::VirtualRegister(rhs))]));
-            code.emit_instruction(func, asm::Instruction::new(Ident::new("setge"), vec![asm::Argument::Register(asm::Register::MachineRegister(MachineRegister::CL))]));
-            code.emit_instruction(func, asm::Instruction::new(Ident::new("and"), vec![asm::Argument::Register(asm::Register::MachineRegister(MachineRegister::CL)), asm::Argument::Immediate(1)]));
-            code.emit_instruction(func, asm::Instruction::new(Ident::new("movzx"), vec![asm::Argument::Register(asm::Register::VirtualRegister(dst)), asm::Argument::Register(asm::Register::MachineRegister(MachineRegister::CL))]));
+            code.emit_instruction(func, asm::Instruction::new(Ident::new("cmp"), vec![asm::Argument::Register(asm::Register::Virtual(lhs)), asm::Argument::Register(asm::Register::Virtual(rhs))]));
+            code.emit_instruction(func, asm::Instruction::new(Ident::new("setge"), vec![asm::Argument::Register(asm::Register::Machine(MachineRegister::CL))]));
+            code.emit_instruction(func, asm::Instruction::new(Ident::new("and"), vec![asm::Argument::Register(asm::Register::Machine(MachineRegister::CL)), asm::Argument::Immediate(1)]));
+            code.emit_instruction(func, asm::Instruction::new(Ident::new("movzx"), vec![asm::Argument::Register(asm::Register::Virtual(dst)), asm::Argument::Register(asm::Register::Machine(MachineRegister::CL))]));
             1
         },
         [IrLine::Instruction(&ir::Instruction::Cmp { cmp: ir::CmpOp::Ge, lhs: ir::Value::Register(ir::Register(lhs)), rhs: ir::Value::Immediate(ir::Immediate(rhs)), dst: ir::Register(dst) }), ..] => {
-            code.emit_instruction(func, asm::Instruction::new(Ident::new("cmp"), vec![asm::Argument::Register(asm::Register::VirtualRegister(lhs)), asm::Argument::Immediate(rhs as machine::Word)]));
-            code.emit_instruction(func, asm::Instruction::new(Ident::new("setge"), vec![asm::Argument::Register(asm::Register::MachineRegister(MachineRegister::CL))]));
-            code.emit_instruction(func, asm::Instruction::new(Ident::new("and"), vec![asm::Argument::Register(asm::Register::MachineRegister(MachineRegister::CL)), asm::Argument::Immediate(1)]));
-            code.emit_instruction(func, asm::Instruction::new(Ident::new("movzx"), vec![asm::Argument::Register(asm::Register::VirtualRegister(dst)), asm::Argument::Register(asm::Register::MachineRegister(MachineRegister::CL))]));
+            code.emit_instruction(func, asm::Instruction::new(Ident::new("cmp"), vec![asm::Argument::Register(asm::Register::Virtual(lhs)), asm::Argument::Immediate(rhs as machine::Word)]));
+            code.emit_instruction(func, asm::Instruction::new(Ident::new("setge"), vec![asm::Argument::Register(asm::Register::Machine(MachineRegister::CL))]));
+            code.emit_instruction(func, asm::Instruction::new(Ident::new("and"), vec![asm::Argument::Register(asm::Register::Machine(MachineRegister::CL)), asm::Argument::Immediate(1)]));
+            code.emit_instruction(func, asm::Instruction::new(Ident::new("movzx"), vec![asm::Argument::Register(asm::Register::Virtual(dst)), asm::Argument::Register(asm::Register::Machine(MachineRegister::CL))]));
             1
         },
         [IrLine::Instruction(&ir::Instruction::Cmp { cmp: ir::CmpOp::Ge, lhs: ir::Value::Immediate(ir::Immediate(lhs)), rhs: ir::Value::Register(ir::Register(rhs)), dst: ir::Register(dst) }), ..] => {
-            code.emit_instruction(func, asm::Instruction::new(Ident::new("cmp"), vec![asm::Argument::Register(asm::Register::VirtualRegister(rhs)), asm::Argument::Immediate(lhs as machine::Word)]));
-            code.emit_instruction(func, asm::Instruction::new(Ident::new("setl"), vec![asm::Argument::Register(asm::Register::MachineRegister(MachineRegister::CL))]));
-            code.emit_instruction(func, asm::Instruction::new(Ident::new("and"), vec![asm::Argument::Register(asm::Register::MachineRegister(MachineRegister::CL)), asm::Argument::Immediate(1)]));
-            code.emit_instruction(func, asm::Instruction::new(Ident::new("movzx"), vec![asm::Argument::Register(asm::Register::VirtualRegister(dst)), asm::Argument::Register(asm::Register::MachineRegister(MachineRegister::CL))]));
+            code.emit_instruction(func, asm::Instruction::new(Ident::new("cmp"), vec![asm::Argument::Register(asm::Register::Virtual(rhs)), asm::Argument::Immediate(lhs as machine::Word)]));
+            code.emit_instruction(func, asm::Instruction::new(Ident::new("setl"), vec![asm::Argument::Register(asm::Register::Machine(MachineRegister::CL))]));
+            code.emit_instruction(func, asm::Instruction::new(Ident::new("and"), vec![asm::Argument::Register(asm::Register::Machine(MachineRegister::CL)), asm::Argument::Immediate(1)]));
+            code.emit_instruction(func, asm::Instruction::new(Ident::new("movzx"), vec![asm::Argument::Register(asm::Register::Virtual(dst)), asm::Argument::Register(asm::Register::Machine(MachineRegister::CL))]));
             1
         },
         [IrLine::Instruction(&ir::Instruction::Cmp { cmp: ir::CmpOp::Gt, lhs: ir::Value::Register(ir::Register(lhs)), rhs: ir::Value::Register(ir::Register(rhs)), dst: ir::Register(dst) }), IrLine::CFInstruction(&ir::ControlFlowInstruction::Branch { cond: ir::Value::Register(ir::Register(cond)), conseq: ir::Label(conseq), altern: ir::Label(altern) })] if dst == cond  => {
-            code.emit_instruction(func, asm::Instruction::new(Ident::new("cmp"), vec![asm::Argument::Register(asm::Register::VirtualRegister(lhs)), asm::Argument::Register(asm::Register::VirtualRegister(rhs))]));
+            code.emit_instruction(func, asm::Instruction::new(Ident::new("cmp"), vec![asm::Argument::Register(asm::Register::Virtual(lhs)), asm::Argument::Register(asm::Register::Virtual(rhs))]));
             code.emit_instruction(func, asm::Instruction::new(Ident::new("jg"), vec![asm::Argument::Label(conseq)]));
             code.emit_instruction(func, asm::Instruction::new(Ident::new("jmp"), vec![asm::Argument::Label(altern)]));
             1
         },
         [IrLine::Instruction(&ir::Instruction::Cmp { cmp: ir::CmpOp::Gt, lhs: ir::Value::Register(ir::Register(lhs)), rhs: ir::Value::Immediate(ir::Immediate(rhs)), dst: ir::Register(dst) }), IrLine::CFInstruction(&ir::ControlFlowInstruction::Branch { cond: ir::Value::Register(ir::Register(cond)), conseq: ir::Label(conseq), altern: ir::Label(altern) })] if dst == cond  => {
-            code.emit_instruction(func, asm::Instruction::new(Ident::new("cmp"), vec![asm::Argument::Register(asm::Register::VirtualRegister(lhs)), asm::Argument::Immediate(rhs as machine::Word)]));
+            code.emit_instruction(func, asm::Instruction::new(Ident::new("cmp"), vec![asm::Argument::Register(asm::Register::Virtual(lhs)), asm::Argument::Immediate(rhs as machine::Word)]));
             code.emit_instruction(func, asm::Instruction::new(Ident::new("jg"), vec![asm::Argument::Label(conseq)]));
             code.emit_instruction(func, asm::Instruction::new(Ident::new("jmp"), vec![asm::Argument::Label(altern)]));
             1
         },
         [IrLine::Instruction(&ir::Instruction::Cmp { cmp: ir::CmpOp::Gt, lhs: ir::Value::Immediate(ir::Immediate(lhs)), rhs: ir::Value::Register(ir::Register(rhs)), dst: ir::Register(dst) }), IrLine::CFInstruction(&ir::ControlFlowInstruction::Branch { cond: ir::Value::Register(ir::Register(cond)), conseq: ir::Label(conseq), altern: ir::Label(altern) })] if dst == cond  => {
-            code.emit_instruction(func, asm::Instruction::new(Ident::new("cmp"), vec![asm::Argument::Register(asm::Register::VirtualRegister(rhs)), asm::Argument::Immediate(lhs as machine::Word)]));
+            code.emit_instruction(func, asm::Instruction::new(Ident::new("cmp"), vec![asm::Argument::Register(asm::Register::Virtual(rhs)), asm::Argument::Immediate(lhs as machine::Word)]));
             code.emit_instruction(func, asm::Instruction::new(Ident::new("jle"), vec![asm::Argument::Label(altern)]));
             code.emit_instruction(func, asm::Instruction::new(Ident::new("jmp"), vec![asm::Argument::Label(conseq)]));
             1
         },
         [IrLine::Instruction(&ir::Instruction::Cmp { cmp: ir::CmpOp::Gt, lhs: ir::Value::Register(ir::Register(lhs)), rhs: ir::Value::Register(ir::Register(rhs)), dst: ir::Register(dst) }), ..] => {
-            code.emit_instruction(func, asm::Instruction::new(Ident::new("cmp"), vec![asm::Argument::Register(asm::Register::VirtualRegister(lhs)), asm::Argument::Register(asm::Register::VirtualRegister(rhs))]));
-            code.emit_instruction(func, asm::Instruction::new(Ident::new("setg"), vec![asm::Argument::Register(asm::Register::MachineRegister(MachineRegister::CL))]));
-            code.emit_instruction(func, asm::Instruction::new(Ident::new("and"), vec![asm::Argument::Register(asm::Register::MachineRegister(MachineRegister::CL)), asm::Argument::Immediate(1)]));
-            code.emit_instruction(func, asm::Instruction::new(Ident::new("movzx"), vec![asm::Argument::Register(asm::Register::VirtualRegister(dst)), asm::Argument::Register(asm::Register::MachineRegister(MachineRegister::CL))]));
+            code.emit_instruction(func, asm::Instruction::new(Ident::new("cmp"), vec![asm::Argument::Register(asm::Register::Virtual(lhs)), asm::Argument::Register(asm::Register::Virtual(rhs))]));
+            code.emit_instruction(func, asm::Instruction::new(Ident::new("setg"), vec![asm::Argument::Register(asm::Register::Machine(MachineRegister::CL))]));
+            code.emit_instruction(func, asm::Instruction::new(Ident::new("and"), vec![asm::Argument::Register(asm::Register::Machine(MachineRegister::CL)), asm::Argument::Immediate(1)]));
+            code.emit_instruction(func, asm::Instruction::new(Ident::new("movzx"), vec![asm::Argument::Register(asm::Register::Virtual(dst)), asm::Argument::Register(asm::Register::Machine(MachineRegister::CL))]));
             1
         },
         [IrLine::Instruction(&ir::Instruction::Cmp { cmp: ir::CmpOp::Gt, lhs: ir::Value::Register(ir::Register(lhs)), rhs: ir::Value::Immediate(ir::Immediate(rhs)), dst: ir::Register(dst) }), ..] => {
-            code.emit_instruction(func, asm::Instruction::new(Ident::new("cmp"), vec![asm::Argument::Register(asm::Register::VirtualRegister(lhs)), asm::Argument::Immediate(rhs as machine::Word)]));
-            code.emit_instruction(func, asm::Instruction::new(Ident::new("setg"), vec![asm::Argument::Register(asm::Register::MachineRegister(MachineRegister::CL))]));
-            code.emit_instruction(func, asm::Instruction::new(Ident::new("and"), vec![asm::Argument::Register(asm::Register::MachineRegister(MachineRegister::CL)), asm::Argument::Immediate(1)]));
-            code.emit_instruction(func, asm::Instruction::new(Ident::new("movzx"), vec![asm::Argument::Register(asm::Register::VirtualRegister(dst)), asm::Argument::Register(asm::Register::MachineRegister(MachineRegister::CL))]));
+            code.emit_instruction(func, asm::Instruction::new(Ident::new("cmp"), vec![asm::Argument::Register(asm::Register::Virtual(lhs)), asm::Argument::Immediate(rhs as machine::Word)]));
+            code.emit_instruction(func, asm::Instruction::new(Ident::new("setg"), vec![asm::Argument::Register(asm::Register::Machine(MachineRegister::CL))]));
+            code.emit_instruction(func, asm::Instruction::new(Ident::new("and"), vec![asm::Argument::Register(asm::Register::Machine(MachineRegister::CL)), asm::Argument::Immediate(1)]));
+            code.emit_instruction(func, asm::Instruction::new(Ident::new("movzx"), vec![asm::Argument::Register(asm::Register::Virtual(dst)), asm::Argument::Register(asm::Register::Machine(MachineRegister::CL))]));
             1
         },
         [IrLine::Instruction(&ir::Instruction::Cmp { cmp: ir::CmpOp::Gt, lhs: ir::Value::Immediate(ir::Immediate(lhs)), rhs: ir::Value::Register(ir::Register(rhs)), dst: ir::Register(dst) }), ..] => {
-            code.emit_instruction(func, asm::Instruction::new(Ident::new("cmp"), vec![asm::Argument::Register(asm::Register::VirtualRegister(rhs)), asm::Argument::Immediate(lhs as machine::Word)]));
-            code.emit_instruction(func, asm::Instruction::new(Ident::new("setle"), vec![asm::Argument::Register(asm::Register::MachineRegister(MachineRegister::CL))]));
-            code.emit_instruction(func, asm::Instruction::new(Ident::new("and"), vec![asm::Argument::Register(asm::Register::MachineRegister(MachineRegister::CL)), asm::Argument::Immediate(1)]));
-            code.emit_instruction(func, asm::Instruction::new(Ident::new("movzx"), vec![asm::Argument::Register(asm::Register::VirtualRegister(dst)), asm::Argument::Register(asm::Register::MachineRegister(MachineRegister::CL))]));
+            code.emit_instruction(func, asm::Instruction::new(Ident::new("cmp"), vec![asm::Argument::Register(asm::Register::Virtual(rhs)), asm::Argument::Immediate(lhs as machine::Word)]));
+            code.emit_instruction(func, asm::Instruction::new(Ident::new("setle"), vec![asm::Argument::Register(asm::Register::Machine(MachineRegister::CL))]));
+            code.emit_instruction(func, asm::Instruction::new(Ident::new("and"), vec![asm::Argument::Register(asm::Register::Machine(MachineRegister::CL)), asm::Argument::Immediate(1)]));
+            code.emit_instruction(func, asm::Instruction::new(Ident::new("movzx"), vec![asm::Argument::Register(asm::Register::Virtual(dst)), asm::Argument::Register(asm::Register::Machine(MachineRegister::CL))]));
             1
         },
         [IrLine::Instruction(&ir::Instruction::Cmp { cmp: ir::CmpOp::Eq, lhs: ir::Value::Register(ir::Register(lhs)), rhs: ir::Value::Register(ir::Register(rhs)), dst: ir::Register(dst) }), IrLine::CFInstruction(&ir::ControlFlowInstruction::Branch { cond: ir::Value::Register(ir::Register(cond)), conseq: ir::Label(conseq), altern: ir::Label(altern) })] if dst == cond  => {
-            code.emit_instruction(func, asm::Instruction::new(Ident::new("cmp"), vec![asm::Argument::Register(asm::Register::VirtualRegister(lhs)), asm::Argument::Register(asm::Register::VirtualRegister(rhs))]));
+            code.emit_instruction(func, asm::Instruction::new(Ident::new("cmp"), vec![asm::Argument::Register(asm::Register::Virtual(lhs)), asm::Argument::Register(asm::Register::Virtual(rhs))]));
             code.emit_instruction(func, asm::Instruction::new(Ident::new("je"), vec![asm::Argument::Label(conseq)]));
             code.emit_instruction(func, asm::Instruction::new(Ident::new("jmp"), vec![asm::Argument::Label(altern)]));
             1
         },
         [IrLine::Instruction(&ir::Instruction::Cmp { cmp: ir::CmpOp::Eq, lhs: ir::Value::Register(ir::Register(lhs)), rhs: ir::Value::Immediate(ir::Immediate(rhs)), dst: ir::Register(dst) }), IrLine::CFInstruction(&ir::ControlFlowInstruction::Branch { cond: ir::Value::Register(ir::Register(cond)), conseq: ir::Label(conseq), altern: ir::Label(altern) })] if dst == cond  => {
-            code.emit_instruction(func, asm::Instruction::new(Ident::new("cmp"), vec![asm::Argument::Register(asm::Register::VirtualRegister(lhs)), asm::Argument::Immediate(rhs as machine::Word)]));
+            code.emit_instruction(func, asm::Instruction::new(Ident::new("cmp"), vec![asm::Argument::Register(asm::Register::Virtual(lhs)), asm::Argument::Immediate(rhs as machine::Word)]));
             code.emit_instruction(func, asm::Instruction::new(Ident::new("je"), vec![asm::Argument::Label(conseq)]));
             code.emit_instruction(func, asm::Instruction::new(Ident::new("jmp"), vec![asm::Argument::Label(altern)]));
             1
         },
         [IrLine::Instruction(&ir::Instruction::Cmp { cmp: ir::CmpOp::Eq, lhs: ir::Value::Immediate(ir::Immediate(lhs)), rhs: ir::Value::Register(ir::Register(rhs)), dst: ir::Register(dst) }), IrLine::CFInstruction(&ir::ControlFlowInstruction::Branch { cond: ir::Value::Register(ir::Register(cond)), conseq: ir::Label(conseq), altern: ir::Label(altern) })] if dst == cond  => {
-            code.emit_instruction(func, asm::Instruction::new(Ident::new("cmp"), vec![asm::Argument::Register(asm::Register::VirtualRegister(rhs)), asm::Argument::Immediate(lhs as machine::Word)]));
+            code.emit_instruction(func, asm::Instruction::new(Ident::new("cmp"), vec![asm::Argument::Register(asm::Register::Virtual(rhs)), asm::Argument::Immediate(lhs as machine::Word)]));
             code.emit_instruction(func, asm::Instruction::new(Ident::new("jne"), vec![asm::Argument::Label(altern)]));
             code.emit_instruction(func, asm::Instruction::new(Ident::new("jmp"), vec![asm::Argument::Label(conseq)]));
             1
         },
         [IrLine::Instruction(&ir::Instruction::Cmp { cmp: ir::CmpOp::Eq, lhs: ir::Value::Register(ir::Register(lhs)), rhs: ir::Value::Register(ir::Register(rhs)), dst: ir::Register(dst) }), ..] => {
-            code.emit_instruction(func, asm::Instruction::new(Ident::new("cmp"), vec![asm::Argument::Register(asm::Register::VirtualRegister(lhs)), asm::Argument::Register(asm::Register::VirtualRegister(rhs))]));
-            code.emit_instruction(func, asm::Instruction::new(Ident::new("sete"), vec![asm::Argument::Register(asm::Register::MachineRegister(MachineRegister::CL))]));
-            code.emit_instruction(func, asm::Instruction::new(Ident::new("and"), vec![asm::Argument::Register(asm::Register::MachineRegister(MachineRegister::CL)), asm::Argument::Immediate(1)]));
-            code.emit_instruction(func, asm::Instruction::new(Ident::new("movzx"), vec![asm::Argument::Register(asm::Register::VirtualRegister(dst)), asm::Argument::Register(asm::Register::MachineRegister(MachineRegister::CL))]));
+            code.emit_instruction(func, asm::Instruction::new(Ident::new("cmp"), vec![asm::Argument::Register(asm::Register::Virtual(lhs)), asm::Argument::Register(asm::Register::Virtual(rhs))]));
+            code.emit_instruction(func, asm::Instruction::new(Ident::new("sete"), vec![asm::Argument::Register(asm::Register::Machine(MachineRegister::CL))]));
+            code.emit_instruction(func, asm::Instruction::new(Ident::new("and"), vec![asm::Argument::Register(asm::Register::Machine(MachineRegister::CL)), asm::Argument::Immediate(1)]));
+            code.emit_instruction(func, asm::Instruction::new(Ident::new("movzx"), vec![asm::Argument::Register(asm::Register::Virtual(dst)), asm::Argument::Register(asm::Register::Machine(MachineRegister::CL))]));
             1
         },
         [IrLine::Instruction(&ir::Instruction::Cmp { cmp: ir::CmpOp::Eq, lhs: ir::Value::Register(ir::Register(lhs)), rhs: ir::Value::Immediate(ir::Immediate(rhs)), dst: ir::Register(dst) }), ..] => {
-            code.emit_instruction(func, asm::Instruction::new(Ident::new("cmp"), vec![asm::Argument::Register(asm::Register::VirtualRegister(lhs)), asm::Argument::Immediate(rhs as machine::Word)]));
-            code.emit_instruction(func, asm::Instruction::new(Ident::new("sete"), vec![asm::Argument::Register(asm::Register::MachineRegister(MachineRegister::CL))]));
-            code.emit_instruction(func, asm::Instruction::new(Ident::new("and"), vec![asm::Argument::Register(asm::Register::MachineRegister(MachineRegister::CL)), asm::Argument::Immediate(1)]));
-            code.emit_instruction(func, asm::Instruction::new(Ident::new("movzx"), vec![asm::Argument::Register(asm::Register::VirtualRegister(dst)), asm::Argument::Register(asm::Register::MachineRegister(MachineRegister::CL))]));
+            code.emit_instruction(func, asm::Instruction::new(Ident::new("cmp"), vec![asm::Argument::Register(asm::Register::Virtual(lhs)), asm::Argument::Immediate(rhs as machine::Word)]));
+            code.emit_instruction(func, asm::Instruction::new(Ident::new("sete"), vec![asm::Argument::Register(asm::Register::Machine(MachineRegister::CL))]));
+            code.emit_instruction(func, asm::Instruction::new(Ident::new("and"), vec![asm::Argument::Register(asm::Register::Machine(MachineRegister::CL)), asm::Argument::Immediate(1)]));
+            code.emit_instruction(func, asm::Instruction::new(Ident::new("movzx"), vec![asm::Argument::Register(asm::Register::Virtual(dst)), asm::Argument::Register(asm::Register::Machine(MachineRegister::CL))]));
             1
         },
         [IrLine::Instruction(&ir::Instruction::Cmp { cmp: ir::CmpOp::Eq, lhs: ir::Value::Immediate(ir::Immediate(lhs)), rhs: ir::Value::Register(ir::Register(rhs)), dst: ir::Register(dst) }), ..] => {
-            code.emit_instruction(func, asm::Instruction::new(Ident::new("cmp"), vec![asm::Argument::Register(asm::Register::VirtualRegister(rhs)), asm::Argument::Immediate(lhs as machine::Word)]));
-            code.emit_instruction(func, asm::Instruction::new(Ident::new("setne"), vec![asm::Argument::Register(asm::Register::MachineRegister(MachineRegister::CL))]));
-            code.emit_instruction(func, asm::Instruction::new(Ident::new("and"), vec![asm::Argument::Register(asm::Register::MachineRegister(MachineRegister::CL)), asm::Argument::Immediate(1)]));
-            code.emit_instruction(func, asm::Instruction::new(Ident::new("movzx"), vec![asm::Argument::Register(asm::Register::VirtualRegister(dst)), asm::Argument::Register(asm::Register::MachineRegister(MachineRegister::CL))]));
+            code.emit_instruction(func, asm::Instruction::new(Ident::new("cmp"), vec![asm::Argument::Register(asm::Register::Virtual(rhs)), asm::Argument::Immediate(lhs as machine::Word)]));
+            code.emit_instruction(func, asm::Instruction::new(Ident::new("setne"), vec![asm::Argument::Register(asm::Register::Machine(MachineRegister::CL))]));
+            code.emit_instruction(func, asm::Instruction::new(Ident::new("and"), vec![asm::Argument::Register(asm::Register::Machine(MachineRegister::CL)), asm::Argument::Immediate(1)]));
+            code.emit_instruction(func, asm::Instruction::new(Ident::new("movzx"), vec![asm::Argument::Register(asm::Register::Virtual(dst)), asm::Argument::Register(asm::Register::Machine(MachineRegister::CL))]));
             1
         },
         [IrLine::Instruction(&ir::Instruction::Cmp { cmp: ir::CmpOp::Ne, lhs: ir::Value::Register(ir::Register(lhs)), rhs: ir::Value::Register(ir::Register(rhs)), dst: ir::Register(dst) }), IrLine::CFInstruction(&ir::ControlFlowInstruction::Branch { cond: ir::Value::Register(ir::Register(cond)), conseq: ir::Label(conseq), altern: ir::Label(altern) })] if dst == cond  => {
-            code.emit_instruction(func, asm::Instruction::new(Ident::new("cmp"), vec![asm::Argument::Register(asm::Register::VirtualRegister(lhs)), asm::Argument::Register(asm::Register::VirtualRegister(rhs))]));
+            code.emit_instruction(func, asm::Instruction::new(Ident::new("cmp"), vec![asm::Argument::Register(asm::Register::Virtual(lhs)), asm::Argument::Register(asm::Register::Virtual(rhs))]));
             code.emit_instruction(func, asm::Instruction::new(Ident::new("jne"), vec![asm::Argument::Label(conseq)]));
             code.emit_instruction(func, asm::Instruction::new(Ident::new("jmp"), vec![asm::Argument::Label(altern)]));
             1
         },
         [IrLine::Instruction(&ir::Instruction::Cmp { cmp: ir::CmpOp::Ne, lhs: ir::Value::Register(ir::Register(lhs)), rhs: ir::Value::Immediate(ir::Immediate(rhs)), dst: ir::Register(dst) }), IrLine::CFInstruction(&ir::ControlFlowInstruction::Branch { cond: ir::Value::Register(ir::Register(cond)), conseq: ir::Label(conseq), altern: ir::Label(altern) })] if dst == cond  => {
-            code.emit_instruction(func, asm::Instruction::new(Ident::new("cmp"), vec![asm::Argument::Register(asm::Register::VirtualRegister(lhs)), asm::Argument::Immediate(rhs as machine::Word)]));
+            code.emit_instruction(func, asm::Instruction::new(Ident::new("cmp"), vec![asm::Argument::Register(asm::Register::Virtual(lhs)), asm::Argument::Immediate(rhs as machine::Word)]));
             code.emit_instruction(func, asm::Instruction::new(Ident::new("jne"), vec![asm::Argument::Label(conseq)]));
             code.emit_instruction(func, asm::Instruction::new(Ident::new("jmp"), vec![asm::Argument::Label(altern)]));
             1
         },
         [IrLine::Instruction(&ir::Instruction::Cmp { cmp: ir::CmpOp::Ne, lhs: ir::Value::Immediate(ir::Immediate(lhs)), rhs: ir::Value::Register(ir::Register(rhs)), dst: ir::Register(dst) }), IrLine::CFInstruction(&ir::ControlFlowInstruction::Branch { cond: ir::Value::Register(ir::Register(cond)), conseq: ir::Label(conseq), altern: ir::Label(altern) })] if dst == cond  => {
-            code.emit_instruction(func, asm::Instruction::new(Ident::new("cmp"), vec![asm::Argument::Register(asm::Register::VirtualRegister(rhs)), asm::Argument::Immediate(lhs as machine::Word)]));
+            code.emit_instruction(func, asm::Instruction::new(Ident::new("cmp"), vec![asm::Argument::Register(asm::Register::Virtual(rhs)), asm::Argument::Immediate(lhs as machine::Word)]));
             code.emit_instruction(func, asm::Instruction::new(Ident::new("je"), vec![asm::Argument::Label(altern)]));
             code.emit_instruction(func, asm::Instruction::new(Ident::new("jmp"), vec![asm::Argument::Label(conseq)]));
             1
         },
         [IrLine::Instruction(&ir::Instruction::Cmp { cmp: ir::CmpOp::Ne, lhs: ir::Value::Register(ir::Register(lhs)), rhs: ir::Value::Register(ir::Register(rhs)), dst: ir::Register(dst) }), ..] => {
-            code.emit_instruction(func, asm::Instruction::new(Ident::new("cmp"), vec![asm::Argument::Register(asm::Register::VirtualRegister(lhs)), asm::Argument::Register(asm::Register::VirtualRegister(rhs))]));
-            code.emit_instruction(func, asm::Instruction::new(Ident::new("setne"), vec![asm::Argument::Register(asm::Register::MachineRegister(MachineRegister::CL))]));
-            code.emit_instruction(func, asm::Instruction::new(Ident::new("and"), vec![asm::Argument::Register(asm::Register::MachineRegister(MachineRegister::CL)), asm::Argument::Immediate(1)]));
-            code.emit_instruction(func, asm::Instruction::new(Ident::new("movzx"), vec![asm::Argument::Register(asm::Register::VirtualRegister(dst)), asm::Argument::Register(asm::Register::MachineRegister(MachineRegister::CL))]));
+            code.emit_instruction(func, asm::Instruction::new(Ident::new("cmp"), vec![asm::Argument::Register(asm::Register::Virtual(lhs)), asm::Argument::Register(asm::Register::Virtual(rhs))]));
+            code.emit_instruction(func, asm::Instruction::new(Ident::new("setne"), vec![asm::Argument::Register(asm::Register::Machine(MachineRegister::CL))]));
+            code.emit_instruction(func, asm::Instruction::new(Ident::new("and"), vec![asm::Argument::Register(asm::Register::Machine(MachineRegister::CL)), asm::Argument::Immediate(1)]));
+            code.emit_instruction(func, asm::Instruction::new(Ident::new("movzx"), vec![asm::Argument::Register(asm::Register::Virtual(dst)), asm::Argument::Register(asm::Register::Machine(MachineRegister::CL))]));
             1
         },
         [IrLine::Instruction(&ir::Instruction::Cmp { cmp: ir::CmpOp::Ne, lhs: ir::Value::Register(ir::Register(lhs)), rhs: ir::Value::Immediate(ir::Immediate(rhs)), dst: ir::Register(dst) }), ..] => {
-            code.emit_instruction(func, asm::Instruction::new(Ident::new("cmp"), vec![asm::Argument::Register(asm::Register::VirtualRegister(lhs)), asm::Argument::Immediate(rhs as machine::Word)]));
-            code.emit_instruction(func, asm::Instruction::new(Ident::new("setne"), vec![asm::Argument::Register(asm::Register::MachineRegister(MachineRegister::CL))]));
-            code.emit_instruction(func, asm::Instruction::new(Ident::new("and"), vec![asm::Argument::Register(asm::Register::MachineRegister(MachineRegister::CL)), asm::Argument::Immediate(1)]));
-            code.emit_instruction(func, asm::Instruction::new(Ident::new("movzx"), vec![asm::Argument::Register(asm::Register::VirtualRegister(dst)), asm::Argument::Register(asm::Register::MachineRegister(MachineRegister::CL))]));
+            code.emit_instruction(func, asm::Instruction::new(Ident::new("cmp"), vec![asm::Argument::Register(asm::Register::Virtual(lhs)), asm::Argument::Immediate(rhs as machine::Word)]));
+            code.emit_instruction(func, asm::Instruction::new(Ident::new("setne"), vec![asm::Argument::Register(asm::Register::Machine(MachineRegister::CL))]));
+            code.emit_instruction(func, asm::Instruction::new(Ident::new("and"), vec![asm::Argument::Register(asm::Register::Machine(MachineRegister::CL)), asm::Argument::Immediate(1)]));
+            code.emit_instruction(func, asm::Instruction::new(Ident::new("movzx"), vec![asm::Argument::Register(asm::Register::Virtual(dst)), asm::Argument::Register(asm::Register::Machine(MachineRegister::CL))]));
             1
         },
         [IrLine::Instruction(&ir::Instruction::Cmp { cmp: ir::CmpOp::Ne, lhs: ir::Value::Immediate(ir::Immediate(lhs)), rhs: ir::Value::Register(ir::Register(rhs)), dst: ir::Register(dst) }), ..] => {
-            code.emit_instruction(func, asm::Instruction::new(Ident::new("cmp"), vec![asm::Argument::Register(asm::Register::VirtualRegister(rhs)), asm::Argument::Immediate(lhs as machine::Word)]));
-            code.emit_instruction(func, asm::Instruction::new(Ident::new("sete"), vec![asm::Argument::Register(asm::Register::MachineRegister(MachineRegister::CL))]));
-            code.emit_instruction(func, asm::Instruction::new(Ident::new("and"), vec![asm::Argument::Register(asm::Register::MachineRegister(MachineRegister::CL)), asm::Argument::Immediate(1)]));
-            code.emit_instruction(func, asm::Instruction::new(Ident::new("movzx"), vec![asm::Argument::Register(asm::Register::VirtualRegister(dst)), asm::Argument::Register(asm::Register::MachineRegister(MachineRegister::CL))]));
+            code.emit_instruction(func, asm::Instruction::new(Ident::new("cmp"), vec![asm::Argument::Register(asm::Register::Virtual(rhs)), asm::Argument::Immediate(lhs as machine::Word)]));
+            code.emit_instruction(func, asm::Instruction::new(Ident::new("sete"), vec![asm::Argument::Register(asm::Register::Machine(MachineRegister::CL))]));
+            code.emit_instruction(func, asm::Instruction::new(Ident::new("and"), vec![asm::Argument::Register(asm::Register::Machine(MachineRegister::CL)), asm::Argument::Immediate(1)]));
+            code.emit_instruction(func, asm::Instruction::new(Ident::new("movzx"), vec![asm::Argument::Register(asm::Register::Virtual(dst)), asm::Argument::Register(asm::Register::Machine(MachineRegister::CL))]));
             1
         },
         [IrLine::Instruction(&ir::Instruction::Alloca { dst: ir::Register(dst) }), ..] => {
-            code.emit_instruction(func, asm::Instruction::new(Ident::new("mov"), vec![asm::Argument::Register(asm::Register::VirtualRegister(dst)), asm::Argument::Register(asm::Register::MachineRegister(MachineRegister::RSP))]));
-            code.emit_instruction(func, asm::Instruction::new(Ident::new("sub"), vec![asm::Argument::Register(asm::Register::MachineRegister(MachineRegister::RSI)), asm::Argument::Immediate(4)]));
+            code.emit_instruction(func, asm::Instruction::new(Ident::new("mov"), vec![asm::Argument::Register(asm::Register::Virtual(dst)), asm::Argument::Register(asm::Register::Machine(MachineRegister::RSP))]));
+            code.emit_instruction(func, asm::Instruction::new(Ident::new("sub"), vec![asm::Argument::Register(asm::Register::Machine(MachineRegister::RSI)), asm::Argument::Immediate(4)]));
             1
         },
         [IrLine::Instruction(&ir::Instruction::Load { src: ir::Value::Register(ir::Register(src)), dst: ir::Register(dst) }), ..] => {
-            code.emit_instruction(func, asm::Instruction::new(Ident::new("mov"), vec![asm::Argument::Register(asm::Register::VirtualRegister(dst)), asm::Argument::Indirect { size: Some(asm::OperandSize::QWord), base: Some(asm::Register::VirtualRegister(src)), index: None, disp: None }]));
+            code.emit_instruction(func, asm::Instruction::new(Ident::new("mov"), vec![asm::Argument::Register(asm::Register::Virtual(dst)), asm::Argument::Indirect { size: Some(asm::OperandSize::QWord), base: Some(asm::Register::Virtual(src)), index: None, disp: None }]));
             1
         },
         [IrLine::Instruction(&ir::Instruction::Load { src: ir::Value::Static(src), dst: ir::Register(dst) }), ..] => {
-            code.emit_instruction(func, asm::Instruction::new(Ident::new("mov"), vec![asm::Argument::Register(asm::Register::VirtualRegister(dst)), asm::Argument::Indirect { size: Some(asm::OperandSize::QWord), base: Some(asm::Register::VirtualRegister(src)), index: None, disp: None }]));
+            code.emit_instruction(func, asm::Instruction::new(Ident::new("mov"), vec![asm::Argument::Register(asm::Register::Virtual(dst)), asm::Argument::Indirect { size: Some(asm::OperandSize::QWord), base: Some(asm::Register::Virtual(src)), index: None, disp: None }]));
             1
         },
         [IrLine::Instruction(&ir::Instruction::Store { src: ir::Value::Register(ir::Register(val)), dst: ir::Value::Register(ir::Register(dst)) }), ..] => {
-            code.emit_instruction(func, asm::Instruction::new(Ident::new("mov"), vec![asm::Argument::Indirect { size: Some(asm::OperandSize::QWord), base: Some(asm::Register::VirtualRegister(dst)), index: None, disp: None }, asm::Argument::Register(asm::Register::VirtualRegister(val))]));
+            code.emit_instruction(func, asm::Instruction::new(Ident::new("mov"), vec![asm::Argument::Indirect { size: Some(asm::OperandSize::QWord), base: Some(asm::Register::Virtual(dst)), index: None, disp: None }, asm::Argument::Register(asm::Register::Virtual(val))]));
             1
         },
         [IrLine::Instruction(&ir::Instruction::Store { src: ir::Value::Immediate(ir::Immediate(val)), dst: ir::Value::Register(ir::Register(dst)) }), ..] => {
-            code.emit_instruction(func, asm::Instruction::new(Ident::new("mov"), vec![asm::Argument::Indirect { size: Some(asm::OperandSize::QWord), base: Some(asm::Register::VirtualRegister(dst)), index: None, disp: None }, asm::Argument::Immediate(val as machine::Word)]));
+            code.emit_instruction(func, asm::Instruction::new(Ident::new("mov"), vec![asm::Argument::Indirect { size: Some(asm::OperandSize::QWord), base: Some(asm::Register::Virtual(dst)), index: None, disp: None }, asm::Argument::Immediate(val as machine::Word)]));
             1
         },
         [IrLine::Instruction(&ir::Instruction::Call { name: callee, args: ref args, dst: ir::Register(dst) }), ..] => {
@@ -534,21 +534,21 @@ pub fn trans_instr(func: Ident,
             0
         },
         [IrLine::CFInstruction(&ir::ControlFlowInstruction::Return { value: Some(ir::Value::Register(ir::Register(val))) })] => {
-            code.emit_instruction(func, asm::Instruction::new(Ident::new("mov"), vec![asm::Argument::Register(asm::Register::MachineRegister(MachineRegister::RAX)), asm::Argument::Register(asm::Register::VirtualRegister(val))]));
+            code.emit_instruction(func, asm::Instruction::new(Ident::new("mov"), vec![asm::Argument::Register(asm::Register::Machine(MachineRegister::RAX)), asm::Argument::Register(asm::Register::Virtual(val))]));
             code.emit_instruction(func, asm::Instruction::new(Ident::new("leave"), vec![]));
             code.emit_instruction(func, asm::Instruction::new(Ident::new("ret"), vec![]));
             0
         },
         [IrLine::CFInstruction(&ir::ControlFlowInstruction::Branch { cond: ir::Value::Register(ir::Register(cond)), conseq: ir::Label(conseq), altern: ir::Label(altern) })] => {
-            code.emit_instruction(func, asm::Instruction::new(Ident::new("test"), vec![asm::Argument::Register(asm::Register::VirtualRegister(cond)), asm::Argument::Immediate(1)]));
+            code.emit_instruction(func, asm::Instruction::new(Ident::new("test"), vec![asm::Argument::Register(asm::Register::Virtual(cond)), asm::Argument::Immediate(1)]));
             code.emit_instruction(func, asm::Instruction::new(Ident::new("je"), vec![asm::Argument::Label(conseq)]));
             code.emit_instruction(func, asm::Instruction::new(Ident::new("jmp"), vec![asm::Argument::Label(altern)]));
             0
         },
         [IrLine::CFInstruction(&ir::ControlFlowInstruction::Branch { cond: ir::Value::Immediate(ir::Immediate(cond)), conseq: ir::Label(conseq), altern: ir::Label(altern) })] => {
             let tmp = Ident::new("tmp");
-            code.emit_instruction(func, asm::Instruction::new(Ident::new("mov"), vec![asm::Argument::Register(asm::Register::VirtualRegister(tmp)), asm::Argument::Immediate(cond as machine::Word)]));
-            code.emit_instruction(func, asm::Instruction::new(Ident::new("test"), vec![asm::Argument::Register(asm::Register::VirtualRegister(tmp)), asm::Argument::Immediate(1)]));
+            code.emit_instruction(func, asm::Instruction::new(Ident::new("mov"), vec![asm::Argument::Register(asm::Register::Virtual(tmp)), asm::Argument::Immediate(cond as machine::Word)]));
+            code.emit_instruction(func, asm::Instruction::new(Ident::new("test"), vec![asm::Argument::Register(asm::Register::Virtual(tmp)), asm::Argument::Immediate(1)]));
             code.emit_instruction(func, asm::Instruction::new(Ident::new("je"), vec![asm::Argument::Label(conseq)]));
             code.emit_instruction(func, asm::Instruction::new(Ident::new("jmp"), vec![asm::Argument::Label(altern)]));
             0

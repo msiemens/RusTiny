@@ -125,7 +125,7 @@ impl<'v> Visitor<'v> for ScopeTableBuilder<'v> {
     }
 
     fn visit_statement(&mut self, stmt: &'v Node<Statement>) {
-        if let Statement::Declaration { ref binding, value: _ } = **stmt {
+        if let Statement::Declaration { ref binding, .. } = **stmt {
             self.resolve_declaration(binding);
         }
 
@@ -149,7 +149,7 @@ impl<'v> Visitor<'v> for ScopeTableBuilder<'v> {
     }
 }
 
-pub fn run(program: &Program) {
+pub fn run(program: &[Node<Symbol>]) {
     let symbol_table = &session().symbol_table;
     let mut visitor = ScopeTableBuilder::new(&symbol_table);
     walk_program(&mut visitor, program);

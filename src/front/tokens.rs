@@ -1,4 +1,4 @@
-//! All tokens that RusTiny understands
+//! All tokens that `RusTiny` understands
 
 use std::fmt;
 use driver::interner::Ident;
@@ -40,15 +40,12 @@ impl Token {
 
             Token::Keyword(kw)  => {
                 match kw {
-                    Keyword::True   => TokenType::Literal,
-                    Keyword::False  => TokenType::Literal,
-
-                    _               => TokenType::Other
+                    Keyword::True | Keyword::False => TokenType::Literal,
+                    _                              => TokenType::Other
                 }
             },
-            Token::Ident(..)    => TokenType::Ident,
-            Token::Int(..)      => TokenType::Literal,
-            Token::Char(..)     => TokenType::Literal,
+            Token::Ident(..)                 => TokenType::Ident,
+            Token::Int(..) | Token::Char(..) => TokenType::Literal,
 
             _ => TokenType::Other
         }

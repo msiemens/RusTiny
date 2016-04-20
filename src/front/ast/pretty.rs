@@ -9,12 +9,12 @@ use front::ast::*;
 
 pub struct PrettyPrinter<'a, W: 'a> {
     indent: u32,
-    program: &'a Program,
+    program: &'a [Node<Symbol>],
     out: &'a mut W
 }
 
 impl<'a, W: Write> PrettyPrinter<'a, W> {
-    pub fn print(program: &'a Program, out: &mut W) {
+    pub fn print(program: &'a [Node<Symbol>], out: &mut W) {
         PrettyPrinter {
             indent: 0,
             program: program,
@@ -152,12 +152,9 @@ impl<'a, W: Write> PrettyPrinter<'a, W> {
                 self.print_expression(cond);
                 write!(&mut self.out, " ").ok();
                 self.print_block(conseq);
-                match *altern {
-                    Some(ref b) => {
-                        write!(&mut self.out, " else ").ok();
-                        self.print_block(b);
-                    },
-                    None => {}
+                if let Some(ref b) =  *altern {
+                    write!(&mut self.out, " else ").ok();
+                    self.print_block(b);
                 }
             },
             Expression::While { ref cond, ref body } => {

@@ -61,9 +61,7 @@ pub enum IrArg {
 impl IrArg {
     pub fn get_name(&self) -> Ident {
         match *self {
-            IrArg::Register(id) => id,
-            IrArg::Literal(id) => id,
-            IrArg::Static(id) => id,
+            IrArg::Register(id) | IrArg::Literal(id)| IrArg::Static(id) => id,
         }
     }
 }

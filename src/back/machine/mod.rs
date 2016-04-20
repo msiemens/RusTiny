@@ -1,4 +1,4 @@
-//! The RusTiny machine description
+//! The `RusTiny` machine description
 //!
 
 use std::fmt;
