@@ -12,9 +12,6 @@ if os.name == 'nt':
 
 RUSTINY_DIR = Path(__file__).resolve().parents[1]
 
-CLIPPY_PATH = 'C://Users//markus//Documents//Coding//rust//cargo-clippy//target//release//deps'
-CLIPPY_ARGS = ['-Aneedless_return', '-Aneedless_lifetimes', '-L' + CLIPPY_PATH]
-
 
 def get_binary(name, release):
     if release is True:
@@ -33,7 +30,7 @@ def run(mode, release, args=None):
     build_rules(release)
 
     if mode == 'check':
-        cmd = ['cargo', 'clippy'] + args + ['--'] + CLIPPY_ARGS
+        cmd = ['cargo', 'rustc', '-Zno-trans'] + args
 
         cprint('Running {!r} ...'.format(' '.join(cmd)), 'blue')
         sys.exit(subprocess.call(cmd))
@@ -60,15 +57,20 @@ def run(mode, release, args=None):
 
 
 def build_rules(release):
+    recompile_needed = False
+
     rules_input = RUSTINY_DIR / 'src' / 'back' / 'instsel' / 'rules.ins.rs'
     rules_dummy = RUSTINY_DIR / 'src' / 'back' / 'instsel' / 'rules.dummy.rs'
     rules_dest = RUSTINY_DIR / 'src' / 'back' / 'instsel' / 'rules.rs'
 
     # Check if rules.dummy.rs is needed
     if not rules_dest.exists():
-        copyfile(str(rules_dummy), str(rules_input))
+        shutil.copyfile(str(rules_dummy), str(rules_dest))
+        recompile_needed = True
 
-    if rules_input.stat().st_mtime > rules_dest.stat().st_mtime:
+    recompile_needed |= rules_input.stat().st_mtime > rules_dest.stat().st_mtime
+
+    if recompile_needed:
         # Compile rules
         try:
             subprocess.check_call(['cargo', 'run', '--bin', 'rustiny-rulecomp',

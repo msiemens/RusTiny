@@ -5,20 +5,20 @@ use middle::ir::*;
 
 
 pub trait Visitor<'v> : Sized {
-	fn visit_symbol(&mut self, s: &'v Symbol) {
-		walk_symbol(self, s);
+	fn visit_symbol(&mut self, symbol: &'v Symbol) {
+		walk_symbol(self, symbol);
 	}
 
-	fn visit_block(&mut self, b: &'v Block) {
-		walk_block(self, b);
+	fn visit_block(&mut self, block: &'v Block) {
+		walk_block(self, block);
 	}
 
-	fn visit_instruction(&mut self, i: &'v Instruction) {
-		walk_instruction(self, i);
+	fn visit_instruction(&mut self, instr: &'v Instruction) {
+		walk_instruction(self, instr);
 	}
 
-	fn visit_cf_instruction(&mut self, i: &'v ControlFlowInstruction) {
-		walk_cf_instruction(self, i);
+	fn visit_cf_instruction(&mut self, instr: &'v ControlFlowInstruction) {
+		walk_cf_instruction(self, instr);
 	}
 
 	// Leaf nodes:

@@ -7,11 +7,17 @@ use driver::interner::Ident;
 use middle::ir;
 use back::machine::{self, asm};
 
-pub fn translate_call(func: Ident,
-                      code: &mut asm::Assembly,
-                      callee: Ident,
-                      args: &[ir::Value],
-                      dst: Ident) {
+
+pub fn translate_call(_: Ident,
+                      _: &mut asm::Assembly,
+                      _: Ident,
+                      _: &[ir::Value],
+                      _: Ident) {
+//pub fn translate_call(func: Ident,
+//                      code: &mut asm::Assembly,
+//                      callee: Ident,
+//                      args: &[ir::Value],
+//                      dst: Ident) {
     // FIXME: This is 32 bit, not 64 bit!
     //for arg in args {
     //    code.emit_instruction(func, asm::Instruction::new(Ident::new("push"), vec![translate_value(arg)]));
@@ -26,10 +32,10 @@ pub fn translate_call(func: Ident,
 
 // TODO: pub fn translate_return()
 
-
+/*
 fn translate_value(value: &ir::Value) -> asm::Argument {
     match *value {
-        ir::Value::Register(ir::Register(reg)) => {
+        ir::Value::Register(ir::Register(reg), _) => {
             asm::Argument::Register(asm::Register::VirtualRegister(reg))
         },
         ir::Value::Immediate(ir::Immediate(val)) => {
@@ -38,3 +44,4 @@ fn translate_value(value: &ir::Value) -> asm::Argument {
         ir::Value::Static(..) => unimplemented!()
     }
 }
+*/

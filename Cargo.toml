@@ -20,6 +20,7 @@ lto = true
 
 [dependencies]
 ansi_term = "*"
+clippy = "*"
 docopt = "*"
 docopt_macros = "*"
 env_logger = "*"

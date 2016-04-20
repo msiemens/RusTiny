@@ -1,3 +1,4 @@
+use std::cell::Cell;
 use std::collections::VecDeque;
 use std::fmt;
 use std::iter::IntoIterator;
@@ -14,7 +15,25 @@ pub mod visit;
 pub use middle::ir::trans::translate;
 
 
-#[derive(Clone, Copy, Debug, PartialEq)]
+//#[derive(Clone, Copy, Debug, PartialEq)]
+//pub struct UsageId(u32);
+//
+//impl UsageId {
+//    pub fn new() -> UsageId {
+//        thread_local!{
+//            static CURRENT_ID: Cell<u32> = Cell::new(0)
+//        };
+//
+//        CURRENT_ID.with(|c| {
+//            let id = c.get();
+//            c.set(id + 1);
+//            UsageId(id)
+//        })
+//    }
+//}
+
+
+#[derive(Clone, Copy, Debug, PartialEq, Hash)]
 pub struct Label(pub Ident);
 
 impl Label {
@@ -23,7 +42,7 @@ impl Label {
     }
 }
 
-#[derive(Clone, Copy, Debug, PartialEq)]
+#[derive(Clone, Copy, Debug, PartialEq, Hash)]
 pub enum Value {
     /// Contents of a register
     Register(Register),
@@ -58,7 +77,7 @@ impl Register {
     }
 }
 
-#[derive(Clone, Copy, PartialEq)]
+#[derive(Clone, Copy, PartialEq, Hash)]
 pub struct Immediate(pub u32);
 
 impl Immediate {
@@ -254,7 +273,7 @@ impl Block {
 }
 
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq, Hash)]
 #[allow(missing_copy_implementations)]
 pub enum ControlFlowInstruction {
     Return {
@@ -272,7 +291,7 @@ pub enum ControlFlowInstruction {
 }
 
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Hash)]
 pub enum Instruction {
     BinOp {
         op: InfixOp,
@@ -319,7 +338,7 @@ pub enum Instruction {
 }
 
 
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, Hash)]
 pub enum InfixOp {
     // Arithmetical
     Add,  // +
@@ -358,7 +377,7 @@ impl InfixOp {
     }
 }
 
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, Hash)]
 pub enum PrefixOp {
     // Arithmetical
     Neg,  // -
@@ -376,7 +395,7 @@ impl PrefixOp {
     }
 }
 
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, Hash)]
 pub enum CmpOp {
     Lt,  // <
     Le,  // <=

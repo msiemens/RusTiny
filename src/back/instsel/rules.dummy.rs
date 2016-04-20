@@ -15,10 +15,5 @@ pub fn trans_instr(func: Ident,
                    code: &mut asm::Assembly)
                    -> usize
 {
-    let mut lines: Vec<_> = instr.iter().map(|i| IrLine::Instruction(i)).collect();
-    lines.push(IrLine::CFInstruction(last));
-
-    match &*lines {
-        _ => panic!("No rule to translate {:?} to asm", instr)
-    }
+    panic!("Dummy rules")
 }

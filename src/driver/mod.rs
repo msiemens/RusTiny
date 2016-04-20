@@ -46,6 +46,7 @@ pub fn compile_input(source: String, input_file: String, ir_only: bool) {
 
     // --- Back end -------------------------------------------------------------
     // Phase 5: Machine code generation
+    let ir_liveness = middle::calculate_liveness(&ir);
     let assembly = back::select_instructions(&ir);
 
     // Phase 6: Register allocation

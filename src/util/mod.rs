@@ -1,6 +1,6 @@
 //! Different helpers & utilities
 use std::collections::hash_map::{HashMap, Entry};
-use std::collections::hash_state::HashState;
+use std::hash::BuildHasher;
 use std::hash::Hash;
 
 pub use self::io::{read_file, write_file};
@@ -15,7 +15,7 @@ pub trait TryInsert<K, V> {
 }
 
 impl<K, V, S> TryInsert<K, V> for HashMap<K, V, S>
-        where K: Eq + Hash, S: HashState {
+        where K: Eq + Hash, S: BuildHasher {
     fn try_insert(&mut self, k: K, v: V) -> Result<(), ()> {
         match self.entry(k) {
             Entry::Occupied(_) => Err(()),
