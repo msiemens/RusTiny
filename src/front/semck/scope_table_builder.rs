@@ -151,7 +151,7 @@ impl<'v> Visitor<'v> for ScopeTableBuilder<'v> {
 
 pub fn run(program: &[Node<Symbol>]) {
     let symbol_table = &session().symbol_table;
-    let mut visitor = ScopeTableBuilder::new(&symbol_table);
+    let mut visitor = ScopeTableBuilder::new(symbol_table);
     walk_program(&mut visitor, program);
 
     session().abort_if_errors();

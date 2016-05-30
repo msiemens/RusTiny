@@ -1,6 +1,5 @@
 //! Make sure a `main` function is present
 
-use std::borrow::ToOwned;
 use front::ast::*;
 use front::ast::visit::*;
 

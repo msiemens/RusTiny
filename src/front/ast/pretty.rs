@@ -30,20 +30,20 @@ impl<'a, W: Write> PrettyPrinter<'a, W> {
 
     fn print_program(&mut self) {
         for symbol in self.program {
-            self.print_symbol(&symbol);
+            self.print_symbol(symbol);
         }
     }
 
     fn print_symbol(&mut self, symbol: &Symbol) {
         match *symbol {
-            Symbol::Static   { ref binding, ref value } => self.print_static(&binding, &value),
-            Symbol::Constant { ref binding, ref value } => self.print_constant(&binding, &value),
+            Symbol::Static   { ref binding, ref value } => self.print_static(binding, value),
+            Symbol::Constant { ref binding, ref value } => self.print_constant(binding, value),
             Symbol::Function {
                 ref name,
                 ref bindings,
                 ref ret_ty,
                 ref body
-            } => self.print_function(&name, &bindings, ret_ty, &body)
+            } => self.print_function(name, bindings, ret_ty, body)
         }
     }
 
@@ -84,7 +84,7 @@ impl<'a, W: Write> PrettyPrinter<'a, W> {
         self.indent += 1;
 
         for stmt in &block.stmts {
-            self.print_statement(&stmt);
+            self.print_statement(stmt);
         }
 
         if let Expression::Unit = **block.expr {}

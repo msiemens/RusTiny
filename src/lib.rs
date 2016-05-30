@@ -8,9 +8,11 @@
 #![warn(unused_imports)]
 #![warn(dead_code)]
 #![warn(missing_copy_implementations)]
-#![allow(new_without_default)]
-#![allow(while_let_loop)]  // Clippy is buggy here with multiple if lets
 //#![warn(missing_docs)]
+#![allow(doc_markdown)]
+#![allow(new_without_default)]
+#![allow(new_without_default_derive)]
+#![allow(while_let_loop)]  // Clippy is buggy here with multiple if lets (see Manishearth/rust-clippy#771) 
 
 extern crate ansi_term;
 extern crate term;

@@ -54,7 +54,7 @@ pub fn walk_program<'v, V>(visitor: &mut V, program: &'v [Node<Symbol>])
         where V: Visitor<'v>
 {
     for symbol in program {
-        visitor.visit_symbol(&symbol)
+        visitor.visit_symbol(symbol)
     }
 }
 
@@ -65,15 +65,15 @@ pub fn walk_symbol<'v, V>(visitor: &mut V, symbol: &'v Node<Symbol>)
         // FIXME: Visit value too?
         Symbol::Static { ref binding, .. }
         | Symbol::Constant { ref binding, .. } => {
-            visitor.visit_binding(&binding);
+            visitor.visit_binding(binding);
         },
         Symbol::Function { ref name, ref bindings, ref ret_ty, ref body } => {
-            visitor.visit_ident(&name);
+            visitor.visit_ident(name);
             for binding in bindings {
-                visitor.visit_binding(&binding);
+                visitor.visit_binding(binding);
             }
-            visitor.visit_type(&ret_ty);
-            visitor.visit_block(&body);
+            visitor.visit_type(ret_ty);
+            visitor.visit_block(body);
         }
     }
 }
@@ -90,7 +90,7 @@ pub fn walk_block<'v, V>(visitor: &mut V, block: &'v Node<Block>)
         where V: Visitor<'v>
 {
     for stmt in &block.stmts {
-        visitor.visit_statement(&stmt);
+        visitor.visit_statement(stmt);
     }
 
     visitor.visit_expression(&block.expr);
@@ -102,11 +102,11 @@ pub fn walk_statement<'v, V>(visitor: &mut V, stmt: &'v Node<Statement>)
 {
     match **stmt {
         Statement::Declaration { ref binding, ref value } => {
-            visitor.visit_binding(&binding);
-            visitor.visit_expression(&value);
+            visitor.visit_binding(binding);
+            visitor.visit_expression(value);
         },
         Statement::Expression { ref val } => {
-            visitor.visit_expression(&val)
+            visitor.visit_expression(val)
         }
     }
 }
@@ -117,39 +117,39 @@ pub fn walk_expression<'v, V>(visitor: &mut V, expr: &'v Node<Expression>)
 {
     match **expr {
         Expression::Variable { ref name } => {
-            visitor.visit_ident(&name)
+            visitor.visit_ident(name)
         },
         Expression::Assign { ref lhs, ref rhs }
         | Expression::AssignOp { ref lhs, ref rhs, .. }
         | Expression::Infix { ref lhs, ref rhs, .. } => {
-            visitor.visit_expression(&lhs);
-            visitor.visit_expression(&rhs);
+            visitor.visit_expression(lhs);
+            visitor.visit_expression(rhs);
         },
         Expression::Return { ref val } => {
-            visitor.visit_expression(&val);
+            visitor.visit_expression(val);
         },
         Expression::Call { ref func, ref args } => {
-            visitor.visit_expression(&func);
+            visitor.visit_expression(func);
             for arg in args {
-                visitor.visit_expression(&arg);
+                visitor.visit_expression(arg);
             }
         },
         Expression::Group(ref expr) => {
-            visitor.visit_expression(&expr)
+            visitor.visit_expression(expr)
         },
         Expression::Prefix { ref item, .. } => {
-            visitor.visit_expression(&item);
+            visitor.visit_expression(item);
         },
         Expression::If { ref cond, ref conseq, ref altern } => {
-            visitor.visit_expression(&cond);
-            visitor.visit_block(&conseq);
+            visitor.visit_expression(cond);
+            visitor.visit_block(conseq);
             if let Some(ref else_block) = *altern {
-                visitor.visit_block(&else_block);
+                visitor.visit_block(else_block);
             }
         },
         Expression::While { ref cond, ref body } => {
-            visitor.visit_expression(&cond);
-            visitor.visit_block(&body);
+            visitor.visit_expression(cond);
+            visitor.visit_block(body);
         },
         Expression::Literal { .. } | Expression::Break | Expression::Unit => {}
     }

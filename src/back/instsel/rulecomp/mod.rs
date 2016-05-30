@@ -82,7 +82,7 @@ fn translate_rule(rule: &Rule) -> String {
     for pattern in &rule.pattern.ir_patterns {
         update_pattern_types(pattern, &mut arg_types);
     }
-    rule.pattern.last.as_ref().map(|l| update_pattern_last_types(&l, &mut arg_types));
+    rule.pattern.last.as_ref().map(|l| update_pattern_last_types(l, &mut arg_types));
 
     let mut s = "        ".to_owned();
     s.push_str(&translate_pattern(&rule.pattern));
@@ -103,7 +103,7 @@ fn translate_rule(rule: &Rule) -> String {
                })
                .all(|_| true);
 
-            s.push_str(&translate_asm(&asm, &arg_types));
+            s.push_str(&translate_asm(asm, &arg_types));
         }
         Impl::Rust(source) => {
             s.push_str(&source);
@@ -189,7 +189,7 @@ fn translate_pattern(pattern: &Pattern) -> String {
                 s.push_str(", ");
             }
 
-            s.push_str(&translate_ir_pattern_last(&last));
+            s.push_str(&translate_ir_pattern_last(last));
         },
         None => s.push_str(", ..")
     }

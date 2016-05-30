@@ -47,7 +47,7 @@ pub fn walk_symbol<'v, V>(visitor: &mut V, symbol: &'v Symbol)
     			visitor.visit_ident(*arg);
     		}
     		for block in body {
-    			visitor.visit_block(&block);
+    			visitor.visit_block(block);
     		}
     	}
     }
@@ -59,7 +59,7 @@ pub fn walk_block<'v, V>(visitor: &mut V, block: &'v Block)
 {
 	visitor.visit_label(block.label);
 	for inst in &block.inst {
-		visitor.visit_instruction(&inst);
+		visitor.visit_instruction(inst);
 	}
 	visitor.visit_cf_instruction(&block.last);
 }

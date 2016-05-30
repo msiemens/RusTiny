@@ -478,7 +478,7 @@ impl<'a> Parser<'a> {
                 self.bump();
 
                 disp = if let Token::Literal(lit) = self.token {
-                    Some(-1 * lit.parse::<i32>().unwrap())
+                    Some(-lit.parse::<i32>().unwrap())
                 } else {
                     self.unexpected_token(Some("a numeric literal"));
                 };

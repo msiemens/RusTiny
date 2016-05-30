@@ -1,6 +1,5 @@
 //! Make sure a `break` is always within a while loop
 
-use std::borrow::ToOwned;
 use front::ast::*;
 use front::ast::visit::*;
 

@@ -129,7 +129,7 @@ impl<'a> TypeCheck<'a> {
                 self.check_return(val)
             },
             Expression::Call { ref func, ref args } => {
-                self.check_call(func, &args)
+                self.check_call(func, args)
             },
             Expression::Group(ref expr) => {
                 self.check_expression(expr, expected)

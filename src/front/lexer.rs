@@ -158,7 +158,7 @@ impl<'a> Lexer<'a> {
         });
 
         // Check whether it's a keyword or an identifier
-        if let Some(kw) = lookup_keyword(&ident) {
+        if let Some(kw) = lookup_keyword(ident) {
             Token::Keyword(kw)
         } else {
             Token::Ident(Ident::new(ident))
