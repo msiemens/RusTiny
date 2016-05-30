@@ -24,6 +24,9 @@ Tests can be skipped using:
 
     //! SKIP
 
+To run only a subset of the test suites, pass them as an argument:
+
+    python script/test.py asm,ir
 """
 
 from collections import namedtuple
@@ -185,8 +188,6 @@ def tests_compiler():
 
 
 def tests_compile_fail():
-    cprint('Running compile-fail tests...', 'blue')
-
     for category, test in collect_categorized_tests('compile-fail'):
         test_name = test.name
         print('Testing {}/{} ... '.format(category, test_name), end='')
@@ -221,8 +222,6 @@ def tests_compile_fail():
 
 
 def tests_run_pass():
-    cprint('Running run-pass tests...', 'blue')
-
     for category, test in collect_categorized_tests('run-pass'):
         test_name = test.parts[-1]
         print('Testing {}/{} ... '.format(category, test_name), end='')
@@ -243,10 +242,8 @@ def tests_run_pass():
                                        '\n'.join(stderr), None))
 
 
-def tests_ir():
-    cprint('Running IR tests...', 'blue')
-
-    tests = [name for name in sorted(list((TEST_DIR / 'ir').iterdir()))
+def tests_emit(target, ext, descr):
+    tests = [name for name in sorted(list((TEST_DIR / target).iterdir()))
              if name.suffix == '.rs']
 
     for test in tests:
@@ -258,29 +255,30 @@ def tests_ir():
             continue
 
         # Get generated IR
-        cresult = compile_file(test, ['--ir'])
+        cresult = compile_file(test, ['--target', target])
 
         if cresult.exit_code != 0:
             session.failure(FailedTest(test, test_name, None, None, cresult.output,
                                        'compiling failed'))
             continue
 
-        generated_ir = cresult.output.strip()
+        generated = cresult.output.strip()
 
         # Get expceted IR
-        with (TEST_DIR / 'ir' / (test.stem + '.ir')).open() as f:
+        with (TEST_DIR / target / (test.stem + ext)).open() as f:
             expected_ir = f.read().strip()
 
-        if generated_ir == expected_ir:
+        if generated == expected_ir:
             session.success()
         else:
             output = '\n   {}\n{}\n\n   {}\n{}'.format(
-                colored('Expected IR:', 'cyan'),
+                colored('Expected {}:'.format(descr), 'cyan'),
                 expected_ir,
-                colored('Generated IR:', 'cyan')
+                colored('Generated {}:'.format(descr), 'cyan'),
+                generated
             )
             session.failure(FailedTest(test, test_name, None, None,
-                            None, output, generated_ir))
+                            None, output))
 
 
 def print_results():
@@ -325,17 +323,31 @@ def print_results():
 
 
 if __name__ == '__main__':
+    os.environ['COLORED_OUTPUT'] = 'off'
+
+    tests = {
+        'internal': ('compiler unit tests', tests_compiler),
+        'compile-fail': ('compile-fail tests', tests_compile_fail),
+        'run-pass': ('run-pass tests', tests_run_pass),
+        'ir': ('IR tests', lambda: tests_emit(target='ir', ext='.ir', descr='IR')),
+        'asm': ('ASM tests', lambda: tests_emit(target='asm', ext='.s', descr='ASM'))
+    }
+    default_set = ['internal', 'compile-fail', 'run-pass', 'ir', 'asm']
+
+    if len(sys.argv) == 2:
+        suites = sys.argv[1].split(',')
+    else:
+        suites = default_set
+
+    # Build the compiler in debug mode
     build.run('build', release=False)
 
-    cprint('Running compiler unit tests...', 'blue')
-    tests_compiler()
+    # Run specified set of test suites
+    for suite in suites:
+        title, func = tests[suite]
 
-    os.environ['COLORED_OUTPUT'] = 'off'
-    tests_compile_fail()
-    print()
-    tests_run_pass()
-    print()
-    tests_ir()
+        cprint('Running {}...'.format(title), 'blue')
+        func()
 
     print_results()
 

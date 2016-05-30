@@ -18,8 +18,16 @@ pub mod symbol_table;
 mod session;
 
 
+#[derive(Clone, Copy, Debug, PartialEq, RustcDecodable)]
+pub enum CompilationTarget {
+    Ir,
+    Asm,
+    Bin
+}
+
+
 /// The main entry point for compiling a file
-pub fn compile_input(source: String, input_file: String, ir_only: bool) {
+pub fn compile_input(source: String, input_file: String, target: CompilationTarget) {
     // --- Front end ------------------------------------------------------------
     // Set up
     front::setup();
@@ -37,7 +45,7 @@ pub fn compile_input(source: String, input_file: String, ir_only: bool) {
     // Phase 3: Intermediate code generation
     let ir = middle::ir::translate(&ast);
 
-    if ir_only {
+    if target == CompilationTarget::Ir {
         println!("{}", ir);
         return
     }
@@ -46,8 +54,13 @@ pub fn compile_input(source: String, input_file: String, ir_only: bool) {
 
     // --- Back end -------------------------------------------------------------
     // Phase 5: Machine code generation
-    middle::calculate_liveness(&ir);
+    // middle::calculate_liveness(&ir);
     let assembly = back::select_instructions(&ir);
+
+    if target == CompilationTarget::Asm {
+        println!("{}", assembly);
+        return
+    }
 
     // Phase 6: Register allocation
     // Phase 7: Assembly optimization

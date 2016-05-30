@@ -6,6 +6,7 @@ extern crate rustc_serialize;
 extern crate rustiny;
 
 use docopt::Docopt;
+use rustiny::driver::{compile_input, CompilationTarget};
 use rustiny::util::read_file;
 
 static USAGE: &'static str = "
@@ -13,16 +14,17 @@ Usage: rustiny [options] <input>
        rustiny --help
 
 Options:
-    --ir            Emit IR only
-    -o <output>     Write output to <output>
-    --help          Show this screen
+    --target TYPE   Configure the output that rustiny will produce.
+                    Valid values: bin, asm, ir.
+    -o <output>     Write output to <output>.
+    --help          Show this screen.
 ";
 
 
 #[derive(RustcDecodable, Debug)]
 struct Args {
     arg_input: String,
-    flag_ir: bool
+    flag_target: Option<CompilationTarget>
 }
 
 
@@ -39,5 +41,6 @@ fn main() {
     let source = read_file(&args.arg_input);
 
     // Start compilation
-    rustiny::driver::compile_input(source, args.arg_input, args.flag_ir);
+    compile_input(source, args.arg_input,
+                  args.flag_target.unwrap_or(CompilationTarget::Bin));
 }

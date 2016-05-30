@@ -6,7 +6,7 @@ use middle::ir;
 use middle::ir::visit::*;
 
 
-
+/*
 #[derive(Clone, Hash)]
 pub enum InstructionRef<'a> {
     ControlFlow(&'a ir::ControlFlowInstruction),
@@ -85,3 +85,4 @@ impl<'v> Visitor<'v> for LivenessAnalyzer<'v> {
         //
     }
 }
+*/

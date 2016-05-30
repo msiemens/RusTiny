@@ -16,6 +16,7 @@ extern crate ansi_term;
 extern crate term;
 #[macro_use] extern crate lazy_static;
 #[macro_use] extern crate log;
+extern crate rustc_serialize;
 
 #[macro_use] pub mod macros;
 
