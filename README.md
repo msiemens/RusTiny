@@ -13,7 +13,7 @@ The syntax is based on Rust, but there are numerous semantic differences:
 ## Goal
 
 My goal is to get the compiler so far that I can write a program that
-[approximates Pi](blog.m-siemens.de/exploring-computers-tiny-assembler/#approximatingdpid).
+[approximates Pi](https://blog.m-siemens.de/exploring-computers-tiny-assembler/#approximatingdpid).
 
 ## Architecture
 
