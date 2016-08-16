@@ -29,7 +29,7 @@ use driver::session;
 
 
 /// An identifier refering to an interned string
-#[derive(Copy, Clone, Eq, PartialEq, Hash)]
+#[derive(Copy, Clone, Eq, PartialEq, PartialOrd, Ord, Hash)]
 pub struct Ident(pub usize);
 
 impl Ident {

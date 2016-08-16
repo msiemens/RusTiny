@@ -530,4 +530,6 @@ rules!{
     [jmp target] => {
         jmp .target;
     }
+
+    // Converting IR Phi to machine Phi is implemented in the parser itself
 }

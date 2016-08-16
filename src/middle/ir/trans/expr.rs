@@ -10,9 +10,9 @@ use middle::ir::trans::{Dest, Translator};
 impl Translator {
     /// Translate an expression
     pub fn trans_expr(&mut self,
-                  expr: &ast::Expression,
-                  block: &mut ir::Block,
-                  dest: Dest) {
+                      expr: &ast::Expression,
+                      block: &mut ir::Block,
+                      dest: Dest) {
         match *expr {
             ast::Expression::Literal { ref val } => {
                 self.trans_literal(val, block, dest);
@@ -84,7 +84,10 @@ impl Translator {
             }
         }
 
-        // Evaluate into a temporary register and return it
+        self.trans_expr_to_temporary(expr, block)
+    }
+
+    fn trans_expr_to_temporary(&mut self, expr: &ast::Expression, block: &mut ir::Block) -> ir::Value {
         let tmp = self.next_free_register();
         self.trans_expr(expr, block, Dest::Store(tmp));
         ir::Value::Register(tmp)
@@ -200,18 +203,18 @@ impl Translator {
                 let label_next = self.next_free_label(Ident::new("lazy-next"));
 
                 // The left-hand side
-                let lhs_val = self.trans_expr_to_value(lhs, block);
+                let lhs_val = self.trans_expr_to_temporary(lhs, block);
 
                 // FIXME: Explanation
                 match op {
                     ast::BinOp::And => block.branch(lhs_val, label_rhs, label_next),
-                    ast::BinOp::Or  => block.branch(lhs_val, label_next, label_rhs),
+                    ast::BinOp::Or => block.branch(lhs_val, label_next, label_rhs),
                     _ => panic!()
                 }
 
                 // Evaluate the right-hand side
                 self.commit_block_and_continue(block, label_rhs);
-                let rhs_val = self.trans_expr_to_value(rhs, block);
+                let rhs_val = self.trans_expr_to_temporary(rhs, block);
                 block.jump(label_next);
 
                 // Select the value (lhs vs rhs) based on where we came from

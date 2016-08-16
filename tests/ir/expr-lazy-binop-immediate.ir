@@ -1,0 +1,13 @@
+fn main() {
+entry-block:
+    %a = alloca
+    %1 = cmp eq 5 8
+    br %1 lazy-next1 lazy-rhs1
+lazy-rhs1:
+    store 0 %2
+    jmp lazy-next1
+lazy-next1:
+    %0 = phi [ %1, entry-block ] [ %2, lazy-rhs1 ]
+    store %0 %a
+    ret void
+}

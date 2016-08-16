@@ -1,4 +1,5 @@
 //! SKIP
+// Needs constant folding
 
 fn main() {
     let a: int = 2 + 2;

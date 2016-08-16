@@ -65,6 +65,10 @@ pub fn trans_instr(func: Ident,
 
     match *lines {{
 {},
+        [IrLine::Instruction(&ir::Instruction::Phi {{ dst: ir::Register(dst), ref srcs }}), ..] => {{
+            code.emit_phi(func, asm::Register::Virtual(dst), &*srcs.iter().map(|&(val, lbl)| (lbl.0, asm::Register::Virtual(val.reg().0))).collect::<Vec<_>>());
+            1
+        }}
         _ => {{
             println!(\"instr: {{:?}}\", instr);
             println!(\"last: {{:?}}\", last);

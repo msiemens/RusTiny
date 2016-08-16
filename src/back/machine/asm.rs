@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::collections::BTreeMap;
 use std::fmt;
 use driver::interner::Ident;
 use back::machine::{MachineRegister, Word};
@@ -7,7 +7,11 @@ use back::machine::{MachineRegister, Word};
 #[derive(Clone, Debug)]
 pub enum AssemblyLine {
     Directive(String),
-    Instruction(Instruction)
+    Instruction(Instruction),
+    Phi {
+        dst: Register,
+        srcs: Vec<(Ident, Register)>
+    },
 }
 
 
@@ -48,10 +52,10 @@ pub enum Argument {
     // [base + index * scale + disp]
     // Example: mov eax, DWORD PTR [rbp-4]
     Indirect {
-        size:   Option<OperandSize>,
-        base:   Option<Register>,
-        index:  Option<(Register, u32)>,
-        disp:   Option<i32>,
+        size: Option<OperandSize>,
+        base: Option<Register>,
+        index: Option<(Register, u32)>,
+        disp: Option<i32>,
     },
 }
 
@@ -75,23 +79,27 @@ pub enum Register {
 #[derive(Debug)]
 pub struct Assembly {
     data: Vec<String>,
-    code: HashMap<Ident, Vec<AssemblyLine>>,
+    code: BTreeMap<Ident, Vec<AssemblyLine>>,  // Unlike HashMap, BTreeMap maintains insertion order
 }
 
 impl Assembly {
     pub fn new() -> Assembly {
         Assembly {
             data: Vec::new(),
-            code: HashMap::new(),
+            code: BTreeMap::new(),
         }
     }
 
-    pub fn emit_instruction(&mut self, f: Ident, i: Instruction) {
-        self.code.entry(f).or_insert_with(Vec::new).push(AssemblyLine::Instruction(i));
+    pub fn emit_instruction(&mut self, func: Ident, i: Instruction) {
+        self.code.entry(func).or_insert_with(Vec::new).push(AssemblyLine::Instruction(i));
     }
 
-    pub fn emit_directive(&mut self, f: Ident, d: String) {
-        self.code.entry(f).or_insert_with(Vec::new).push(AssemblyLine::Directive(d));
+    pub fn emit_phi(&mut self, func: Ident, dst: Register, srcs: &[(Ident, Register)]) {
+        self.code.entry(func).or_insert_with(Vec::new).push(AssemblyLine::Phi { dst: dst, srcs: srcs.iter().cloned().collect() });
+    }
+
+    pub fn emit_directive(&mut self, func: Ident, d: String) {
+        self.code.entry(func).or_insert_with(Vec::new).push(AssemblyLine::Directive(d));
     }
 
     pub fn emit_data(&mut self, d: String) {
@@ -133,6 +141,14 @@ impl fmt::Display for AssemblyLine {
         match *self {
             AssemblyLine::Directive(ref s) => write!(f, "{}", s),
             AssemblyLine::Instruction(ref i) => write!(f, "{}", i),
+            AssemblyLine::Phi { ref dst, ref srcs } => {
+                write!(f, "    phi {} = {}",
+                       dst,
+                       srcs.iter()
+                           .map(|&(l, r)| format!("({}, {})", l, r))
+                           .collect::<Vec<_>>()
+                           .join(", "))
+            },
         }
     }
 }
@@ -143,7 +159,10 @@ impl fmt::Display for Instruction {
             try!(writeln!(f, "{}:", label));
         }
 
-        try!(write!(f, "    {} ", self.mnemonic));
+        try!(write!(f, "    {}", self.mnemonic));
+        if !self.args.is_empty() {
+            try!(write!(f, " "));
+        }
         write!(f, "{}", connect!(self.args, "{}", ", "))
     }
 }

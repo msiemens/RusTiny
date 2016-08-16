@@ -26,7 +26,7 @@ def get_binary(name, release):
 
 
 def run(mode, release, args=None):
-    cprint('Building instruction selection rules...', 'blue')
+    cprint('Building instruction selection rules...', 'blue', end=' ', flush=True)
     build_rules(release)
 
     if mode == 'check':
@@ -35,11 +35,11 @@ def run(mode, release, args=None):
         cprint('Running {!r} ...'.format(' '.join(cmd)), 'blue')
         sys.exit(subprocess.call(cmd))
 
-    cprint('Building compiler...', 'blue', end=' ')
+    cprint('Building compiler...', 'blue')
     build_compiler(release)
 
     if mode == 'build':
-        cprint('Done', 'green')
+        pass
     elif mode == 'run':
         compiler = RUSTINY_DIR / 'target' / 'debug' / 'rustiny'
         cmd = [str(compiler)] + args
@@ -65,7 +65,6 @@ def build_rules(release):
 
     # Check if rules.dummy.rs is needed
     if not rules_dest.exists():
-        shutil.copyfile(str(rules_dummy), str(rules_dest))
         recompile_needed = True
 
     recompile_needed |= rules_input.stat().st_mtime > rules_dest.stat().st_mtime
@@ -73,6 +72,7 @@ def build_rules(release):
     if recompile_needed:
         # Compile rules
         try:
+            shutil.copyfile(str(rules_dummy), str(rules_dest))
             subprocess.check_call(['cargo', 'run', '--bin', 'rustiny-rulecomp',
                                    '--', '-o', 'src/back/instsel/rules.rs',
                                    'src/back/instsel/rules.ins.rs'],
@@ -80,6 +80,8 @@ def build_rules(release):
         except subprocess.CalledProcessError:
             cprint('Building rules failed', 'red')
             sys.exit(1)
+    else:
+        cprint('Done', 'green')
 
 
 def build_compiler(release):

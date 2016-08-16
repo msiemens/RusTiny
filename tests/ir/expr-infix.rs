@@ -1,5 +1,3 @@
-//! SKIP
-
 // LLVM:
 //
 //  %a = alloca i32
