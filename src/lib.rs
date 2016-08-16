@@ -12,7 +12,8 @@
 #![allow(doc_markdown)]
 #![allow(new_without_default)]
 #![allow(new_without_default_derive)]
-#![allow(while_let_loop)]  // Clippy is buggy here with multiple if lets (see Manishearth/rust-clippy#771) 
+#![allow(while_let_loop)]  // Clippy is buggy here with multiple if lets (see Manishearth/rust-clippy#771)
+#![allow(needless_return)]  // Overly strict
 
 extern crate ansi_term;
 extern crate term;

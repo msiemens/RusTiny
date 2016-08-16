@@ -14,7 +14,7 @@ pub mod visit;
 pub use middle::ir::trans::translate;
 
 
-#[derive(Clone, Copy, Debug, PartialEq, Hash)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct Label(pub Ident);
 
 impl Label {
@@ -83,6 +83,11 @@ impl Program {
     pub fn iter<'a>(&'a self) -> slice::Iter<'a, Symbol> {
         self.0.iter()
     }
+
+    #[allow(needless_lifetimes)]  // Actually not so needless it seems
+    pub fn iter_mut<'a>(&'a mut self) -> slice::IterMut<'a, Symbol> {
+        self.0.iter_mut()
+    }
 }
 
 impl IntoIterator for Program {
@@ -103,6 +108,15 @@ impl<'a> IntoIterator for &'a Program {
         self.0.iter()
     }
 }
+
+// impl<'a> IntoIterator for &'a mut Program {
+//     type Item = &'a Symbol;
+//     type IntoIter = slice::IterMut<'a, Symbol>;
+// 
+//     fn into_iter(self) -> slice::IterMut<'a, Symbol> {
+//         self.0.iter()
+//     }
+// }
 
 
 

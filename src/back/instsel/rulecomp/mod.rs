@@ -63,7 +63,7 @@ pub fn trans_instr(func: Ident,
     let mut lines: Vec<_> = instr.iter().map(|i| IrLine::Instruction(i)).collect();
     lines.push(IrLine::CFInstruction(last));
 
-    match &*lines {{
+    match *lines {{
 {},
         _ => {{
             println!(\"instr: {{:?}}\", instr);
