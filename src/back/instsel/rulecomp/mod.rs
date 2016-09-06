@@ -54,10 +54,9 @@ enum IrLine<'a> {{
 }}
 
 #[allow(non_shorthand_field_patterns)]
-pub fn trans_instr(func: Ident,
-                   instr: &[&ir::Instruction],
+pub fn trans_instr(instr: &[&ir::Instruction],
                    last: &ir::ControlFlowInstruction,
-                   code: &mut asm::Assembly)
+                   code: &mut asm::Block)
                    -> usize
 {{
     let mut lines: Vec<_> = instr.iter().map(|i| IrLine::Instruction(i)).collect();
@@ -65,10 +64,6 @@ pub fn trans_instr(func: Ident,
 
     match *lines {{
 {},
-        [IrLine::Instruction(&ir::Instruction::Phi {{ dst: ir::Register(dst), ref srcs }}), ..] => {{
-            code.emit_phi(func, asm::Register::Virtual(dst), &*srcs.iter().map(|&(val, lbl)| (lbl.0, asm::Register::Virtual(val.reg().0))).collect::<Vec<_>>());
-            1
-        }}
         _ => {{
             println!(\"instr: {{:?}}\", instr);
             println!(\"last: {{:?}}\", last);
@@ -410,7 +405,7 @@ fn translate_asm(asm: &[Node<AsmInstr>], types: &HashMap<Ident, IrArg>) -> Strin
 fn translate_asm_instr(instr: &AsmInstr, types: &HashMap<Ident, IrArg>) -> String {
     // FIXME: What about labels?
     let args: Vec<_> = instr.args.iter().map(|arg| translate_asm_arg(arg, types)).collect();
-    format!("code.emit_instruction(func, asm::Instruction::new(Ident::new(\"{}\"), vec![{}]));",
+    format!("code.emit_instruction(asm::Instruction::new(Ident::new(\"{}\"), vec![{}]));",
             instr.mnemonic,
             args.join(", "))
 }

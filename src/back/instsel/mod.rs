@@ -41,35 +41,41 @@ impl<'a> InstructionSelector<'a> {
     }
 
     fn trans_fn(&mut self, name: Ident, body: &[ir::Block], _: &[Ident]) {
-        // Function prologue
-        self.code.emit_directive(name, format!(".globl {}", name));
-        self.code.emit_instruction(name, asm::Instruction::with_label(
-            Ident::new("enter"),
-            vec![
-                asm::Argument::Immediate(0),  // Stack usage by this function
-                asm::Argument::Immediate(0),
-            ],
-            name
-        ));
-
         // The function body
         let mut first_block = true;
-        for block in body {
+        for ir_block in body {
+            let mut asm_block = asm::Block::new();
+
             if first_block {
+                // Function prologue
+                asm_block.emit_directive(format!(".globl {}", name));
+                asm_block.emit_instruction(asm::Instruction::with_label(
+                    Ident::new("enter"),
+                    vec![
+                        asm::Argument::Immediate(0),  // Stack usage by this function
+                        asm::Argument::Immediate(0),
+                    ],
+                    name
+                ));
+
                 // Don't emit the label of the first block (usually "entry-block")
                 first_block = false;
             } else {
-                self.code.emit_directive(name, format!("{}:", block.label));
+                asm_block.emit_directive(format!("{}:", ir_block.label));
             }
 
-            let instructions: Vec<_> = block.inst.iter().collect();
+            // Pass Phi instructionos
+            asm_block.set_phis(ir_block.phis.iter().cloned().collect());
+
+            // Translate instructions
+            let instructions: Vec<_> = ir_block.inst.iter().collect();
             let mut idx = 0;
 
             while idx < instructions.len() {
-                idx += rules::trans_instr(name, &instructions[idx..], &block.last, &mut self.code);
+                idx += rules::trans_instr(&instructions[idx..], &ir_block.last, &mut asm_block);
             }
 
-            rules::trans_instr(name, &[], &block.last, &mut self.code);
+            rules::trans_instr(&[], &ir_block.last, &mut asm_block);
         }
 
         // TODO: Where will the epilogue/stack cleanup codegen go?

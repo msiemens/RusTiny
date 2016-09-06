@@ -2,16 +2,41 @@ use std::collections::BTreeMap;
 use std::fmt;
 use driver::interner::Ident;
 use back::machine::{MachineRegister, Word};
+use middle::ir;
+
+
+#[derive(Clone, Debug)]
+pub struct Block {
+    asm: Vec<AssemblyLine>,
+    phis: Vec<ir::Phi>
+}
+
+impl Block {
+    pub fn new() -> Block {
+        Block {
+            asm: Vec::new(),
+            phis: Vec::new(),
+        }
+    }
+
+    pub fn emit_instruction(&mut self, i: Instruction) {
+        self.asm.push(AssemblyLine::Instruction(i));
+    }
+
+    pub fn emit_directive(&mut self, d: String) {
+        self.asm.push(AssemblyLine::Directive(d));
+    }
+
+    pub fn set_phis(&mut self, phis: Vec<ir::Phi>) {
+        self.phis.extend(phis);
+    }
+}
 
 
 #[derive(Clone, Debug)]
 pub enum AssemblyLine {
     Directive(String),
-    Instruction(Instruction),
-    Phi {
-        dst: Register,
-        srcs: Vec<(Ident, Register)>
-    },
+    Instruction(Instruction)
 }
 
 
@@ -79,7 +104,7 @@ pub enum Register {
 #[derive(Debug)]
 pub struct Assembly {
     data: Vec<String>,
-    code: BTreeMap<Ident, Vec<AssemblyLine>>,  // Unlike HashMap, BTreeMap maintains insertion order
+    code: BTreeMap<Ident, Vec<Block>>,  // Unlike HashMap, BTreeMap maintains insertion order
 }
 
 impl Assembly {
@@ -90,20 +115,17 @@ impl Assembly {
         }
     }
 
-    pub fn emit_instruction(&mut self, func: Ident, i: Instruction) {
-        self.code.entry(func).or_insert_with(Vec::new).push(AssemblyLine::Instruction(i));
-    }
-
-    pub fn emit_phi(&mut self, func: Ident, dst: Register, srcs: &[(Ident, Register)]) {
-        self.code.entry(func).or_insert_with(Vec::new).push(AssemblyLine::Phi { dst: dst, srcs: srcs.iter().cloned().collect() });
-    }
-
-    pub fn emit_directive(&mut self, func: Ident, d: String) {
-        self.code.entry(func).or_insert_with(Vec::new).push(AssemblyLine::Directive(d));
+    pub fn emit_block(&mut self, func: Ident, block: Block) {
+        self.code.entry(func).or_insert(Vec::new()).push(block);
     }
 
     pub fn emit_data(&mut self, d: String) {
         self.data.push(d);
+    }
+
+    #[allow(needless_lifetimes)]
+    pub fn code<'a>(&'a self) -> impl Iterator<Item=(&'a Ident, &'a Vec<Block>)>+DoubleEndedIterator {
+        self.code.iter()
     }
 }
 
@@ -136,19 +158,21 @@ impl fmt::Display for Assembly {
     }
 }
 
+impl fmt::Display for Block {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        for line in &self.asm {
+            try!(write!(f, "{}", line))
+        }
+
+        Ok(())
+    }
+}
+
 impl fmt::Display for AssemblyLine {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match *self {
             AssemblyLine::Directive(ref s) => write!(f, "{}", s),
             AssemblyLine::Instruction(ref i) => write!(f, "{}", i),
-            AssemblyLine::Phi { ref dst, ref srcs } => {
-                write!(f, "    phi {} = {}",
-                       dst,
-                       srcs.iter()
-                           .map(|&(l, r)| format!("({}, {})", l, r))
-                           .collect::<Vec<_>>()
-                           .join(", "))
-            },
         }
     }
 }

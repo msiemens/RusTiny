@@ -90,13 +90,13 @@ pub fn walk_instruction<'v, V>(visitor: &mut V, instr: &'v Instruction)
 			visitor.visit_value(*src);
 			visitor.visit_value(*dst);
 		},
-		Instruction::Phi { ref srcs, ref dst } => {
-			for &(value, label) in srcs {
-				visitor.visit_value(value);
-				visitor.visit_label(label);
-			}
-			visitor.visit_register(*dst);
-		},
+//		Instruction::Phi { ref srcs, ref dst } => {
+//			for &(value, label) in srcs {
+//				visitor.visit_value(value);
+//				visitor.visit_label(label);
+//			}
+//			visitor.visit_register(*dst);
+//		},
 		Instruction::Call { ref name, ref args, ref dst } => {
 			visitor.visit_ident(*name);
 			for arg in args {

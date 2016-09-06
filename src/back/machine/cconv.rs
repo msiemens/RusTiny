@@ -8,8 +8,7 @@ use middle::ir;
 use back::machine::asm;
 
 
-pub fn translate_call(_: Ident,
-                      _: &mut asm::Assembly,
+pub fn translate_call(_: &mut asm::Block,
                       _: Ident,
                       _: &[ir::Value],
                       _: Ident) {

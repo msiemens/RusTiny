@@ -1,8 +1,10 @@
-#[macro_use] mod machine;
 mod instsel;
+#[macro_use] mod machine;
+mod regalloc;
 
 
 pub use self::instsel::{compile_rules, select_instructions};
+pub use self::regalloc::allocate_regs;
 
 
 // IR -> ASM (v)

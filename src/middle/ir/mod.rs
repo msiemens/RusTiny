@@ -139,6 +139,7 @@ pub struct Block {
     pub label: Label,
     pub inst: VecDeque<Instruction>,
     pub last: ControlFlowInstruction,
+    pub phis: Vec<Phi>
 }
 
 impl Block {
@@ -200,8 +201,8 @@ impl Block {
 
         // Find position of first non-alloca instruction
         let first_non_alloca = self.inst.iter()
-            .position(|ref inst| {
-                if let Instruction::Alloca { .. } = **inst {
+            .position(|inst| {
+                if let Instruction::Alloca { .. } = *inst {
                     false
                 } else {
                     true
@@ -261,7 +262,7 @@ impl Block {
     fn phi(&mut self, srcs: Vec<(Value, Label)>, dst: Register) {
         assert!(self.last == ControlFlowInstruction::NotYetProcessed, "self.last is already set: `{}`", self.last);
 
-        self.inst.push_back(Instruction::Phi {
+        self.phis.push(Phi {
             srcs: srcs,
             dst: dst
         })
@@ -284,6 +285,13 @@ pub enum ControlFlowInstruction {
         dest: Label,
     },
     NotYetProcessed,
+}
+
+
+#[derive(Clone, Debug, Hash)]
+pub struct Phi {
+    srcs: Vec<(Value, Label)>,
+    dst: Register,
 }
 
 
@@ -322,10 +330,6 @@ pub enum Instruction {
     },
 
     // Other
-    Phi {
-        srcs: Vec<(Value, Label)>,
-        dst: Register,
-    },
     Call {
         name: Ident,
         args: Vec<Value>,
@@ -492,6 +496,13 @@ impl fmt::Display for Block {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         try!(write!(f, "{}:\n", self.label));
 
+        for phi in &self.phis {
+            try!(write!(f, "    {} = phi {}\n", phi.dst, phi.srcs.iter()
+                         .map(|src| format!("[ {}, {} ]", src.0, src.1))
+                         .collect::<Vec<_>>()
+                         .join(" ")))
+        }
+
         for inst in &self.inst {
             try!(write!(f, "    {}\n", inst));
         }
@@ -580,15 +591,15 @@ impl fmt::Display for Instruction {
             },
 
             // Other
-            Instruction::Phi {
-                ref srcs,
-                ref dst,
-            } => {
-                write!(f, "{} = phi {}", dst, srcs.iter()
-                        .map(|src| format!("[ {}, {} ]", src.0, src.1))
-                        .collect::<Vec<_>>()
-                        .join(" "))
-            },
+//            Instruction::Phi {
+//                ref srcs,
+//                ref dst,
+//            } => {
+//                write!(f, "{} = phi {}", dst, srcs.iter()
+//                        .map(|src| format!("[ {}, {} ]", src.0, src.1))
+//                        .collect::<Vec<_>>()
+//                        .join(" "))
+//            },
             Instruction::Call {
                 ref name,
                 ref args,

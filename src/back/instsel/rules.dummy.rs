@@ -9,10 +9,9 @@ enum IrLine<'a> {
     CFInstruction(&'a ir::ControlFlowInstruction),
 }
 
-pub fn trans_instr(func: Ident,
-                   instr: &[&ir::Instruction],
+pub fn trans_instr(instr: &[&ir::Instruction],
                    last: &ir::ControlFlowInstruction,
-                   code: &mut asm::Assembly)
+                   code: &mut asm::Block)
                    -> usize
 {
     panic!("Dummy rules")

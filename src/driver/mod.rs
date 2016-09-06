@@ -63,6 +63,8 @@ pub fn compile_input(source: String, input_file: String, target: CompilationTarg
     }
 
     // Phase 6: Register allocation
+    let assembly = back::allocate_regs(assembly);
+
     // Phase 7: Assembly optimization
 
     println!("{}", assembly);

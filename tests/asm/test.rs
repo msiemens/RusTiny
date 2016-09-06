@@ -1,3 +1,5 @@
+//! SKIP
+
 // RusTiny IR:
 // 
 // fn func() {                                        

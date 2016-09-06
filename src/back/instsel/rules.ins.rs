@@ -499,7 +499,7 @@ rules!{
 
     [%(dst) = call callee [args ..]; ..] -> {
         // Note: This is Rust code, not assembler
-        cconv::translate_call(func, code, callee, args, dst);
+        cconv::translate_call(code, callee, args, dst);
     },
 
     // --- Return/Branch/Jump ---------------------------------------------------
@@ -530,6 +530,4 @@ rules!{
     [jmp target] => {
         jmp .target;
     }
-
-    // Converting IR Phi to machine Phi is implemented in the parser itself
 }

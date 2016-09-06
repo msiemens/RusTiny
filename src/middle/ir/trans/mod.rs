@@ -165,7 +165,8 @@ impl Translator {
         let mut new_block = ir::Block {
             label: label,
             inst: VecDeque::new(),
-            last: ir::ControlFlowInstruction::NotYetProcessed
+            last: ir::ControlFlowInstruction::NotYetProcessed,
+            phis: Vec::new(),
         };
 
         mem::swap(block, &mut new_block);
@@ -232,7 +233,8 @@ impl Translator {
         let mut block = ir::Block {
             label: ir::Label::new("entry-block"),
             inst: VecDeque::new(),
-            last: ir::ControlFlowInstruction::NotYetProcessed
+            last: ir::ControlFlowInstruction::NotYetProcessed,
+            phis: Vec::new(),
         };
 
         // Allocate arguments (from left to right)
