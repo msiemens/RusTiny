@@ -21,8 +21,7 @@ lto = true
 [dependencies]
 ansi_term = "*"
 clippy = "*"
-docopt = "*"
-docopt_macros = "*"
+clap = "*"
 env_logger = "*"
 lazy_static = "*"
 log = "*"

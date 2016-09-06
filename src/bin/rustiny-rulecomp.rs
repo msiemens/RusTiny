@@ -1,22 +1,14 @@
 //! TODO: Docs
 #![feature(plugin)]
-#![plugin(docopt_macros)]
 
-extern crate docopt;
+extern crate clap;
 extern crate env_logger;
 extern crate rustc_serialize;
 extern crate rustiny;
 
+use clap::{Arg, App};
+
 use rustiny::util::{read_file, write_file};
-
-docopt!(Args derive Debug, "
-Usage: rustiny-rulecomp [options] <input>
-       rustiny-rulecomp --help
-
-Options:
-    -o <output>     Write output to <output>
-    --help          Show this screen
-");
 
 
 #[cfg(not(test))]
@@ -24,16 +16,30 @@ fn main() {
     env_logger::init().unwrap();
 
     // Parse arguments
-    let args: Args = Args::docopt().decode().unwrap_or_else(|e| e.exit());
+    let app = App::new("rustiny-rulecomp")
+        .version(env!("CARGO_PKG_VERSION"))
+        .author("Markus SIemens <markus@m-siemens.de>")
+
+        .arg(Arg::with_name("output")
+            .short("o")
+            .value_name("OUTPUT")
+            .help("Sets the output file"))
+
+        .arg(Arg::with_name("INPUT")
+            .help("Sets the file to compile")
+            .required(true)
+            .index(1));
+    let args = app.get_matches();
 
     // Read source file
-    let source = read_file(&args.arg_input);
+    let input_file = args.value_of("INPUT").unwrap();
+    let source = read_file(input_file);
 
     // Compile rules
-    let rules = rustiny::back::compile_rules(&source, &args.arg_input);
+    let rules = rustiny::back::compile_rules(&source, input_file);
 
-    if !args.flag_o.is_empty() {
-        write_file(&args.flag_o, &rules);
+    if let Some(output_file) = args.value_of("output") {
+        write_file(output_file, &rules);
     } else {
         println!("{}", &rules)
     }
