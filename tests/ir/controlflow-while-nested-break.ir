@@ -1,5 +1,5 @@
 fn main() {
-entry-block:
+entry-block1:
     jmp while_cond1
 while_cond1:
     br 1 while_body1 while_exit1

@@ -145,7 +145,7 @@ impl<'a> Lexer<'a> {
 
         let rust_code = &self.source[start + 1..self.pos - 1];
 
-        Ident::new(rust_code)
+        Ident::from_str(rust_code)
     }
 
     /// Tokenize an identifier
@@ -160,7 +160,7 @@ impl<'a> Lexer<'a> {
         if let Some(kw) = lookup_keyword(ident) {
             Token::Keyword(kw)
         } else {
-            Token::Ident(Ident::new(ident))
+            Token::Ident(Ident::from_str(ident))
         }
     }
 
@@ -172,7 +172,7 @@ impl<'a> Lexer<'a> {
             c.is_alphabetic() || c.is_numeric() || *c == '_'
         });
 
-        Token::Literal(Ident::new(literal))
+        Token::Literal(Ident::from_str(literal))
     }
 
     /// Read the next token and return it

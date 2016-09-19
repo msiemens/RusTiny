@@ -34,14 +34,16 @@ fn main() {
             .value_name("OUTPUT")
             .help("Sets the output file"))
 
-        .arg(Arg::with_name("INPUT")
+        .arg(Arg::with_name("input")
+            .value_name("INPUT")
             .help("Sets the file to compile")
             .required(true)
             .index(1));
     let args = app.get_matches();
 
     // Read source file
-    let input_file = args.value_of("INPUT").unwrap();
+    let input_file = args.value_of("input").unwrap();
+    let output_file = args.value_of("output");
     let source = read_file(input_file);
 
     let target = match args.value_of("target").unwrap() {
@@ -52,5 +54,5 @@ fn main() {
     };
 
     // Start compilation
-    compile_input(source, input_file.into(), target);
+    compile_input(&source, input_file, output_file, target);
 }

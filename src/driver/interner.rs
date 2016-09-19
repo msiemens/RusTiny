@@ -33,7 +33,7 @@ use driver::session;
 pub struct Ident(pub usize);
 
 impl Ident {
-    pub fn new(s: &str) -> Ident {
+    pub fn from_str(s: &str) -> Ident {
         session().interner.intern(s)
     }
 }

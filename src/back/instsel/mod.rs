@@ -44,25 +44,26 @@ impl<'a> InstructionSelector<'a> {
         // The function body
         let mut first_block = true;
         for ir_block in body {
-            let mut asm_block = asm::Block::new();
+            let mut asm_block = asm::Block::new(ir_block.label.ident());
 
             if first_block {
                 // Function prologue
                 asm_block.emit_directive(format!(".globl {}", name));
-                asm_block.emit_instruction(asm::Instruction::with_label(
-                    Ident::new("enter"),
+                asm_block.emit_directive(format!("{}:", name));
+                asm_block.emit_instruction(asm::Instruction::new(
+                    Ident::from_str("enter"),
                     vec![
                         asm::Argument::Immediate(0),  // Stack usage by this function
                         asm::Argument::Immediate(0),
-                    ],
-                    name
+                    ]
                 ));
 
-                // Don't emit the label of the first block (usually "entry-block")
+                // NOT VALID FOR NOW: (Don't emit the label of the first block (usually "entry-block"))
                 first_block = false;
-            } else {
-                asm_block.emit_directive(format!("{}:", ir_block.label));
             }
+
+            asm_block.emit_directive(format!("{}:", ir_block.label));
+
 
             // Pass Phi instructionos
             asm_block.set_phis(ir_block.phis.iter().cloned().collect());
@@ -70,12 +71,22 @@ impl<'a> InstructionSelector<'a> {
             // Translate instructions
             let instructions: Vec<_> = ir_block.inst.iter().collect();
             let mut idx = 0;
+            let mut processed_last = false;
 
             while idx < instructions.len() {
-                idx += rules::trans_instr(&instructions[idx..], &ir_block.last, &mut asm_block);
+                let (count, _processed_last) = rules::trans_instr(&instructions[idx..], &ir_block.last, &mut asm_block);
+                idx += count;
+                processed_last = _processed_last;
             }
 
-            rules::trans_instr(&[], &ir_block.last, &mut asm_block);
+            if !processed_last {
+                rules::trans_instr(&[], &ir_block.last, &mut asm_block);
+            }
+
+            // Add sucessors
+            asm_block.add_successors(&ir_block.last.successors());
+
+            self.code.emit_block(asm_block);
         }
 
         // TODO: Where will the epilogue/stack cleanup codegen go?

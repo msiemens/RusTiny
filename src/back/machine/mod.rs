@@ -11,7 +11,7 @@ pub mod cconv;
 pub type Word = u64;
 
 
-#[derive(Copy, Clone, Debug)]
+#[derive(Copy, Clone, Debug, Eq, Hash, PartialEq)]
 pub enum MachineRegister {
     // General purpose registers
     RAX,

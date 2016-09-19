@@ -1,5 +1,5 @@
 fn foo(a, b, c) {
-entry-block:
+entry-block1:
     %a = alloca
     %b = alloca
     %c = alloca
@@ -7,7 +7,7 @@ entry-block:
 }
 
 fn main() {
-entry-block:
+entry-block2:
     %0 = call foo 1 2 3
     ret void
 }

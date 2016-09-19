@@ -1,18 +1,18 @@
 fn foo() {
-entry-block:
+entry-block1:
     %a = alloca
     %ret_slot = alloca
     store 3 %a
-    %0 = load %a
-    store %0 %ret_slot
+    %1 = load %a
+    store %1 %ret_slot
     jmp return
-return:
-    %1 = load %ret_slot
-    ret %1
+return1:
+    %2 = load %ret_slot
+    ret %2
 }
 
 fn main() {
-entry-block:
+entry-block2:
     %a = alloca
     %0 = call foo
     store %0 %a

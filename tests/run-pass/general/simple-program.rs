@@ -6,7 +6,8 @@ fn mul(a: int, b: int) -> int {
 
     while b > 0 {
         result += if true { 1 } else { 0 };
-        b -= 1 * (2 + 2);
+        a -= 1 * (2 + 2);
+        b -= 1;
     }
 
     return result;

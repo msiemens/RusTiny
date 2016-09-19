@@ -1,4 +1,3 @@
-use std::collections::BTreeMap;
 use std::fmt;
 use driver::interner::Ident;
 use back::machine::{MachineRegister, Word};
@@ -7,15 +6,19 @@ use middle::ir;
 
 #[derive(Clone, Debug)]
 pub struct Block {
+    label: Ident,
     asm: Vec<AssemblyLine>,
-    phis: Vec<ir::Phi>
+    phis: Vec<ir::Phi>,
+    successors: Vec<Ident>,
 }
 
 impl Block {
-    pub fn new() -> Block {
+    pub fn new(label: Ident) -> Block {
         Block {
+            label: label,
             asm: Vec::new(),
             phis: Vec::new(),
+            successors: Vec::new(),
         }
     }
 
@@ -27,8 +30,37 @@ impl Block {
         self.asm.push(AssemblyLine::Directive(d));
     }
 
+
+    pub fn label(&self) -> Ident {
+        self.label
+    }
+
+
+    #[allow(needless_lifetimes)]
+    pub fn code<'a>(&'a self) -> impl Iterator<Item = &'a AssemblyLine> + DoubleEndedIterator + ExactSizeIterator {
+        self.asm.iter()
+    }
+
+    pub fn len(&self) -> usize {
+        self.asm.len()
+    }
+
+
+    pub fn phis(&self) -> &[ir::Phi] {
+        &self.phis
+    }
+
     pub fn set_phis(&mut self, phis: Vec<ir::Phi>) {
         self.phis.extend(phis);
+    }
+
+
+    pub fn successors(&self) -> &[Ident] {
+        &self.successors
+    }
+
+    pub fn add_successors(&mut self, label: &[Ident]) {
+        self.successors.extend_from_slice(label);
     }
 }
 
@@ -44,7 +76,6 @@ pub enum AssemblyLine {
 pub struct Instruction {
     mnemonic: Ident,
     args: Vec<Argument>,
-    label: Option<Ident>,
 }
 
 impl Instruction {
@@ -52,16 +83,70 @@ impl Instruction {
         Instruction {
             mnemonic: mnemonic,
             args: args,
-            label: None
         }
     }
 
-    pub fn with_label(mnemonic: Ident, args: Vec<Argument>, label: Ident) -> Instruction {
-        Instruction {
-            mnemonic: mnemonic,
-            args: args,
-            label: Some(label)
+    pub fn inputs(&self) -> Vec<&Register> {
+        if !self.args.is_empty() {
+            if self.has_inputs_only() || self.is_inplace() {
+                self.get_regs(&self.args[..])
+            } else {
+                self.get_regs(&self.args[1..])
+            }
+        } else {
+            Vec::new()
         }
+    }
+
+    pub fn outputs(&self) -> Vec<&Register> {
+        if !self.args.is_empty() && !self.has_inputs_only() {
+            self.get_regs(&self.args[..1])
+        } else {
+            Vec::new()
+        }
+    }
+
+    fn has_inputs_only(&self) -> bool {
+        match &*self.mnemonic {
+            "test" | "cmp" => return true,
+            _ => {}
+        };
+
+        if &*self.mnemonic == "mov" {
+            // mov [%a] %b >> a and b are inputs (more or less...)
+            if let Argument::Indirect { .. } = self.args[0] {
+                return true;
+            }
+        }
+
+        false
+    }
+
+    fn is_inplace(&self) -> bool {
+        match &*self.mnemonic {
+            "add" | "sub" | "and" | "or" | "xor" | "sal" | "sar" | "idiv" | "neg" | "not" => true,
+            _ => false
+        }
+    }
+
+    fn get_regs<'a>(&'a self, args: &'a [Argument]) -> Vec<&Register> {
+        args.iter().flat_map(|arg| {
+            match *arg {
+                Argument::Register(ref r) => vec![r],
+                Argument::Indirect { ref base, ref index, .. } => {
+                    let mut regs = Vec::new();
+                    if let Some(ref r) = *base {
+                        regs.push(r);
+                    }
+                    if let Some((ref r, _)) = *index {
+                        regs.push(r);
+                    }
+
+                    regs
+                },
+                _ => Vec::new()
+            }
+        }).collect()
     }
 }
 
@@ -94,7 +179,7 @@ pub enum OperandSize {
 }
 
 
-#[derive(Copy, Clone, Debug)]
+#[derive(Copy, Clone, Debug, Eq, Hash, PartialEq)]
 pub enum Register {
     Machine(MachineRegister),
     Virtual(Ident),
@@ -104,19 +189,19 @@ pub enum Register {
 #[derive(Debug)]
 pub struct Assembly {
     data: Vec<String>,
-    code: BTreeMap<Ident, Vec<Block>>,  // Unlike HashMap, BTreeMap maintains insertion order
+    code: Vec<Block>,
 }
 
 impl Assembly {
     pub fn new() -> Assembly {
         Assembly {
             data: Vec::new(),
-            code: BTreeMap::new(),
+            code: Vec::new(),
         }
     }
 
-    pub fn emit_block(&mut self, func: Ident, block: Block) {
-        self.code.entry(func).or_insert(Vec::new()).push(block);
+    pub fn emit_block(&mut self, block: Block) {
+        self.code.push(block);
     }
 
     pub fn emit_data(&mut self, d: String) {
@@ -124,8 +209,12 @@ impl Assembly {
     }
 
     #[allow(needless_lifetimes)]
-    pub fn code<'a>(&'a self) -> impl Iterator<Item=(&'a Ident, &'a Vec<Block>)>+DoubleEndedIterator {
+    pub fn code<'a>(&'a self) -> impl Iterator<Item = &'a Block> + DoubleEndedIterator {
         self.code.iter()
+    }
+
+    pub fn get_block(&self, label: Ident) -> Option<&Block> {
+        self.code.iter().find(|b| b.label == label)
     }
 }
 
@@ -148,10 +237,8 @@ impl fmt::Display for Assembly {
 
         try!(writeln!(f, ".text"));
 
-        for lines in self.code.values() {
-            for line in lines {
-                try!(writeln!(f, "{}", line))
-            }
+        for line in &self.code {
+            try!(writeln!(f, "{}", line))
         }
 
         Ok(())
@@ -161,7 +248,7 @@ impl fmt::Display for Assembly {
 impl fmt::Display for Block {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         for line in &self.asm {
-            try!(write!(f, "{}", line))
+            try!(writeln!(f, "{}", line))
         }
 
         Ok(())
@@ -172,18 +259,14 @@ impl fmt::Display for AssemblyLine {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match *self {
             AssemblyLine::Directive(ref s) => write!(f, "{}", s),
-            AssemblyLine::Instruction(ref i) => write!(f, "{}", i),
+            AssemblyLine::Instruction(ref i) => write!(f, "    {}", i),
         }
     }
 }
 
 impl fmt::Display for Instruction {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        if let Some(label) = self.label {
-            try!(writeln!(f, "{}:", label));
-        }
-
-        try!(write!(f, "    {}", self.mnemonic));
+        try!(write!(f, "{}", self.mnemonic));
         if !self.args.is_empty() {
             try!(write!(f, " "));
         }

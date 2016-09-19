@@ -71,9 +71,6 @@ struct FunctionContext {
 
     /// The next free register to use
     next_register: u32,
-    /// As the translator might want to use the same label multiple times,
-    /// we always append an index, which is stored here, to it
-    next_label: HashMap<Ident, u32>,
 
     /// The current loop's exit
     loop_exit: Option<ir::Label>,
@@ -97,13 +94,17 @@ pub enum Dest {
 pub struct Translator {
     ir: ir::Program,
     fcx: Option<FunctionContext>,
+    /// As the translator might want to use the same label multiple times,
+    /// we always append an index, which is stored here, to it
+    next_label: HashMap<Ident, u32>,
 }
 
 impl Translator {
     pub fn new() -> Translator {
         Translator {
             ir: ir::Program::new(),
-            fcx: None
+            fcx: None,
+            next_label: HashMap::new(),
         }
     }
 
@@ -122,18 +123,18 @@ impl Translator {
         let next_register = self.fcx().next_register;
         self.fcx().next_register += 1;
 
-        Register::new(&next_register.to_string())
+        Register::from_str(&next_register.to_string())
     }
 
     /// Get the next free label with a given base name (e.g. `id` -> `id2`)
     fn next_free_label(&mut self, basename: Ident) -> ir::Label {
-        let next_label = &mut self.fcx().next_label;
+//        let next_label = &mut self.fcx().next_label;
 
-        *next_label.entry(basename).or_insert(0) += 1;
+        *self.next_label.entry(basename).or_insert(0) += 1;
 
         let mut name = basename.to_string();
-        name.push_str(&next_label[&basename].to_string());
-        ir::Label::new(&name)
+        name.push_str(&self.next_label[&basename].to_string());
+        ir::Label::from_str(&name)
     }
 
     /// Unwrap a destination
@@ -188,7 +189,7 @@ impl Translator {
         let mut i = 1;
 
         while self.fcx().registers.contains(&Register(id_mangled)) {
-            id_mangled = Ident::new(&format!("{}{}", id, i));
+            id_mangled = Ident::from_str(&format!("{}{}", id, i));
             i += 1;
         }
 
@@ -218,20 +219,19 @@ impl Translator {
         let is_void = ret_ty == ast::Type::Unit;
 
         // Prepare function context
-        let ret_slot = Register::new("ret_slot");
+        let ret_slot = Register::from_str("ret_slot");
         self.fcx = Some(FunctionContext {
             body: Vec::new(),
             registers: HashSet::new(),
             return_slot: if is_void { None } else { Some(ret_slot) },
             scope: body.id,
             next_register: 0,
-            next_label: HashMap::new(),
             loop_exit: None
         });
 
         // Prepare ast block
         let mut block = ir::Block {
-            label: ir::Label::new("entry-block"),
+            label: self.next_free_label(Ident::from_str("entry-block")),
             inst: VecDeque::new(),
             last: ir::ControlFlowInstruction::NotYetProcessed,
             phis: Vec::new(),
@@ -244,10 +244,20 @@ impl Translator {
         }
 
         // Translate ast block
-        if ret_ty == ast::Type::Unit {
+        if is_void {
             self.trans_block(body, &mut block, Dest::Ignore);
         } else {
-            self.trans_block(body, &mut block, Dest::Store(ret_slot));
+            // Store block value in temporary register...
+            // NOTE: If the block contains a return expression, the ret_value register we pass
+            // is skipped.
+            let ret_value = self.next_free_register();
+            self.trans_block(body, &mut block, Dest::Store(ret_value));
+            // ... and store it in the memory slot
+            if !block.finalized() {
+                // If the block contains a 'return' expr, it already stores the result in the
+                // return slot, so we don't have to do
+                block.store(ir::Value::Register(ret_value), ir::Value::Register(ret_slot));
+            }
         }
 
         // Finalize the function
@@ -259,7 +269,7 @@ impl Translator {
             //        return it directly and skip the alloca/store
             self.with_first_block(&mut block, |block| block.alloc(ret_slot));
 
-            let return_label = ir::Label::new("return");
+            let return_label = self.next_free_label(Ident::from_str("return"));
             if !block.finalized() {
                 block.jump(return_label);
             }

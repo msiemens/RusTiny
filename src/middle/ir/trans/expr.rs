@@ -199,8 +199,8 @@ impl Translator {
                 // Short-circuiting logic. This involves branching to skip the
                 // right-hand side part if possible. FIXME: more explanation
                 let label_lhs = block.label;
-                let label_rhs = self.next_free_label(Ident::new("lazy-rhs"));
-                let label_next = self.next_free_label(Ident::new("lazy-next"));
+                let label_rhs = self.next_free_label(Ident::from_str("lazy-rhs"));
+                let label_next = self.next_free_label(Ident::from_str("lazy-next"));
 
                 // The left-hand side
                 let lhs_val = self.trans_expr_to_temporary(lhs, block);

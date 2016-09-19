@@ -17,7 +17,7 @@ impl Translator {
         let return_slot = self.fcx().return_slot.unwrap();
 
         block.store_reg(val, return_slot);
-        block.jump(ir::Label(Ident::new("return")));
+        block.jump(ir::Label(Ident::from_str("return")));
     }
 
     /// Translate an if expression
@@ -31,9 +31,9 @@ impl Translator {
 
         match altern {
             Some(altern) => {
-                let label_conseq = self.next_free_label(Ident::new("conseq"));
-                let label_altern = self.next_free_label(Ident::new("altern"));
-                let label_next = self.next_free_label(Ident::new("next"));
+                let label_conseq = self.next_free_label(Ident::from_str("conseq"));
+                let label_altern = self.next_free_label(Ident::from_str("altern"));
+                let label_next = self.next_free_label(Ident::from_str("next"));
 
                 block.branch(cond_ir, label_conseq, label_altern);
 
@@ -55,8 +55,8 @@ impl Translator {
                 self.commit_block_and_continue(block, label_next);
             },
             None => {
-                let label_conseq = self.next_free_label(Ident::new("conseq"));
-                let label_next = self.next_free_label(Ident::new("next"));
+                let label_conseq = self.next_free_label(Ident::from_str("conseq"));
+                let label_next = self.next_free_label(Ident::from_str("next"));
 
                 block.branch(cond_ir, label_conseq, label_next);
 
@@ -77,9 +77,9 @@ impl Translator {
                        cond: &ast::Expression,
                        body: &ast::Node<ast::Block>,
                        block: &mut ir::Block) {
-        let label_cond = self.next_free_label(Ident::new("while_cond"));
-        let label_body = self.next_free_label(Ident::new("while_body"));
-        let label_next = self.next_free_label(Ident::new("while_exit"));
+        let label_cond = self.next_free_label(Ident::from_str("while_cond"));
+        let label_body = self.next_free_label(Ident::from_str("while_body"));
+        let label_next = self.next_free_label(Ident::from_str("while_exit"));
 
         block.jump(label_cond);
 

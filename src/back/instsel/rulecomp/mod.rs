@@ -57,7 +57,7 @@ enum IrLine<'a> {{
 pub fn trans_instr(instr: &[&ir::Instruction],
                    last: &ir::ControlFlowInstruction,
                    code: &mut asm::Block)
-                   -> usize
+                   -> (usize, bool)
 {{
     let mut lines: Vec<_> = instr.iter().map(|i| IrLine::Instruction(i)).collect();
     lines.push(IrLine::CFInstruction(last));
@@ -109,7 +109,7 @@ fn translate_rule(rule: &Rule) -> String {
         }
     };
 
-    s.push_str(&format!("            {}\n", rule.pattern.ir_patterns.len()));
+    s.push_str(&format!("            ({}, {:?})\n", rule.pattern.ir_patterns.len(), rule.pattern.last.is_some()));
     s.push_str("        }");
 
     s
@@ -385,7 +385,7 @@ fn translate_asm(asm: &[Node<AsmInstr>], types: &HashMap<Ident, IrArg>) -> Strin
        .map(|instr| {
            new_regs.extend(instr.args.iter().filter_map(|arg| {
                if let AsmArg::NewRegister(name) = **arg {
-                   Some(format!("let {} = Ident::new(\"{}\");\n            ", name, name))
+                   Some(format!("let {} = Ident::from_str(\"{}\");\n            ", name, name))
                } else {
                    None
                }
@@ -405,7 +405,7 @@ fn translate_asm(asm: &[Node<AsmInstr>], types: &HashMap<Ident, IrArg>) -> Strin
 fn translate_asm_instr(instr: &AsmInstr, types: &HashMap<Ident, IrArg>) -> String {
     // FIXME: What about labels?
     let args: Vec<_> = instr.args.iter().map(|arg| translate_asm_arg(arg, types)).collect();
-    format!("code.emit_instruction(asm::Instruction::new(Ident::new(\"{}\"), vec![{}]));",
+    format!("code.emit_instruction(asm::Instruction::new(Ident::from_str(\"{}\"), vec![{}]));",
             instr.mnemonic,
             args.join(", "))
 }

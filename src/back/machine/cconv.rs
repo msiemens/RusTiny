@@ -19,13 +19,13 @@ pub fn translate_call(_: &mut asm::Block,
 //                      dst: Ident) {
     // FIXME: This is 32 bit, not 64 bit!
     //for arg in args {
-    //    code.emit_instruction(func, asm::Instruction::new(Ident::new("push"), vec![translate_value(arg)]));
+    //    code.emit_instruction(func, asm::Instruction::new(Ident::from_str("push"), vec![translate_value(arg)]));
     //}
 
-    //code.emit_instruction(func, asm::Instruction::new(Ident::new("call"), vec![asm::Argument::Label(callee)]));
-    //code.emit_instruction(func, asm::Instruction::new(Ident::new("add"),  ...));
+    //code.emit_instruction(func, asm::Instruction::new(Ident::from_str("call"), vec![asm::Argument::Label(callee)]));
+    //code.emit_instruction(func, asm::Instruction::new(Ident::from_str("add"),  ...));
 
-    //code.emit_instruction(func, asm::Instruction::new(Ident::new("mov"),  vec![asm::Argument::Register(asm::Register::VirtualRegister(dst)), asm::Argument::Register(asm::Register::MachineRegister(MachineRegister::RAX))]));
+    //code.emit_instruction(func, asm::Instruction::new(Ident::from_str("mov"),  vec![asm::Argument::Register(asm::Register::VirtualRegister(dst)), asm::Argument::Register(asm::Register::MachineRegister(MachineRegister::RAX))]));
 }
 
 

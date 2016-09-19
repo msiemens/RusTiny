@@ -1,5 +1,5 @@
-fn foo(bar: int) {
-    bar + 2;
+fn foo(bar: int) -> int {
+    bar + 2
 }
 
 fn main() {}

@@ -12,7 +12,7 @@ enum IrLine<'a> {
 pub fn trans_instr(instr: &[&ir::Instruction],
                    last: &ir::ControlFlowInstruction,
                    code: &mut asm::Block)
-                   -> usize
+                   -> (usize, bool)
 {
     panic!("Dummy rules")
 }

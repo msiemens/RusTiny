@@ -320,7 +320,7 @@ impl<'a> Parser<'a> {
                 // Some mnemonics have the same name as some IR keywords,
                 // thus we need to extract them
                 self.bump();
-                Node::new(Ident::new(&format!("{}", kw)), lo + self.span)
+                Node::new(Ident::from_str(&format!("{}", kw)), lo + self.span)
             },
             _ => self.unexpected_token(Some("a mnemonic"))
         };

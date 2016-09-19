@@ -1,5 +1,5 @@
 fn main() {
-entry-block:
+entry-block1:
     %a = alloca
     %a1 = alloca
     store 2 %a

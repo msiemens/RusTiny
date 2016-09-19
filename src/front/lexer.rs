@@ -161,7 +161,7 @@ impl<'a> Lexer<'a> {
         if let Some(kw) = lookup_keyword(ident) {
             Token::Keyword(kw)
         } else {
-            Token::Ident(Ident::new(ident))
+            Token::Ident(Ident::from_str(ident))
         }
     }
 

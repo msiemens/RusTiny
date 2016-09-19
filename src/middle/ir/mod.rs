@@ -18,8 +18,12 @@ pub use middle::ir::trans::translate;
 pub struct Label(pub Ident);
 
 impl Label {
-    pub fn new(name: &str) -> Label {
-        Label(Ident::new(name))
+    pub fn from_str(name: &str) -> Label {
+        Label(Ident::from_str(name))
+    }
+
+    pub fn ident(&self) -> Ident {
+        self.0
     }
 }
 
@@ -49,11 +53,11 @@ impl Value {
 pub struct Register(pub Ident);
 
 impl Register {
-    pub fn new(name: &str) -> Register {
-        Register(Ident::new(name))
+    pub fn from_str(name: &str) -> Register {
+        Register(Ident::from_str(name))
     }
 
-    pub fn unwrap_ident(&self) -> Ident {
+    pub fn ident(&self) -> Ident {
         self.0
     }
 }
@@ -287,11 +291,21 @@ pub enum ControlFlowInstruction {
     NotYetProcessed,
 }
 
+impl ControlFlowInstruction {
+    pub fn successors(&self) -> Vec<Ident> {
+        match *self {
+            ControlFlowInstruction::Branch { conseq, altern, .. } => vec![conseq.ident(), altern.ident()],
+            ControlFlowInstruction::Jump { dest } => vec![dest.ident()],
+            _ => Vec::new()
+        }
+    }
+}
+
 
 #[derive(Clone, Debug, Hash)]
 pub struct Phi {
-    srcs: Vec<(Value, Label)>,
-    dst: Register,
+    pub srcs: Vec<(Value, Label)>,
+    pub dst: Register,
 }
 
 

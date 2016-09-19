@@ -2,41 +2,196 @@
 //!
 //! See `Linear Scan Registry Allocation on SSA Form` by Christian Wimmer and Michael Frany.
 //! The livetime interval analyzer is passed the generated assembly code that still uses virtual
-//! registers. It returns a lifetime interval for each virtual register which tells during which
-//! operations the register needs to be alive.
-//! This assumes that the block order won't change and the operations are numbered.
+//! registers. It returns a lifetime interval for each block + virtual register which tells during
+//! which operations the register needs to be alive.
+//! This assumes that the instructions order won't change.
+// TODO: Hanle while loop headers
+
+use std::cmp::{min, max};
+use std::collections::HashMap;
+use back::machine::asm::{Assembly, AssemblyLine, Block, Register};
+use driver::interner::Ident;
+use middle::ir;
 
 
-use back::machine::asm;
+// (block, register) -> [(from, to), *]
+pub type LifetimeIntervals = HashMap<(Ident, Register), Vec<(usize, usize)>>;
 
 
-pub fn build_intervals(asm: &asm::Assembly) {
+pub fn build_intervals(asm: &Assembly) -> LifetimeIntervals {
+    let mut lifetimes = HashMap::new();
+    let mut live_in: HashMap<Ident, Vec<Register>> = HashMap::new();
+
     // for each block b in reverse order do
-    for (label, block) in asm.code().rev() {
+    for block in asm.code().rev() {
+        let block: &Block = block;  // Help IntelliJ-Rust infer the types
+
+        println!("block: {}", block.label());
+        println!("lifetimes: {:#?}", lifetimes);
+        println!("live_in: {:?}", live_in);
+
         // live = union of successor.liveIn for each successor of b
+        let mut live: Vec<Register> = block.successors().iter()
+            .filter_map(|label| {
+                live_in.get(label)
+            })
+            .flat_map(|v| v)
+            .cloned()
+            .collect();
 
         // for each phi function phi of successors of b do
         //      live.add(phi.inputOf(b))
+        let phis: Vec<&ir::Phi> = block.successors().iter()
+            .filter_map(|label| asm.get_block(*label))
+            .flat_map(|block| block.phis())
+            .collect();
+
+        for phi in phis {
+            live.extend(phi.srcs.iter().map(|src| {
+                let ir_reg = src.0.reg();
+                Register::Virtual(ir_reg.ident())
+            }));
+        }
+
+        live.dedup();
 
         // for each opd in live do
         //      intervals[opd].addRange(b.from, b.to)
+        println!("Adding intervals for live");
+        println!("live: {:?}", live);
+        for &virtual_reg in &live {
+            merge_or_create_interval(&mut lifetimes, (block.label(), virtual_reg), 0, block.len() - 1);
+        }
 
         // for each operation op of b in reverse order do
-        //      for each output operand opd of op do
-        //          intervals[opd].setFrom(op.id)
-        //          live.remove(opd)
-        //      for each input operand opd of op do
-        //          intervals[opd].addRange(b.from, op.id)
-        //          live.add(opd)
+        for (i, line) in block.code().enumerate().rev() {
+            if let AssemblyLine::Instruction(ref instruction) = *line {
+                println!("");
+                println!("instruction: {}", instruction);
+                println!("live: {:?}", live);
+                println!("lifetimes: {:?}", lifetimes);
+                println!("");
+
+                // for each output operand opd of op do
+                println!("Processing output registers: {:?}", instruction.outputs());
+                for reg in instruction.outputs() {
+                    // intervals[opd].setFrom(op.id)
+                    // live.remove(opd)
+
+                    if let Register::Machine(..) = *reg {
+                        continue
+                    }
+
+                    shorten_interval(&mut lifetimes, (block.label(), *reg), i);
+
+                    println!("Removing {} from live", reg);
+                    if let Some(idx) = live.iter().position(|r| r == reg) {
+                        live.remove(idx);
+                    } else {
+                        panic!("{} is not live", reg);
+                    }
+                }
+
+                // for each input operand opd of op do
+                println!("Processing input registers: {:?}", instruction.inputs());
+                for reg in instruction.inputs() {
+                    // intervals[opd].addRange(b.from, op.id)
+                    // live.add(opd)
+
+                    if let Register::Machine(..) = *reg {
+                        continue
+                    }
+
+                    merge_or_create_interval(&mut lifetimes, (block.label(), *reg), 0, i);
+                    live.push(*reg);
+                }
+            }
+        }
 
         // for each phi function phi of b do
         //      live.remove(phi.output)
+        println!("Removing Phi outputs from live");
+        println!("phis: {:?}", block.phis());
+        println!("live: {:?}", live);
 
+        for phi in block.phis() {
+            let reg = Register::Virtual(phi.dst.ident());
+
+            if let Some(idx) = live.iter().position(|r| r == &reg) {
+                live.remove(idx);
+            } else {
+                panic!("Phi output is not live: {}", phi.dst.ident());
+            }
+        }
+
+        // TODO: Implement loop handling
         // if b is loop header then
         //      loopEnd = last block of the loop starting at b
         //      for each opd in live do
         //          intervals[opd].addRange(b.from, loopEnd.to)
 
+        println!("");
+        println!("-----------------------------");
+        println!("");
+
         // b.liveIn = live
+        if !live.is_empty() {
+            live_in.insert(block.label(), live);
+        }
     }
+
+    lifetimes
+}
+
+fn shorten_interval(lifetimes: &mut LifetimeIntervals, entry: (Ident, Register), from: usize) {
+    println!("Shortening {:?} to {}..", entry.1, from);
+
+    if let Some(ref mut intervals) = lifetimes.get_mut(&entry) {
+        intervals.last_mut().unwrap().0 = from;
+    } else {
+        panic!("No existing interval to shorten");
+    }
+
+}
+
+fn merge_or_create_interval(lifetimes: &mut LifetimeIntervals, entry: (Ident, Register), from: usize, to: usize) {
+    assert!(from <= to);
+
+    println!("New interval for ({}, {}): {}, {}", entry.0, entry.1, from, to);
+
+    let intervals = lifetimes
+        .entry(entry)
+        .or_insert_with(Vec::new);
+
+    println!("Existing intervals: {:?}", intervals);
+
+    for interval in intervals.iter_mut() {
+        if interval.0 <= from && interval.1 >= to {
+            println!("Superset for {:?} already exists", interval);
+            return
+        }
+
+        if interval.1 >= from || to >= interval.0 {
+            println!("Merging with {:?}", interval);
+
+            interval.0 = min(from, interval.0);
+            interval.1 = max(to, interval.1);
+            return;
+        }
+    }
+
+    // No interval to merge with found
+    intervals.push((from, to));
+}
+
+
+#[cfg(test)]
+mod test {
+    // use back::regalloc::lifetime_intervals::*;
+
+    //    #[test]
+    //    fn test_merge_intervals() {
+    //        let lifetimes: LifetimeIntervals = HashMap::new();
+    //        lifetimes.insert()
+    //    }
 }

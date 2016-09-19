@@ -8,7 +8,11 @@
 
 const CONST: int = 3;
 
-fn main() {
+fn foo() -> int {
     let a: int = 0;
-    a + CONST;
+    a + CONST
+}
+
+fn main() {
+    foo();
 }

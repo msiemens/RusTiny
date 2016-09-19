@@ -1,5 +1,5 @@
 fn foo(a, b) {
-entry-block:
+entry-block1:
     %a = alloca
     %b = alloca
     %0 = load %a
@@ -9,7 +9,7 @@ entry-block:
 }
 
 fn main() {
-entry-block:
+entry-block2:
     %a = alloca
     store 2 %a
     %0 = load %a

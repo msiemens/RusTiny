@@ -1,5 +1,5 @@
 const SIZE: int = 10;
 
 fn main() {
-    SIZE + 1;
+    let a: int = SIZE + 1;
 }

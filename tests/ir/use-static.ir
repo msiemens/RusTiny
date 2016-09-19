@@ -1,7 +1,7 @@
 static STATIC = 3
 
 fn main() {
-entry-block:
+entry-block1:
     %0 = load @STATIC
     %1 = add %0 2
     ret void
