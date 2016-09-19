@@ -65,10 +65,10 @@ pub fn compile_input(source: &str, input_file: &str, output_file: Option<&str>, 
         return
     }
 
-    use util;
-    let mut s = String::new();
-    write!(s, "{}", ir).unwrap();
-    util::write_file(".debug.ir", &s);
+    //    use util;
+    //    let mut s = String::new();
+    //    write!(s, "{}", ir).unwrap();
+    //    util::write_file(".debug.ir", &s);
 
     // Phase 4: Optimization
 

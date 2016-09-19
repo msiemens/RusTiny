@@ -26,9 +26,9 @@ pub fn build_intervals(asm: &Assembly) -> LifetimeIntervals {
     for block in asm.code().rev() {
         let block: &Block = block;  // Help IntelliJ-Rust infer the types
 
-        println!("block: {}", block.label());
-        println!("lifetimes: {:#?}", lifetimes);
-        println!("live_in: {:?}", live_in);
+        trace!("block: {}", block.label());
+        trace!("lifetimes: {:#?}", lifetimes);
+        trace!("live_in: {:?}", live_in);
 
         // live = union of successor.liveIn for each successor of b
         let mut live: Vec<Register> = block.successors().iter()
@@ -57,8 +57,8 @@ pub fn build_intervals(asm: &Assembly) -> LifetimeIntervals {
 
         // for each opd in live do
         //      intervals[opd].addRange(b.from, b.to)
-        println!("Adding intervals for live");
-        println!("live: {:?}", live);
+        trace!("Adding intervals for live");
+        trace!("live: {:?}", live);
         for &virtual_reg in &live {
             merge_or_create_interval(&mut lifetimes, (block.label(), virtual_reg), 0, block.len() - 1);
         }
@@ -66,14 +66,14 @@ pub fn build_intervals(asm: &Assembly) -> LifetimeIntervals {
         // for each operation op of b in reverse order do
         for (i, line) in block.code().enumerate().rev() {
             if let AssemblyLine::Instruction(ref instruction) = *line {
-                println!("");
-                println!("instruction: {}", instruction);
-                println!("live: {:?}", live);
-                println!("lifetimes: {:?}", lifetimes);
-                println!("");
+                trace!("");
+                trace!("instruction: {}", instruction);
+                trace!("live: {:?}", live);
+                trace!("lifetimes: {:?}", lifetimes);
+                trace!("");
 
                 // for each output operand opd of op do
-                println!("Processing output registers: {:?}", instruction.outputs());
+                trace!("Processing output registers: {:?}", instruction.outputs());
                 for reg in instruction.outputs() {
                     // intervals[opd].setFrom(op.id)
                     // live.remove(opd)
@@ -84,7 +84,7 @@ pub fn build_intervals(asm: &Assembly) -> LifetimeIntervals {
 
                     shorten_interval(&mut lifetimes, (block.label(), *reg), i);
 
-                    println!("Removing {} from live", reg);
+                    trace!("Removing {} from live", reg);
                     if let Some(idx) = live.iter().position(|r| r == reg) {
                         live.remove(idx);
                     } else {
@@ -93,7 +93,7 @@ pub fn build_intervals(asm: &Assembly) -> LifetimeIntervals {
                 }
 
                 // for each input operand opd of op do
-                println!("Processing input registers: {:?}", instruction.inputs());
+                trace!("Processing input registers: {:?}", instruction.inputs());
                 for reg in instruction.inputs() {
                     // intervals[opd].addRange(b.from, op.id)
                     // live.add(opd)
@@ -110,9 +110,9 @@ pub fn build_intervals(asm: &Assembly) -> LifetimeIntervals {
 
         // for each phi function phi of b do
         //      live.remove(phi.output)
-        println!("Removing Phi outputs from live");
-        println!("phis: {:?}", block.phis());
-        println!("live: {:?}", live);
+        trace!("Removing Phi outputs from live");
+        trace!("phis: {:?}", block.phis());
+        trace!("live: {:?}", live);
 
         for phi in block.phis() {
             let reg = Register::Virtual(phi.dst.ident());
@@ -130,9 +130,9 @@ pub fn build_intervals(asm: &Assembly) -> LifetimeIntervals {
         //      for each opd in live do
         //          intervals[opd].addRange(b.from, loopEnd.to)
 
-        println!("");
-        println!("-----------------------------");
-        println!("");
+        trace!("");
+        trace!("-----------------------------");
+        trace!("");
 
         // b.liveIn = live
         if !live.is_empty() {
@@ -144,7 +144,7 @@ pub fn build_intervals(asm: &Assembly) -> LifetimeIntervals {
 }
 
 fn shorten_interval(lifetimes: &mut LifetimeIntervals, entry: (Ident, Register), from: usize) {
-    println!("Shortening {:?} to {}..", entry.1, from);
+    trace!("Shortening {:?} to {}..", entry.1, from);
 
     if let Some(ref mut intervals) = lifetimes.get_mut(&entry) {
         intervals.last_mut().unwrap().0 = from;
@@ -157,22 +157,22 @@ fn shorten_interval(lifetimes: &mut LifetimeIntervals, entry: (Ident, Register),
 fn merge_or_create_interval(lifetimes: &mut LifetimeIntervals, entry: (Ident, Register), from: usize, to: usize) {
     assert!(from <= to);
 
-    println!("New interval for ({}, {}): {}, {}", entry.0, entry.1, from, to);
+    trace!("New interval for ({}, {}): {}, {}", entry.0, entry.1, from, to);
 
     let intervals = lifetimes
         .entry(entry)
         .or_insert_with(Vec::new);
 
-    println!("Existing intervals: {:?}", intervals);
+    trace!("Existing intervals: {:?}", intervals);
 
     for interval in intervals.iter_mut() {
         if interval.0 <= from && interval.1 >= to {
-            println!("Superset for {:?} already exists", interval);
+            trace!("Superset for {:?} already exists", interval);
             return
         }
 
         if interval.1 >= from || to >= interval.0 {
-            println!("Merging with {:?}", interval);
+            trace!("Merging with {:?}", interval);
 
             interval.0 = min(from, interval.0);
             interval.1 = max(to, interval.1);
