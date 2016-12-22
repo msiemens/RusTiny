@@ -10,6 +10,8 @@ The syntax is based on Rust, but there are numerous semantic differences:
   language managable for me.
 - No `mut`, no borrow checker. Again: keep it simple.
 
+**NOTE:** This project is currently on hold as the current approach for SSA register allocation doesn't really pan out. I hope I'll find time to revisit project this sometime in the future.
+
 ## Goal
 
 My goal is to get the compiler so far that I can write a program that
