@@ -39,8 +39,8 @@
 //! (except for `translate_fn` which creates the block). That way we can commit
 //! the current block and continue with a new block in the middle of a function
 //! (see `commit_block_and_continue`). I think passing the pointer along is better
-//! than getting a reference to the current block every time we need it using a
-//! function.
+//! than having to call a function to get a reference to the current block every
+//! time we need to access it.
 
 // TODO: SSA verifier?
 
@@ -57,7 +57,23 @@ mod controlflow;
 mod expr;
 
 
-/// Information about the function that's translated currently
+/// Information about the function that we're translating right now
+///
+/// ## Stack Slots and Registers
+///
+/// As RusTiny allows name shadowing in nested scopes, we need to
+/// keep track of the alternative names we assign in case of
+/// duplicates (`a` might be come `a1` or `a2` if shadowed). We
+/// store these alternative names in `stack_slots` and `register`
+/// respectively. Along with that we attach the alternative name
+/// to symbol table. The symbol table not only stores variable
+/// names but also keeps track of the scope the variable belongs
+/// to.
+///
+/// This allows us to quickly check if a register name is already
+/// in use by scanning `stack_slots` and `register` but we also
+/// can retrieve the alternative name we assigned to a register
+/// using the symbol table.
 #[derive(Debug)]
 struct FunctionContext {
     /// The generated function body
@@ -67,7 +83,7 @@ struct FunctionContext {
     stack_slots: HashSet<Ident>,
 
     /// All registers used in this function
-    registers: HashMap<Ident, Register>,
+    registers: HashMap<Ident, Register>,  // FIXME: Can we use a HashSet<Ident> instead here?
 
     /// The current block's scope
     scope: ast::NodeId,
@@ -111,7 +127,7 @@ pub struct Translator {
     ir: ir::Program,
     fcx: Option<FunctionContext>,
     /// As the translator might want to use the same label multiple times,
-    /// we always append an index, which is stored here, to it
+    /// we always append an index to it, which is stored here
     next_label: HashMap<Ident, u32>,
 }
 
@@ -161,6 +177,7 @@ impl Translator {
     fn unwrap_dest(&mut self, dest: Dest) -> Register {
         match dest {
             Dest::Store(r) => {
+                // For debugging: make sure the destination actually exists
                 match r {
                     Register::Stack(id) => assert!(self.fcx().stack_slots.contains(&id), "Unregistered stack slot: {}", id),
                     Register::Local(id) => assert!(self.fcx().registers.contains_key(&id), "Unregistered register: {}", id)
@@ -208,7 +225,7 @@ impl Translator {
 
     /// Register a local variable and return its register
     fn register_local(&mut self, id: Ident) -> Register {
-        // Find a register
+        // Find a register name
         let mut id_mangled = id;
         let mut i = 1;
 
@@ -225,8 +242,9 @@ impl Translator {
         register
     }
 
+    /// Register a stack slot variable and return its register
     fn register_stack_slot(&mut self, id: Ident) -> Register {
-        // Find a register
+        // Find a stack slot name
         let mut id_mangled = id;
         let mut i = 1;
 
@@ -242,32 +260,27 @@ impl Translator {
         Register::Stack(id_mangled)
     }
 
+    /// Look up the alternative name we assigned in case of variable shadowing
     fn lookup_register(&mut self, reg: Register) -> Register {
-        trace!("symbol table: {:#?}", session().symbol_table);
-
         let var = session().symbol_table.resolve_variable(self.fcx().scope, &reg.ident())
             .expect(&format!("variable {} not yet declared", reg));
 
         match reg {
-            Register::Local(_) => var.reg.unwrap(),
-            Register::Stack(_) => var.slot.unwrap(),
+            Register::Local(_) => var.reg.expect(&format!("No register assigned to {}", reg)),
+            Register::Stack(_) => var.slot.expect(&format!("No stack slot assigned to {}", reg)),
         }
     }
 
+    /// Determine the kind of variable the name refers to
     fn variable_kind(&mut self, name: &Ident) -> VariableKind {
         if self.fcx().registers.contains_key(name) {
             VariableKind::Local
         } else if self.fcx().stack_slots.contains(name) {
             VariableKind::Stack
         } else {
-            let symtable = &session().symbol_table;
-            match symtable.lookup_symbol(name) {
-                Some(ast::Symbol::Static { .. }) => {
-                    VariableKind::Static
-                },
-                Some(ast::Symbol::Constant { .. }) => {
-                    VariableKind::Constant
-                },
+            match session().symbol_table.lookup_symbol(name) {
+                Some(ast::Symbol::Static { .. }) => VariableKind::Static,
+                Some(ast::Symbol::Constant { .. }) => VariableKind::Constant,
                 _ => panic!("{} is not a variable", name)
             }
         }
