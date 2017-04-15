@@ -84,7 +84,7 @@ pub fn build_intervals(asm: &Assembly) -> LifetimeIntervals {
                             continue
                         }
 
-                        shorten_interval(&mut lifetimes, (block.label(), *reg), i);
+                        shorten_interval(&mut lifetimes, &mut live, (block.label(), *reg), i);
 
                         trace!("Removing {} from live", reg);
                         if let Some(idx) = live.iter().position(|r| r == reg) {
@@ -146,15 +146,18 @@ pub fn build_intervals(asm: &Assembly) -> LifetimeIntervals {
     lifetimes
 }
 
-fn shorten_interval(lifetimes: &mut LifetimeIntervals, entry: (Ident, Register), from: usize) {
+fn shorten_interval(lifetimes: &mut LifetimeIntervals,
+                    live: &mut Vec<Register>,
+                    entry: (Ident, Register),
+                    from: usize) {
     trace!("Shortening {:?} to {}..", entry.1, from);
 
-    if let Some(ref mut intervals) = lifetimes.get_mut(&entry) {
-        intervals.last_mut().unwrap().0 = from;
-    } else {
-        panic!("No existing interval to shorten");
-    }
-
+    lifetimes
+        .entry(entry).or_insert_with(|| {
+            live.push(entry.1);
+            vec![(from, from)]
+        })
+        .last_mut().unwrap().0 = from;
 }
 
 fn merge_or_create_interval(lifetimes: &mut LifetimeIntervals, entry: (Ident, Register), from: usize, to: usize) {

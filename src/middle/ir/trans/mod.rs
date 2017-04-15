@@ -58,6 +58,7 @@ mod expr;
 
 
 /// Information about the function that's translated currently
+#[derive(Debug)]
 struct FunctionContext {
     /// The generated function body
     body: Vec<ir::Block>,
@@ -138,13 +139,14 @@ impl Translator {
         let next_register = self.fcx().next_register;
         self.fcx().next_register += 1;
 
-        Register::local(&next_register.to_string())
+        let id = Ident::from_str(&next_register.to_string());
+        self.register_local(id);
+
+        Register::Local(id)
     }
 
     /// Get the next free label with a given base name (e.g. `id` -> `id2`)
     fn next_free_label(&mut self, basename: Ident) -> ir::Label {
-//        let next_label = &mut self.fcx().next_label;
-
         *self.next_label.entry(basename).or_insert(0) += 1;
 
         let mut name = basename.to_string();
@@ -158,7 +160,14 @@ impl Translator {
     /// take the next free register.
     fn unwrap_dest(&mut self, dest: Dest) -> Register {
         match dest {
-            Dest::Store(r) => r,
+            Dest::Store(r) => {
+                match r {
+                    Register::Stack(id) => assert!(self.fcx().stack_slots.contains(&id), "Unregistered stack slot: {}", id),
+                    Register::Local(id) => assert!(self.fcx().registers.contains_key(&id), "Unregistered register: {}", id)
+                }
+
+                r
+            },
             Dest::Ignore => self.next_free_register()
         }
     }
@@ -206,24 +215,43 @@ impl Translator {
         while self.fcx().registers.values().any(|r| *r == Register::Local(id_mangled)) {
             id_mangled = Ident::from_str(&format!("{}{}", id, i));
             i += 1;
-        }
+        };
 
         // Register the variable
         let register = Register::Local(id_mangled);
         self.fcx().registers.insert(id, register);
+        session().symbol_table.set_register(self.fcx().scope, &id, register);
 
         register
     }
 
     fn register_stack_slot(&mut self, id: Ident) -> Register {
-        self.fcx().stack_slots.insert(id);
+        // Find a register
+        let mut id_mangled = id;
+        let mut i = 1;
 
-        Register::Stack(id)
+        while self.fcx().stack_slots.contains(&id_mangled) {
+            id_mangled = Ident::from_str(&format!("{}{}", id, i));
+            i += 1;
+        };
+
+        // Register the variable
+        self.fcx().stack_slots.insert(id_mangled);
+        session().symbol_table.set_slot(self.fcx().scope, &id, Register::Stack(id_mangled));
+
+        Register::Stack(id_mangled)
     }
 
-    fn lookup_register(&mut self, name: &Ident) -> Register {
-        *self.fcx().registers.get(name)
-            .expect(&format!("variable {} not yet declared", name))
+    fn lookup_register(&mut self, reg: Register) -> Register {
+        trace!("symbol table: {:#?}", session().symbol_table);
+
+        let var = session().symbol_table.resolve_variable(self.fcx().scope, &reg.ident())
+            .expect(&format!("variable {} not yet declared", reg));
+
+        match reg {
+            Register::Local(_) => var.reg.unwrap(),
+            Register::Stack(_) => var.slot.unwrap(),
+        }
     }
 
     fn variable_kind(&mut self, name: &Ident) -> VariableKind {

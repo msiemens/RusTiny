@@ -1,16 +1,16 @@
 fn main() {
 entry-block1:
-    %a = alloca
-    store 2 %a
+    {a} = alloca
+    store 2 {a}
     jmp while_cond1
 while_cond1:
-    %1 = load %a
+    %1 = load {a}
     %0 = cmp gt %1 0
     br %0 while_body1 while_exit1
 while_body1:
-    %3 = load %a
+    %3 = load {a}
     %2 = sub %3 1
-    store %2 %a
+    store %2 {a}
     jmp while_cond1
 while_exit1:
     ret void

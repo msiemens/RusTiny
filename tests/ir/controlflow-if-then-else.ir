@@ -1,18 +1,18 @@
 fn bar() {
 entry-block1:
-    %ret_slot = alloca
+    {ret_slot} = alloca
     store 2 %0
-    store %0 %ret_slot
+    store %0 {ret_slot}
     jmp return1
 return1:
-    %1 = load %ret_slot
+    %1 = load {ret_slot}
     ret %1
 }
 
 fn foo() {
 entry-block2:
-    %a = alloca
-    %ret_slot = alloca
+    {a} = alloca
+    {ret_slot} = alloca
     %3 = call bar
     %2 = cmp eq %3 2
     br %2 conseq1 altern1
@@ -23,19 +23,19 @@ altern1:
     store 7 %1
     jmp next1
 next1:
-    store %1 %a
-    %4 = load %a
-    store %4 %ret_slot
+    store %1 {a}
+    %4 = load {a}
+    store %4 {ret_slot}
     jmp return
 return2:
-    %5 = load %ret_slot
+    %5 = load {ret_slot}
     ret %5
 }
 
 fn main() {
 entry-block3:
-    %a = alloca
+    {a} = alloca
     %0 = call foo
-    store %0 %a
+    store %0 {a}
     ret void
 }

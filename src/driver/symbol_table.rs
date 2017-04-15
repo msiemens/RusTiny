@@ -24,6 +24,7 @@ use std::cell::RefCell;
 use std::collections::HashMap;
 use driver::interner::Ident;
 use front::ast;
+use middle::ir;
 use util::TryInsert;
 
 
@@ -64,7 +65,7 @@ impl<'a> SymbolTable {
             .expect(&format!("unregistered scope: {:?}", scope))
             .vars;
 
-        vars.try_insert(*binding.name, Variable { ty: binding.ty })
+        vars.try_insert(*binding.name, Variable { ty: binding.ty, reg: None, slot: None })
             .map_err(|()| "the variable already exists")
     }
 
@@ -74,7 +75,7 @@ impl<'a> SymbolTable {
     /// # Panics
     ///
     /// Panics when the scope doesn't exist
-    pub fn lookup_variable(&self, scope: ast::NodeId, name: &Ident) -> Option<Variable> {
+    fn lookup_variable(&self, scope: ast::NodeId, name: &Ident) -> Option<Variable> {
         let scopes = self.scopes.borrow();
         scopes[&scope].vars.get(name).cloned()
     }
@@ -118,7 +119,7 @@ impl<'a> SymbolTable {
         match self.lookup_symbol(name) {
             Some(ast::Symbol::Static { ref binding, .. })
             | Some(ast::Symbol::Constant { ref binding, .. }) => {
-                return Some(Variable { ty: binding.ty })
+                return Some(Variable { ty: binding.ty, reg: None, slot: None })
             }
             Some(_) | None => return None  // Variable not found or refers to a function
         };
@@ -144,6 +145,41 @@ impl<'a> SymbolTable {
         let scopes = self.scopes.borrow_mut();
         scopes[&scope].parent
     }
+
+
+    /// Set the register of a variable
+    ///
+    /// # Panics
+    ///
+    /// Panics when the scope or variable doesn't exist
+    pub fn set_register(&self,
+                        scope: ast::NodeId,
+                        name: &Ident,
+                        reg: ir::Register) {
+        let mut scopes = self.scopes.borrow_mut();
+        let scope = scopes.get_mut(&scope).expect(&format!("unregistered scope: {:?}", scope));
+        let var = scope.vars.entry(*name)
+            .or_insert_with(|| Variable {ty: ast::Type::Unit, reg: None, slot: None});
+
+        var.reg = Some(reg);
+    }
+
+    /// Set the stack slot of a variable
+    ///
+    /// # Panics
+    ///
+    /// Panics when the scope or variable doesn't exist
+    pub fn set_slot(&self,
+                        scope: ast::NodeId,
+                        name: &Ident,
+                        reg: ir::Register) {
+        let mut scopes = self.scopes.borrow_mut();
+        let scope = scopes.get_mut(&scope).expect(&format!("unregistered scope: {:?}", scope));
+        let var = scope.vars.entry(*name)
+            .or_insert_with(|| Variable {ty: ast::Type::Unit, reg: None, slot: None});
+
+        var.slot = Some(reg);
+    }
 }
 
 
@@ -166,5 +202,10 @@ impl BlockScope {
 #[derive(Copy, Clone, Debug)]
 pub struct Variable {
     /// front: The type of the variable
-    pub ty: ast::Type
+    pub ty: ast::Type,
+
+    /// middle: The register which stores the address of this variable
+    /// Not defined for static variables and constants, therefore an Option
+    pub reg: Option<ir::Register>,
+    pub slot: Option<ir::Register>,
 }

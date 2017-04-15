@@ -1,8 +1,5 @@
 fn foo(a, b, c) {
 entry-block1:
-    %a = alloca
-    %b = alloca
-    %c = alloca
     ret void
 }
 

@@ -1,12 +1,12 @@
 fn main() {
 entry-block1:
-    %a = alloca
-    %a1 = alloca
-    store 0 %a
-    %0 = load %a
+    {a} = alloca
+    {a1} = alloca
+    store 0 {a}
+    %0 = load {a}
     br %0 conseq1 next1
 conseq1:
-    store 3 %a1
+    store 3 {a1}
     jmp next1
 next1:
     ret void

@@ -97,8 +97,8 @@ impl Translator {
         let vkind = self.variable_kind(&dest);
 
         match vkind {
-            VariableKind::Local => ir::Value::Register(self.lookup_register(&dest)),
-            VariableKind::Stack => ir::Value::Register(ir::Register::Stack(dest)),
+            VariableKind::Local => ir::Value::Register(self.lookup_register(ir::Register::Local(dest))),
+            VariableKind::Stack => ir::Value::Register(self.lookup_register(ir::Register::Stack(dest))),
             VariableKind::Static => ir::Value::Static(dest),
             VariableKind::Constant => panic!("attempt to assign to a constant"),
         }

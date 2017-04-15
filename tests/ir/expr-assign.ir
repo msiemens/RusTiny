@@ -1,6 +1,6 @@
 fn main() {
 entry-block1:
-    %a = alloca
-    store 1 %a
+    {a} = alloca
+    store 1 {a}
     ret void
 }

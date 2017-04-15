@@ -1,18 +1,16 @@
 fn foo(a, b) {
 entry-block1:
-    %a = alloca
-    %b = alloca
-    %0 = load %a
-    %1 = load %b
+    %0 = load {a}
+    %1 = load {b}
     %2 = add %0 %1
     ret void
 }
 
 fn main() {
 entry-block2:
-    %a = alloca
-    store 2 %a
-    %0 = load %a
+    {a} = alloca
+    store 2 {a}
+    %0 = load {a}
     %1 = call foo 1 %0
     ret void
 }

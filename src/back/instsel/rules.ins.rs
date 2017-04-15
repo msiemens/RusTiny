@@ -494,6 +494,12 @@ rules!{
     [store 0(val), {dst}; ..] => {
         mov {dst}, $val;
     },
+    [store %(val), %(dst); ..] => {
+        mov $dst, $val;
+    },
+    [store 0(val), %(dst); ..] => {
+        mov $dst, $val;
+    },
 
     // --- Call -----------------------------------------------------------------
 

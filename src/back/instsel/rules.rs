@@ -523,6 +523,14 @@ pub fn trans_instr(instr: &[&ir::Instruction],
             code.emit_instruction(asm::Instruction::new(Ident::from_str("mov"), vec![asm::Argument::StackSlot(dst), asm::Argument::Immediate(val as machine::Word)]));
             (1, false)
         },
+        [IrLine::Instruction(&ir::Instruction::Store { src: ir::Value::Register(ir::Register::Local(val)), dst: ir::Value::Register(ir::Register::Local(dst)) }), ..] => {
+            code.emit_instruction(asm::Instruction::new(Ident::from_str("mov"), vec![asm::Argument::Register(asm::Register::Virtual(dst)), asm::Argument::Register(asm::Register::Virtual(val))]));
+            (1, false)
+        },
+        [IrLine::Instruction(&ir::Instruction::Store { src: ir::Value::Immediate(ir::Immediate(val)), dst: ir::Value::Register(ir::Register::Local(dst)) }), ..] => {
+            code.emit_instruction(asm::Instruction::new(Ident::from_str("mov"), vec![asm::Argument::Register(asm::Register::Virtual(dst)), asm::Argument::Immediate(val as machine::Word)]));
+            (1, false)
+        },
         [IrLine::Instruction(&ir::Instruction::Call { name: callee, args: ref args, dst: ir::Register::Local(dst) }), ..] => {
         // Note: This is Rust code, not assembler
         cconv::translate_call(code, callee, args, dst);

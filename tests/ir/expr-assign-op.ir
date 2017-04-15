@@ -1,9 +1,9 @@
 fn main() {
 entry-block1:
-    %a = alloca
-    store 1 %a
-    %1 = load %a
+    {a} = alloca
+    store 1 {a}
+    %1 = load {a}
     %0 = add %1 2
-    store %0 %a
+    store %0 {a}
     ret void
 }
