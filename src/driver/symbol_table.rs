@@ -91,7 +91,7 @@ impl<'a> SymbolTable {
         let symbols = self.symbols.borrow();
         symbols.get(name).and_then(|symbol| {
             if let ast::Symbol::Function { ref bindings, ref ret_ty, .. } = *symbol {
-                Some((bindings.iter().cloned().collect(), *ret_ty))
+                Some((bindings.to_vec(), *ret_ty))
             } else {
                 None
             }

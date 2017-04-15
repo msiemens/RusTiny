@@ -27,6 +27,7 @@ impl Fn {
         self.code.iter().find(|b| b.label == label)
     }
 
+    #[allow(needless_lifetimes)]  // Produces an ICE without lifetimes (presumably #41182)
     pub fn code<'a>(&'a self) -> impl Iterator<Item = &'a Block> + DoubleEndedIterator + ExactSizeIterator {
         self.code.iter()
     }

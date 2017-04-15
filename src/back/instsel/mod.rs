@@ -11,7 +11,7 @@
 // TODO: How are phi nodes handeled?
 
 use driver::interner::Ident;
-use back::machine::{asm, MachineRegister, Word};
+use back::machine::{asm, MachineRegister};
 use middle::ir;
 
 
@@ -86,7 +86,7 @@ impl<'a> InstructionSelector<'a> {
 
 
             // Pass Phi instructionos
-            asm_block.set_phis(ir_block.phis.iter().cloned().collect());
+            asm_block.set_phis(ir_block.phis.to_vec());
 
             // Translate instructions
             let instructions: Vec<_> = ir_block.inst.iter().collect();

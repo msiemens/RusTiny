@@ -66,7 +66,7 @@ fn print_error(stderr: &mut io::Stderr) {
 }
 
 /// Report a fatal error
-pub fn fatal(msg: String) {
+pub fn fatal(msg: &str) {
     let mut stderr = io::stderr();
 
     print_error(&mut stderr);
@@ -75,7 +75,7 @@ pub fn fatal(msg: String) {
 
 
 /// Report a fatal error at a source location
-pub fn fatal_at(msg: String, source: Loc) {
+pub fn fatal_at(msg: &str, source: Loc) {
     let mut stderr = io::stderr();
 
     print_error(&mut stderr);

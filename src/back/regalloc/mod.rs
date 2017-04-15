@@ -1,30 +1,30 @@
 // TODO: Handle constraints (e.g. div -> CL)
 
-use std::cmp::{min, max};
-use std::collections::{HashMap, HashSet};
+//use std::cmp::{min, max};
+//use std::collections::{HashMap, HashSet};
 use std::fmt::Write;
-use std::mem;
-use std::usize::MAX as USIZE_MAX;
-use back::machine::asm::{Assembly, AssemblyLine, Register};
-use back::machine::MachineRegister;
-use back::regalloc::lifetime_intervals::Interval;
+//use std::mem;
+//use std::usize::MAX as USIZE_MAX;
+use back::machine::asm::{Assembly/*, AssemblyLine, Register*/};
+//use back::machine::MachineRegister;
+//use back::regalloc::lifetime_intervals::Interval;
 //use back::regalloc::lifetime_intervals::{Interval, LifetimeIntervals};
-use driver::interner::Ident;
+//use driver::interner::Ident;
 use util;
 
 
 mod lifetime_intervals;
 
 
-struct Context {
-    //    lifetimes: LifetimeIntervals,
-    active: HashSet<(Interval, Register)>,
-    inactive: HashSet<(Interval, Register)>,
-    handled: HashSet<(Interval, Register)>,
-    unhandled: Vec<(Interval, Register)>,
-    registers: HashMap<(Interval, Register), MachineRegister>,
-    asm: Assembly
-}
+//struct Context {
+//    //    lifetimes: LifetimeIntervals,
+//    active: HashSet<(Interval, Register)>,
+//    inactive: HashSet<(Interval, Register)>,
+//    handled: HashSet<(Interval, Register)>,
+//    unhandled: Vec<(Interval, Register)>,
+//    registers: HashMap<(Interval, Register), MachineRegister>,
+//    asm: Assembly
+//}
 
 
 pub fn allocate_regs(asm: Assembly) -> Assembly {
@@ -33,7 +33,6 @@ pub fn allocate_regs(asm: Assembly) -> Assembly {
     util::write_file(".debug.asm", &s);
 
     let lifetimes = lifetime_intervals::build_intervals(&asm);
-    // TODO: Group assembly blocks by function?
 
     let mut s = String::new();
     write!(s, "Lifetimes: {:#?}", lifetimes).unwrap();

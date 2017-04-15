@@ -55,6 +55,7 @@ enum IrLine<'a> {{
 
 #[allow(non_shorthand_field_patterns)]
 #[allow(match_same_arms)]
+#[allow(unused_variables)]
 pub fn trans_instr(instr: &[&ir::Instruction],
                    last: &ir::ControlFlowInstruction,
                    code: &mut asm::Block)
@@ -357,7 +358,7 @@ fn translate_ir_pattern_last(ir_pattern_last: &IrPatternLast) -> String {
         },
         IrPatternLast::Jmp(ref dest) => {
             format!("IrLine::CFInstruction(&ir::ControlFlowInstruction::Jump {{ dest: {} }})",
-                    translate_ir_label(&dest))
+                    translate_ir_label(dest))
         },
     }
 }

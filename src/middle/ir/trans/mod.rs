@@ -167,7 +167,7 @@ impl Translator {
     /// we take a label here.
     fn commit_block_and_continue(&mut self, block: &mut ir::Block, label: ir::Label) {
         // Make sure the current block is finalized
-        assert!(block.last != ir::ControlFlowInstruction::NotYetProcessed);
+        assert_ne!(block.last, ir::ControlFlowInstruction::NotYetProcessed);
 
         let mut new_block = ir::Block {
             label: label,
