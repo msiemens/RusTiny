@@ -63,10 +63,10 @@ struct FunctionContext {
     body: Vec<ir::Block>,
 
     /// The function's arguments
-    args: Vec<Ident>,
+    stack_slots: HashSet<Ident>,
 
     /// All registers used in this function
-    registers: HashSet<Register>,
+    registers: HashMap<Ident, Register>,
 
     /// The current block's scope
     scope: ast::NodeId,
@@ -80,6 +80,15 @@ struct FunctionContext {
 
     /// The current loop's exit
     loop_exit: Option<ir::Label>,
+}
+
+
+#[derive(Clone, Copy)]
+pub enum VariableKind {
+    Local,
+    Stack,
+    Static,
+    Constant,
 }
 
 
@@ -129,7 +138,7 @@ impl Translator {
         let next_register = self.fcx().next_register;
         self.fcx().next_register += 1;
 
-        Register::from_str(&next_register.to_string())
+        Register::local(&next_register.to_string())
     }
 
     /// Get the next free label with a given base name (e.g. `id` -> `id2`)
@@ -194,26 +203,46 @@ impl Translator {
         let mut id_mangled = id;
         let mut i = 1;
 
-        while self.fcx().registers.contains(&Register(id_mangled)) {
+        while self.fcx().registers.values().any(|r| *r == Register::Local(id_mangled)) {
             id_mangled = Ident::from_str(&format!("{}{}", id, i));
             i += 1;
         }
 
         // Register the variable
-        let register = Register(id_mangled);
-        self.fcx().registers.insert(register);
-
-        let sytable = &session().symbol_table;
-        sytable.set_register(self.fcx().scope, &id, register);
+        let register = Register::Local(id_mangled);
+        self.fcx().registers.insert(id, register);
 
         register
     }
 
+    fn register_stack_slot(&mut self, id: Ident) -> Register {
+        self.fcx().stack_slots.insert(id);
+
+        Register::Stack(id)
+    }
+
     fn lookup_register(&mut self, name: &Ident) -> Register {
-        let sytable = &session().symbol_table;
-        let var = sytable.resolve_variable(self.fcx().scope, name)
-            .expect(&format!("variable {} not yet declared", name));
-        var.reg.expect(&format!("{:?} is not a local variable", var))
+        *self.fcx().registers.get(name)
+            .expect(&format!("variable {} not yet declared", name))
+    }
+
+    fn variable_kind(&mut self, name: &Ident) -> VariableKind {
+        if self.fcx().registers.contains_key(name) {
+            VariableKind::Local
+        } else if self.fcx().stack_slots.contains(name) {
+            VariableKind::Stack
+        } else {
+            let symtable = &session().symbol_table;
+            match symtable.lookup_symbol(name) {
+                Some(ast::Symbol::Static { .. }) => {
+                    VariableKind::Static
+                },
+                Some(ast::Symbol::Constant { .. }) => {
+                    VariableKind::Constant
+                },
+                _ => panic!("{} is not a variable", name)
+            }
+        }
     }
 
     /// Translate a function
@@ -225,12 +254,11 @@ impl Translator {
         let is_void = ret_ty == ast::Type::Unit;
 
         // Prepare function context
-        let ret_slot = Register::from_str("ret_slot");
         self.fcx = Some(FunctionContext {
             body: Vec::new(),
-            args: bindings.iter().map(|binding| *binding.name).collect(),
-            registers: HashSet::new(),
-            return_slot: if is_void { None } else { Some(ret_slot) },
+            stack_slots: HashSet::new(),
+            registers: HashMap::new(),
+            return_slot: None,
             scope: body.id,
             next_register: 0,
             loop_exit: None
@@ -244,15 +272,9 @@ impl Translator {
             phis: Vec::new(),
         };
 
-        // PREVIOUSLY: Allocate arguments (from left to right)
-
-        // Register return slot as register variable
-        //        self.register_local(ret_slot.ident());
-
-        // Register arguments as local variables so translation works
-        // FIXME: Better solution? We seem to confuse stack slots with local variables here
+        // Register arguments as stack slots
         for binding in bindings.iter().rev() {
-            self.register_local(*binding.name);
+            self.register_stack_slot(*binding.name);
         };
 
         // Translate ast block
@@ -262,6 +284,9 @@ impl Translator {
             // Store block value in temporary register...
             // NOTE: If the block contains a return expression, the ret_value register we pass
             // is skipped.
+            let ret_slot = self.register_stack_slot(Ident::from_str("ret_slot"));
+            self.fcx().return_slot = Some(ret_slot);
+
             let ret_value = self.next_free_register();
             self.trans_block(body, &mut block, Dest::Store(ret_value));
             // ... and store it in the memory slot
@@ -279,6 +304,7 @@ impl Translator {
             // Build the return block
             // FIXME: If there is a single store to the return slot,
             //        return it directly and skip the alloca/store
+            let ret_slot = self.fcx().return_slot.unwrap();
             self.with_first_block(&mut block, |block| block.alloc(ret_slot));
 
             let return_label = self.next_free_label(Ident::from_str("return"));
@@ -290,7 +316,7 @@ impl Translator {
             // ret %reg
             self.commit_block_and_continue(&mut block, return_label);
             let return_value = self.next_free_register();
-            block.load(ir::Value::Register(self.fcx().return_slot.unwrap()), return_value);
+            block.load(ir::Value::Register(ret_slot), return_value);
             block.ret(Some(ir::Value::Register(return_value)));
         };
 
@@ -326,7 +352,7 @@ impl Translator {
         match *stmt {
             ast::Statement::Declaration { ref binding, ref value } => {
                 // Allocate memory on stack for the binding
-                let dst = self.register_local(*binding.name);
+                let dst = self.register_stack_slot(*binding.name);
                 self.with_first_block(block, |block| block.alloc(dst));
 
                 // Store the expression in the new slot

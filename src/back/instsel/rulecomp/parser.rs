@@ -261,12 +261,31 @@ impl<'a> Parser<'a> {
         debug!("parsing an ir register");
         let lo = self.span;
 
-        self.expect(Token::Percent);
-        self.expect(Token::LParen);
-        let ident = self.parse_ident();
-        self.expect(Token::RParen);
+        let ident;
+        let kind;
 
-        Node::new(IrRegister(*ident), lo + self.span)
+        match self.token {
+            Token::Percent => {
+                kind = IrRegisterKind::Local;
+
+                self.bump();
+                self.expect(Token::LParen);
+                ident = self.parse_ident();
+                self.expect(Token::RParen);
+            },
+
+            Token::LBrace => {
+                kind = IrRegisterKind::Stack;
+
+                self.bump();
+                ident = self.parse_ident();
+                self.expect(Token::RBrace);
+            },
+
+            tok => panic!("Unexpected token: {}, expected PERCENT or LBrace", tok)
+        }
+
+        Node::new(IrRegister(*ident, kind), lo + self.span)
     }
 
     fn parse_ir_label(&mut self) -> Node<IrLabel> {
@@ -284,12 +303,13 @@ impl<'a> Parser<'a> {
         let lo = self.span;
 
         let arg = match self.token {
-            Token::Percent => IrArg::Register(self.parse_ir_register().0),
+            Token::Percent | Token::LBrace => IrArg::Register(*self.parse_ir_register()),
             Token::Zero => {
                 self.bump();
                 self.expect(Token::LParen);
                 let ident = self.parse_ident();
                 self.expect(Token::RParen);
+
                 IrArg::Literal(*ident)
             },
             Token::At => {
@@ -297,6 +317,7 @@ impl<'a> Parser<'a> {
                 self.expect(Token::LParen);
                 let ident = self.parse_ident();
                 self.expect(Token::RParen);
+
                 IrArg::Static(*ident)
             },
             _ => self.unexpected_token(Some("one of '%' | '0'"))
@@ -348,6 +369,13 @@ impl<'a> Parser<'a> {
             Token::Dollar => {
                 self.bump();
                 AsmArg::IrArg(self.parse_ident())
+            },
+            Token::LBrace => {
+                self.bump();
+                let ident = self.parse_ident();
+                self.expect(Token::RBrace);
+
+                AsmArg::StackSlot(ident)
             },
             Token::Percent => {
                 self.bump();

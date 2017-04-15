@@ -475,24 +475,24 @@ rules!{
 
     // --- Alloca/load/store ----------------------------------------------------
 
-    [%(dst) = alloca; ..] => {
-        // TODO: Collect allocas and replace usage with indirect arguments
-//        mov $dst, rsp;
-//        sub rsi, 4;
+    [{dst} = alloca; ..] => {
+        // Nothing to do here. We don't emit any instructions for allocations
+        // as instruction selection will analyse all alloca calls and allocate
+        // stack space as needed in the function prologue.
     },
 
-    [%(dst) = load %(src); ..] => {
-        mov $dst, qword ptr [$src];
+    [%(dst) = load {src}; ..] => {
+        mov $dst, {src};
     },
     [%(dst) = load @(src); ..] => {
-        mov $dst, qword ptr [$src];
+        mov $dst, {src};
     },
 
-    [store %(val), %(dst); ..] => {
-        mov qword ptr [$dst], $val;
+    [store %(val), {dst}; ..] => {
+        mov {dst}, $val;
     },
-    [store 0(val), %(dst); ..] => {
-        mov qword ptr [$dst], $val;
+    [store 0(val), {dst}; ..] => {
+        mov {dst}, $val;
     },
 
     // --- Call -----------------------------------------------------------------

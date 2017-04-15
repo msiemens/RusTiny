@@ -34,18 +34,21 @@ ir_last:    kw_ret (ir_arg)?
           | kw_jmp IDENT
 ir_dst:             ir_arg_address EQ      # %(...) =
 ir_arg:             ir_arg_address | ir_arg_literal
-ir_arg_address:     PERCENT LPAREN ident RPAREN         # %(...)
+ir_arg_address:     PERCENT LPAREN ident RPAREN | LBRACE ident RBRACE    # %(...) | {...}
 ir_arg_literal:     ZERO LPAREN ident RPAREN            # 0(...)
 
 asm:        mnemonic asm_arg (, asm_arg)* SEMICOLON
 asm_arg:    asm_register
           | asm_ir_arg
+          | asm_stack_slot
           | asm_new_register
           | asm_literal
 asm_register:     asm_ref_size "ptr" asm_ref | asm_register_name
 asm_register_name: kw_rax | ... | kw_rbp
 asm_ref:          LBRACKET asm_register_name ( ('+' | '-') asm_register_name '*' asm_literal )? ( ('+' | '-') asm_literal )? RBRACKET
+asm_ref_size:     word | dword | qword
 asm_ir_arg:       DOLLAR IDENT
+asm_stack_slot:  LBRACKET LBRACKET IDENT RBRACKET RBRACKET
 asm_new_register: PERCENT LBRACE IDENT RBRACE
 asm_literal:      0-9 (0-9|a-Z)*
 ```

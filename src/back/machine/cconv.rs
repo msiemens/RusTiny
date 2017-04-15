@@ -41,12 +41,18 @@ pub fn translate_call(code: &mut asm::Block,
 
 fn translate_value(value: &ir::Value) -> asm::Argument {
     match *value {
-        ir::Value::Register(ir::Register(reg)) => {
+        ir::Value::Register(ir::Register::Local(reg)) => {
             asm::Argument::Register(asm::Register::Virtual(reg))
         },
+
+        ir::Value::Register(ir::Register::Stack(reg)) => {
+            asm::Argument::StackSlot(reg)
+        },
+
         ir::Value::Immediate(ir::Immediate(val)) => {
             asm::Argument::Immediate(val as Word)
         },
+
         ir::Value::Static(..) => unimplemented!()
     }
 }

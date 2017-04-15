@@ -53,7 +53,7 @@ pub enum IrPatternLast {
 
 #[derive(Clone, Debug)]
 pub enum IrArg {
-    Register(Ident),
+    Register(IrRegister),
     Literal(Ident),
     Static(Ident),
 }
@@ -61,13 +61,19 @@ pub enum IrArg {
 impl IrArg {
     pub fn get_name(&self) -> Ident {
         match *self {
-            IrArg::Register(id) | IrArg::Literal(id)| IrArg::Static(id) => id,
+            IrArg::Register(IrRegister(id, ..)) | IrArg::Literal(id)| IrArg::Static(id) => id,
         }
     }
 }
 
-#[derive(Clone, Debug)]
-pub struct IrRegister(pub Ident);
+#[derive(Copy, Clone, Debug)]
+pub enum IrRegisterKind {
+    Local,
+    Stack
+}
+
+#[derive(Copy, Clone, Debug)]
+pub struct IrRegister(pub Ident, pub IrRegisterKind);
 
 #[derive(Clone, Debug)]
 pub struct IrLabel(pub Ident);
@@ -87,6 +93,7 @@ pub struct AsmInstr {
 #[derive(Clone, Debug)]
 pub enum AsmArg {
     Register(MachineRegister),
+    StackSlot(Node<Ident>),
     NewRegister(Node<Ident>),
     IrArg(Node<Ident>),
     Literal(Node<Ident>),

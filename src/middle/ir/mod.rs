@@ -51,16 +51,25 @@ impl Value {
 }
 
 #[derive(Clone, Copy, PartialEq, Eq, Hash)]
-pub struct Register(pub Ident);
+pub enum Register {
+    /// A local register
+    Local(Ident),
+
+    /// A stack slot
+    /// Basically a pointer that points to a variable stored on the stack
+    Stack(Ident)
+}
 
 impl Register {
     #[allow(should_implement_trait)]
-    pub fn from_str(name: &str) -> Register {
-        Register(Ident::from_str(name))
+    pub fn local(name: &str) -> Register {
+        Register::Local(Ident::from_str(name))
     }
 
     pub fn ident(&self) -> Ident {
-        self.0
+        match *self {
+            Register::Local(id) | Register::Stack(id) => id
+        }
     }
 }
 
@@ -440,7 +449,10 @@ impl CmpOp {
 
 impl fmt::Debug for Register {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "Register({})", self.0)
+        match *self {
+            Register::Local(id) => write!(f, "Register::Local({})", id),
+            Register::Stack(id) => write!(f, "Register::Stack({})", id),
+        }
     }
 }
 
@@ -462,7 +474,6 @@ impl fmt::Display for Value {
         match *self {
             Value::Immediate(i) => write!(f, "{}", i),
             Value::Register(r) => write!(f, "{}", r),
-            Value::StackSlot(i) => write!(f, "{{{}}}", i),
             Value::Static(s) => write!(f, "@{}", s),
         }
     }
@@ -470,7 +481,10 @@ impl fmt::Display for Value {
 
 impl fmt::Display for Register {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "%{}", self.0)
+        match *self {
+            Register::Local(id) => write!(f, "%{}", id),
+            Register::Stack(id) => write!(f, "{{{}}}", id),
+        }
     }
 }
 

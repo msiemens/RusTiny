@@ -97,7 +97,7 @@ fn translate_rule(rule: &Rule) -> String {
                         .iter()
                         .inspect(|arg| {
                             if let AsmArg::NewRegister(name) = ***arg {
-                                arg_types.insert(*name, IrArg::Register(*name));
+                                arg_types.insert(*name, IrArg::Register(IrRegister(*name, IrRegisterKind::Local)));
                             }
                         })
                         .all(|_| true);
@@ -121,7 +121,7 @@ fn update_pattern_types(pattern: &IrPattern, map: &mut HashMap<Ident, IrArg>) {
     macro_rules! binop {
         ($map:ident, $dest:ident, $lhs:ident, $rhs:ident) => {
             {
-                $map.insert($dest.0, IrArg::Register($dest.0));
+                $map.insert($dest.0, IrArg::Register(IrRegister($dest.0, $dest.1)));
                 $map.insert($lhs.get_name(), (**$lhs).clone());
                 $map.insert($rhs.get_name(), (**$rhs).clone());
             }
@@ -148,15 +148,15 @@ fn update_pattern_types(pattern: &IrPattern, map: &mut HashMap<Ident, IrArg>) {
         | IrPattern::CmpGt(ref dest, ref lhs, ref rhs) => binop!(map, dest, lhs, rhs),
         IrPattern::Neg(ref dest, ref arg)
         | IrPattern::Not(ref dest, ref arg) => {
-            map.insert(dest.0, IrArg::Register(dest.0));
+            map.insert(dest.0, IrArg::Register(IrRegister(dest.0, dest.1)));
             map.insert(arg.get_name(), (**arg).clone());
         },
         IrPattern::Alloca(ref dest)
         | IrPattern::Call(ref dest, _, _) => {
-            map.insert(dest.0, IrArg::Register(dest.0));
+            map.insert(dest.0, IrArg::Register(IrRegister(dest.0, dest.1)));
         },
         IrPattern::Load(ref dest, ref addr) => {
-            map.insert(dest.0, IrArg::Register(dest.0));
+            map.insert(dest.0, IrArg::Register(IrRegister(dest.0, dest.1)));
             map.insert(addr.get_name(), (**addr).clone());
         },
         IrPattern::Store(ref value, ref addr) => {
@@ -365,14 +365,18 @@ fn translate_ir_pattern_last(ir_pattern_last: &IrPatternLast) -> String {
 
 fn translate_ir_arg(arg: &IrArg) -> String {
     match *arg {
-        IrArg::Register(reg) => format!("ir::Value::Register(ir::Register({}))", reg),
+        IrArg::Register(IrRegister(reg, IrRegisterKind::Local)) => format!("ir::Value::Register(ir::Register::Local({}))", reg),
+        IrArg::Register(IrRegister(reg, IrRegisterKind::Stack)) => format!("ir::Value::Register(ir::Register::Stack({}))", reg),
         IrArg::Literal(lit) => format!("ir::Value::Immediate(ir::Immediate({}))", lit),
         IrArg::Static(lit) => format!("ir::Value::Static({})", lit),
     }
 }
 
 fn translate_ir_register(arg: &IrRegister) -> String {
-    format!("ir::Register({})", arg.0)
+    match *arg {
+        IrRegister(id, IrRegisterKind::Local) => format!("ir::Register::Local({})", id),
+        IrRegister(id, IrRegisterKind::Stack) => format!("ir::Register::Stack({})", id),
+    }
 }
 
 fn translate_ir_label(arg: &IrLabel) -> String {
@@ -418,16 +422,17 @@ fn translate_asm_arg(arg: &AsmArg, types: &HashMap<Ident, IrArg>) -> String {
             format!("asm::Argument::Register(asm::Register::Machine(MachineRegister::{:?}))",
                     reg)
         }
+        AsmArg::StackSlot(ref reg) => {
+            format!("asm::Argument::StackSlot({})", reg)
+        }
         AsmArg::NewRegister(ref reg) => {
             format!("asm::Argument::Register(asm::Register::Virtual({}))",
                     reg)
         }
         AsmArg::IrArg(ref arg) => {
             match *types.get(arg).unwrap() {
-                IrArg::Register(..) => {
-                    format!("asm::Argument::Register(asm::Register::Virtual({}))",
-                            arg)
-                }
+                IrArg::Register(IrRegister(id, IrRegisterKind::Local)) => format!("asm::Argument::Register(asm::Register::Virtual({}))", id),
+                IrArg::Register(IrRegister(id, IrRegisterKind::Stack)) => format!("asm::Argument::StackSlot({})", id),
                 IrArg::Literal(..) => format!("asm::Argument::Immediate({} as machine::Word)", arg),
                 IrArg::Static(..) => format!("asm::Argument::Address({})", arg),
             }

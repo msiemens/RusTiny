@@ -24,7 +24,6 @@ use std::cell::RefCell;
 use std::collections::HashMap;
 use driver::interner::Ident;
 use front::ast;
-use middle::ir;
 use util::TryInsert;
 
 
@@ -65,7 +64,7 @@ impl<'a> SymbolTable {
             .expect(&format!("unregistered scope: {:?}", scope))
             .vars;
 
-        vars.try_insert(*binding.name, Variable { ty: binding.ty, reg: None })
+        vars.try_insert(*binding.name, Variable { ty: binding.ty })
             .map_err(|()| "the variable already exists")
     }
 
@@ -119,40 +118,11 @@ impl<'a> SymbolTable {
         match self.lookup_symbol(name) {
             Some(ast::Symbol::Static { ref binding, .. })
             | Some(ast::Symbol::Constant { ref binding, .. }) => {
-                return Some(Variable { ty: binding.ty, reg: None })
+                return Some(Variable { ty: binding.ty })
             }
             Some(_) | None => return None  // Variable not found or refers to a function
         };
     }
-
-    // FIXME: Somehow collapse with resolve_variable or macro
-    pub fn variable_kind(&self, mut scope: ast::NodeId, name: &Ident) -> Option<VariableKind> {
-        // First, look in the current block and its parents
-        loop {
-            if self.lookup_variable(scope, name).is_some() {
-                return Some(VariableKind::Local)
-            }
-
-            if let Some(parent) = self.parent_scope(scope) {
-                // Continue searching in the parent scope
-                scope = parent
-            } else {
-                break  // No more parent scopes, search in statics/consts
-            }
-        }
-
-        // Look up in static/const symbols
-        match self.lookup_symbol(name) {
-            Some(ast::Symbol::Static { .. }) => {
-                return Some(VariableKind::Static)
-            },
-            Some(ast::Symbol::Constant { .. }) => {
-                return Some(VariableKind::Constant)
-            }
-            Some(_) | None => return None  // Variable not found or refers to a function
-        };
-    }
-
 
     /// Set the parent of a scope
     ///
@@ -173,22 +143,6 @@ impl<'a> SymbolTable {
     pub fn parent_scope(&self, scope: ast::NodeId) -> Option<ast::NodeId> {
         let scopes = self.scopes.borrow_mut();
         scopes[&scope].parent
-    }
-
-
-    /// Set the register of a variable
-    ///
-    /// # Panics
-    ///
-    /// Panics when the scope or variable doesn't exist
-    pub fn set_register(&self,
-                            scope: ast::NodeId,
-                            name: &Ident,
-                            reg: ir::Register) {
-        let mut scopes = self.scopes.borrow_mut();
-        let scope = scopes.get_mut(&scope).expect(&format!("unregistered scope: {:?}", scope));
-        let var = scope.vars.get_mut(name).expect(&format!("unregistered variable: {:?}", name));
-        var.reg = Some(reg);
     }
 }
 
@@ -212,17 +166,5 @@ impl BlockScope {
 #[derive(Copy, Clone, Debug)]
 pub struct Variable {
     /// front: The type of the variable
-    pub ty: ast::Type,
-
-    /// middle: The register which stores the address of this variable
-    /// Not defined for static variables and constants, therefore an Option
-    pub reg: Option<ir::Register>,
-}
-
-
-#[derive(Clone, Copy)]
-pub enum VariableKind {
-    Local,
-    Static,
-    Constant,
+    pub ty: ast::Type
 }

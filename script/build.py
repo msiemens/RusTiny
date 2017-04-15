@@ -27,7 +27,10 @@ def get_binary(name, release):
 
 def run(mode, release, args=None):
     cprint('Building instruction selection rules...', 'blue', end=' ', flush=True)
-    build_rules(release)
+    build_rules(release, force=(mode == 'rules'))
+
+    if mode == 'rules':
+        return
 
     if mode == 'check':
         cmd = ['cargo', 'rustc', '-Zno-trans'] + args
@@ -56,8 +59,8 @@ def run(mode, release, args=None):
         cprint('Unexpected mode: {}'.format(mode), 'red')
 
 
-def build_rules(release):
-    recompile_needed = False
+def build_rules(release, force=False):
+    recompile_needed = force
 
     rules_input = RUSTINY_DIR / 'src' / 'back' / 'instsel' / 'rules.ins.rs'
     rules_dummy = RUSTINY_DIR / 'src' / 'back' / 'instsel' / 'rules.dummy.rs'

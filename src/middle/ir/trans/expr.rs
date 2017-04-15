@@ -2,10 +2,9 @@
 
 use driver::interner::Ident;
 use driver;
-use driver::symbol_table::VariableKind;
 use front::ast;
 use middle::ir;
-use middle::ir::trans::{Dest, Translator};
+use middle::ir::trans::{Dest, Translator, VariableKind};
 
 impl Translator {
     /// Translate an expression
@@ -72,12 +71,12 @@ impl Translator {
 
         if let ast::Expression::Variable { ref name } = *expr {
             // Look up of which kind the variable is
-            let sytable = &driver::session().symbol_table;
-            let vkind = sytable.variable_kind(self.fcx().scope, name).unwrap();
+            let vkind = self.variable_kind(name);
 
             // Special handling for constants: return the immediate value
             if let VariableKind::Constant = vkind {
                 // Get the constant's value and return it as an immediate
+                let sytable = &driver::session().symbol_table;
                 let symbol = sytable.lookup_symbol(name).unwrap();
                 let val = symbol.get_value().unwrap_literal();
                 return ir::Value::Immediate(ir::Immediate(val.as_u32()))
@@ -95,11 +94,11 @@ impl Translator {
 
     fn assign_dest(&mut self, dest: Ident) -> ir::Value {
         // Look up of which kind the variable is
-        let sytable = &driver::session().symbol_table;
-        let vkind = sytable.variable_kind(self.fcx().scope, &dest).unwrap();
+        let vkind = self.variable_kind(&dest);
 
         match vkind {
             VariableKind::Local => ir::Value::Register(self.lookup_register(&dest)),
+            VariableKind::Stack => ir::Value::Register(ir::Register::Stack(dest)),
             VariableKind::Static => ir::Value::Static(dest),
             VariableKind::Constant => panic!("attempt to assign to a constant"),
         }
@@ -120,19 +119,23 @@ impl Translator {
                       name: &Ident,
                       block: &mut ir::Block,
                       dest: Dest) {
-        let sytable = &driver::session().symbol_table;
-        let vkind = sytable.variable_kind(self.fcx().scope, name).unwrap();
+        let vkind = self.variable_kind(name);
 
         match vkind {
             VariableKind::Local => {
-                // %dest = load %local
-                let reg = self.lookup_register(name);
-                block.load(ir::Value::Register(reg), self.unwrap_dest(dest));
+                // Do nothing, just use the variable
             },
+
+            VariableKind::Stack => {
+                // %dest = load %local
+                block.load(ir::Value::Register(ir::Register::Stack(*name)), self.unwrap_dest(dest));
+            },
+
             VariableKind::Static => {
                 // %dest = load %static
                 block.load(ir::Value::Static(*name), self.unwrap_dest(dest));
             },
+
             VariableKind::Constant => {
                 // %dest = {const}
                 panic!("should already be handled!")
