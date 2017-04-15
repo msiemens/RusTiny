@@ -29,13 +29,15 @@
 // }
 
 
-fn func() -> int {
-    10
+fn func(i: int) -> int {
+    10 + i
 }
 
 fn main() {
     let i: int = 2;
-    if 1 == i || false {
-        func()
+    let j: int = func(i);
+
+    if j == i || j > 7 {
+        i = 9;
     }
 }

@@ -14,8 +14,9 @@ use driver::interner::Ident;
 use middle::ir;
 
 
-// (block, register) -> [(from, to), *]
-pub type LifetimeIntervals = HashMap<(Ident, Register), Vec<(usize, usize)>>;
+pub type Interval = (usize, usize);
+// (block, register) -> [Interval, *]
+pub type LifetimeIntervals = HashMap<(Ident, Register), Vec<Interval>>;
 
 
 pub fn build_intervals(asm: &Assembly) -> LifetimeIntervals {
@@ -23,120 +24,122 @@ pub fn build_intervals(asm: &Assembly) -> LifetimeIntervals {
     let mut live_in: HashMap<Ident, Vec<Register>> = HashMap::new();
 
     // for each block b in reverse order do
-    for block in asm.code().rev() {
-        let block: &Block = block;  // Help IntelliJ-Rust infer the types
+    for func in asm.fns() {
+        for block in func.code().rev() {
+            let block: &Block = block;  // Help IntelliJ-Rust infer the types
 
-        trace!("block: {}", block.label());
-        trace!("lifetimes: {:#?}", lifetimes);
-        trace!("live_in: {:?}", live_in);
+            trace!("block: {}", block.label());
+            trace!("lifetimes: {:#?}", lifetimes);
+            trace!("live_in: {:?}", live_in);
 
-        // live = union of successor.liveIn for each successor of b
-        let mut live: Vec<Register> = block.successors().iter()
-            .filter_map(|label| {
-                live_in.get(label)
-            })
-            .flat_map(|v| v)
-            .cloned()
-            .collect();
+            // live = union of successor.liveIn for each successor of b
+            let mut live: Vec<Register> = block.successors().iter()
+                .filter_map(|label| {
+                    live_in.get(label)
+                })
+                .flat_map(|v| v)
+                .cloned()
+                .collect();
 
-        // for each phi function phi of successors of b do
-        //      live.add(phi.inputOf(b))
-        let phis: Vec<&ir::Phi> = block.successors().iter()
-            .filter_map(|label| asm.get_block(*label))
-            .flat_map(|block| block.phis())
-            .collect();
+            // for each phi function phi of successors of b do
+            //      live.add(phi.inputOf(b))
+            let phis: Vec<&ir::Phi> = block.successors().iter()
+                .filter_map(|label| func.get_block(*label))
+                .flat_map(|block| block.phis())
+                .collect();
 
-        for phi in phis {
-            live.extend(phi.srcs.iter().map(|src| {
-                let ir_reg = src.0.reg();
-                Register::Virtual(ir_reg.ident())
-            }));
-        }
+            for phi in phis {
+                live.extend(phi.srcs.iter().map(|src| {
+                    let ir_reg = src.0.reg();
+                    Register::Virtual(ir_reg.ident())
+                }));
+            }
 
-        live.dedup();
+            live.dedup();
 
-        // for each opd in live do
-        //      intervals[opd].addRange(b.from, b.to)
-        trace!("Adding intervals for live");
-        trace!("live: {:?}", live);
-        for &virtual_reg in &live {
-            merge_or_create_interval(&mut lifetimes, (block.label(), virtual_reg), 0, block.len() - 1);
-        }
+            // for each opd in live do
+            //      intervals[opd].addRange(b.from, b.to)
+            trace!("Adding intervals for live");
+            trace!("live: {:?}", live);
+            for &virtual_reg in &live {
+                merge_or_create_interval(&mut lifetimes, (block.label(), virtual_reg), 0, block.len() - 1);
+            }
 
-        // for each operation op of b in reverse order do
-        for (i, line) in block.code().enumerate().rev() {
-            if let AssemblyLine::Instruction(ref instruction) = *line {
-                trace!("");
-                trace!("instruction: {}", instruction);
-                trace!("live: {:?}", live);
-                trace!("lifetimes: {:?}", lifetimes);
-                trace!("");
+            // for each operation op of b in reverse order do
+            for (i, line) in block.code().enumerate().rev() {
+                if let AssemblyLine::Instruction(ref instruction) = *line {
+                    trace!("");
+                    trace!("instruction: {}", instruction);
+                    trace!("live: {:?}", live);
+                    trace!("lifetimes: {:?}", lifetimes);
+                    trace!("");
 
-                // for each output operand opd of op do
-                trace!("Processing output registers: {:?}", instruction.outputs());
-                for reg in instruction.outputs() {
-                    // intervals[opd].setFrom(op.id)
-                    // live.remove(opd)
+                    // for each output operand opd of op do
+                    trace!("Processing output registers: {:?}", instruction.outputs());
+                    for reg in instruction.outputs() {
+                        // intervals[opd].setFrom(op.id)
+                        // live.remove(opd)
 
-                    if let Register::Machine(..) = *reg {
-                        continue
+                        if let Register::Machine(..) = *reg {
+                            continue
+                        }
+
+                        shorten_interval(&mut lifetimes, (block.label(), *reg), i);
+
+                        trace!("Removing {} from live", reg);
+                        if let Some(idx) = live.iter().position(|r| r == reg) {
+                            live.remove(idx);
+                        } else {
+                            panic!("{} is not live", reg);
+                        }
                     }
 
-                    shorten_interval(&mut lifetimes, (block.label(), *reg), i);
+                    // for each input operand opd of op do
+                    trace!("Processing input registers: {:?}", instruction.inputs());
+                    for reg in instruction.inputs() {
+                        // intervals[opd].addRange(b.from, op.id)
+                        // live.add(opd)
 
-                    trace!("Removing {} from live", reg);
-                    if let Some(idx) = live.iter().position(|r| r == reg) {
-                        live.remove(idx);
-                    } else {
-                        panic!("{} is not live", reg);
+                        if let Register::Machine(..) = *reg {
+                            continue
+                        }
+
+                        merge_or_create_interval(&mut lifetimes, (block.label(), *reg), 0, i);
+                        live.push(*reg);
                     }
                 }
+            }
 
-                // for each input operand opd of op do
-                trace!("Processing input registers: {:?}", instruction.inputs());
-                for reg in instruction.inputs() {
-                    // intervals[opd].addRange(b.from, op.id)
-                    // live.add(opd)
+            // for each phi function phi of b do
+            //      live.remove(phi.output)
+            trace!("Removing Phi outputs from live");
+            trace!("phis: {:?}", block.phis());
+            trace!("live: {:?}", live);
 
-                    if let Register::Machine(..) = *reg {
-                        continue
-                    }
+            for phi in block.phis() {
+                let reg = Register::Virtual(phi.dst.ident());
 
-                    merge_or_create_interval(&mut lifetimes, (block.label(), *reg), 0, i);
-                    live.push(*reg);
+                if let Some(idx) = live.iter().position(|r| r == &reg) {
+                    live.remove(idx);
+                } else {
+                    panic!("Phi output is not live: {}", phi.dst.ident());
                 }
             }
-        }
 
-        // for each phi function phi of b do
-        //      live.remove(phi.output)
-        trace!("Removing Phi outputs from live");
-        trace!("phis: {:?}", block.phis());
-        trace!("live: {:?}", live);
+            // TODO: Implement loop handling
+            // if b is loop header then
+            //      loopEnd = last block of the loop starting at b
+            //      for each opd in live do
+            //          intervals[opd].addRange(b.from, loopEnd.to)
 
-        for phi in block.phis() {
-            let reg = Register::Virtual(phi.dst.ident());
+            trace!("");
+            trace!("-----------------------------");
+            trace!("");
 
-            if let Some(idx) = live.iter().position(|r| r == &reg) {
-                live.remove(idx);
-            } else {
-                panic!("Phi output is not live: {}", phi.dst.ident());
+            // b.liveIn = live
+            if !live.is_empty() {
+                live_in.insert(block.label(), live);
             }
-        }
-
-        // TODO: Implement loop handling
-        // if b is loop header then
-        //      loopEnd = last block of the loop starting at b
-        //      for each opd in live do
-        //          intervals[opd].addRange(b.from, loopEnd.to)
-
-        trace!("");
-        trace!("-----------------------------");
-        trace!("");
-
-        // b.liveIn = live
-        if !live.is_empty() {
-            live_in.insert(block.label(), live);
         }
     }
 

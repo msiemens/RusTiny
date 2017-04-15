@@ -54,6 +54,7 @@ enum IrLine<'a> {{
 }}
 
 #[allow(non_shorthand_field_patterns)]
+#[allow(match_same_arms)]
 pub fn trans_instr(instr: &[&ir::Instruction],
                    last: &ir::ControlFlowInstruction,
                    code: &mut asm::Block)

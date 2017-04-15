@@ -11,7 +11,7 @@
 // TODO: How are phi nodes handeled?
 
 use driver::interner::Ident;
-use back::machine::asm;
+use back::machine::{asm, MachineRegister, Word};
 use middle::ir;
 
 
@@ -40,22 +40,42 @@ impl<'a> InstructionSelector<'a> {
         self.code.emit_data(format!(".long {}", value));
     }
 
-    fn trans_fn(&mut self, name: Ident, body: &[ir::Block], _: &[Ident]) {
+    fn trans_fn(&mut self, name: Ident, body: &[ir::Block], args: &[Ident]) {
         // The function body
+        let mut code = Vec::new();
+
         let mut first_block = true;
         for ir_block in body {
             let mut asm_block = asm::Block::new(ir_block.label.ident());
 
             if first_block {
+                // Determine stack usage by the number of alloca calls
+                let mut stack_usage = 0;
+
+                for inst in &ir_block.inst {
+                    if let ir::Instruction::Alloca { .. } = *inst {
+                        stack_usage += 1;
+                    } else {
+                        break;
+                    }
+                }
+
                 // Function prologue
                 asm_block.emit_directive(format!(".globl {}", name));
                 asm_block.emit_directive(format!("{}:", name));
                 asm_block.emit_instruction(asm::Instruction::new(
-                    Ident::from_str("enter"),
-                    vec![
-                        asm::Argument::Immediate(0),  // Stack usage by this function
-                        asm::Argument::Immediate(0),
-                    ]
+                    Ident::from_str("push"),
+                    vec![asm::Argument::Register(asm::Register::Machine(MachineRegister::RBP))]
+                ));
+                asm_block.emit_instruction(asm::Instruction::new(
+                    Ident::from_str("mov"),
+                    vec![asm::Argument::Register(asm::Register::Machine(MachineRegister::RBP)),
+                         asm::Argument::Register(asm::Register::Machine(MachineRegister::RSP))]
+                ));
+                asm_block.emit_instruction(asm::Instruction::new(
+                    Ident::from_str("sub"),
+                    vec![asm::Argument::Register(asm::Register::Machine(MachineRegister::RSP)),
+                         asm::Argument::Immediate(8 * stack_usage)]  // FIXME: Use this function's stack usage here
                 ));
 
                 // NOT VALID FOR NOW: (Don't emit the label of the first block (usually "entry-block"))
@@ -86,8 +106,10 @@ impl<'a> InstructionSelector<'a> {
             // Add sucessors
             asm_block.add_successors(&ir_block.last.successors());
 
-            self.code.emit_block(asm_block);
+            code.push(asm_block);
         }
+
+        self.code.emit_fn(name, args.to_vec(), code);
 
         // TODO: Where will the epilogue/stack cleanup codegen go?
     }

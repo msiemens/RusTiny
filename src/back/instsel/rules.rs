@@ -12,6 +12,7 @@ enum IrLine<'a> {
 }
 
 #[allow(non_shorthand_field_patterns)]
+#[allow(match_same_arms)]
 pub fn trans_instr(instr: &[&ir::Instruction],
                    last: &ir::ControlFlowInstruction,
                    code: &mut asm::Block)
@@ -502,8 +503,7 @@ pub fn trans_instr(instr: &[&ir::Instruction],
             (1, false)
         },
         [IrLine::Instruction(&ir::Instruction::Alloca { dst: ir::Register(dst) }), ..] => {
-            code.emit_instruction(asm::Instruction::new(Ident::from_str("mov"), vec![asm::Argument::Register(asm::Register::Virtual(dst)), asm::Argument::Register(asm::Register::Machine(MachineRegister::RSP))]));
-            code.emit_instruction(asm::Instruction::new(Ident::from_str("sub"), vec![asm::Argument::Register(asm::Register::Machine(MachineRegister::RSI)), asm::Argument::Immediate(4)]));
+            
             (1, false)
         },
         [IrLine::Instruction(&ir::Instruction::Load { src: ir::Value::Register(ir::Register(src)), dst: ir::Register(dst) }), ..] => {
@@ -523,7 +523,6 @@ pub fn trans_instr(instr: &[&ir::Instruction],
             (1, false)
         },
         [IrLine::Instruction(&ir::Instruction::Call { name: callee, args: ref args, dst: ir::Register(dst) }), ..] => {
-
         // Note: This is Rust code, not assembler
         cconv::translate_call(code, callee, args, dst);
                 (1, false)

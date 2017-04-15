@@ -61,10 +61,16 @@ mod expr;
 struct FunctionContext {
     /// The generated function body
     body: Vec<ir::Block>,
+
+    /// The function's arguments
+    args: Vec<Ident>,
+
     /// All registers used in this function
     registers: HashSet<Register>,
+
     /// The current block's scope
     scope: ast::NodeId,
+
     /// A return slot used to store the return value
     /// if the return type is non-void
     return_slot: Option<Register>,
@@ -182,7 +188,7 @@ impl Translator {
         self.fcx().body.push(block);
     }
 
-    /// Register a local variable and return the register that contains it's address
+    /// Register a local variable and return its register
     fn register_local(&mut self, id: Ident) -> Register {
         // Find a register
         let mut id_mangled = id;
@@ -222,6 +228,7 @@ impl Translator {
         let ret_slot = Register::from_str("ret_slot");
         self.fcx = Some(FunctionContext {
             body: Vec::new(),
+            args: bindings.iter().map(|binding| *binding.name).collect(),
             registers: HashSet::new(),
             return_slot: if is_void { None } else { Some(ret_slot) },
             scope: body.id,
@@ -237,11 +244,16 @@ impl Translator {
             phis: Vec::new(),
         };
 
-        // Allocate arguments (from left to right)
+        // PREVIOUSLY: Allocate arguments (from left to right)
+
+        // Register return slot as register variable
+        //        self.register_local(ret_slot.ident());
+
+        // Register arguments as local variables so translation works
+        // FIXME: Better solution? We seem to confuse stack slots with local variables here
         for binding in bindings.iter().rev() {
-            let reg = self.register_local(*binding.name);
-            block.alloc(reg);
-        }
+            self.register_local(*binding.name);
+        };
 
         // Translate ast block
         if is_void {
@@ -257,8 +269,8 @@ impl Translator {
                 // If the block contains a 'return' expr, it already stores the result in the
                 // return slot, so we don't have to do
                 block.store(ir::Value::Register(ret_value), ir::Value::Register(ret_slot));
-            }
-        }
+            };
+        };
 
         // Finalize the function
         if is_void && !block.finalized() {
@@ -272,7 +284,7 @@ impl Translator {
             let return_label = self.next_free_label(Ident::from_str("return"));
             if !block.finalized() {
                 block.jump(return_label);
-            }
+            };
 
             // %reg = mem[%return_slot]
             // ret %reg
@@ -280,7 +292,7 @@ impl Translator {
             let return_value = self.next_free_register();
             block.load(ir::Value::Register(self.fcx().return_slot.unwrap()), return_value);
             block.ret(Some(ir::Value::Register(return_value)));
-        }
+        };
 
         self.commit_block(block);
 

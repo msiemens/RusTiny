@@ -1,7 +1,36 @@
+use std::collections::HashMap;
 use std::fmt;
 use driver::interner::Ident;
 use back::machine::{MachineRegister, Word};
 use middle::ir;
+
+
+#[derive(Clone, Debug)]
+pub struct Fn {
+    args: Vec<Ident>,
+    code: Vec<Block>
+}
+
+impl Fn {
+    pub fn new(args: Vec<Ident>, code: Vec<Block>) -> Fn {
+        Fn {
+            args: args,
+            code: code
+        }
+    }
+
+    pub fn emit_block(&mut self, block: Block) {
+        self.code.push(block);
+    }
+
+    pub fn get_block(&self, label: Ident) -> Option<&Block> {
+        self.code.iter().find(|b| b.label == label)
+    }
+
+    pub fn code<'a>(&'a self) -> impl Iterator<Item = &'a Block> + DoubleEndedIterator + ExactSizeIterator {
+        self.code.iter()
+    }
+}
 
 
 #[derive(Clone, Debug)]
@@ -108,7 +137,7 @@ impl Instruction {
 
     fn has_inputs_only(&self) -> bool {
         match &*self.mnemonic {
-            "test" | "cmp" => return true,
+            "test" | "cmp" | "push" => return true,
             _ => {}
         };
 
@@ -159,6 +188,10 @@ pub enum Argument {
 
     Register(Register),
 
+    /// A stack slot whose position is yet to be determined
+    /// Used for function arguments and variables stored in memory
+    StackSlot(Ident),
+
     // [base + index * scale + disp]
     // Example: mov eax, DWORD PTR [rbp-4]
     Indirect {
@@ -185,36 +218,45 @@ pub enum Register {
     Virtual(Ident),
 }
 
+impl Register {
+    pub fn into_machine(self) -> MachineRegister {
+        match self {
+            Register::Machine(r) => r,
+            _ => panic!("Register::into_machine({:?})", self)
+        }
+    }
+}
+
 
 #[derive(Debug)]
 pub struct Assembly {
     data: Vec<String>,
-    code: Vec<Block>,
+    code: HashMap<Ident, Fn>,
 }
 
 impl Assembly {
     pub fn new() -> Assembly {
         Assembly {
             data: Vec::new(),
-            code: Vec::new(),
+            code: HashMap::new(),
         }
-    }
-
-    pub fn emit_block(&mut self, block: Block) {
-        self.code.push(block);
     }
 
     pub fn emit_data(&mut self, d: String) {
         self.data.push(d);
     }
 
-    #[allow(needless_lifetimes)]
-    pub fn code<'a>(&'a self) -> impl Iterator<Item = &'a Block> + DoubleEndedIterator {
-        self.code.iter()
+    pub fn emit_fn(&mut self, name: Ident, args: Vec<Ident>, code: Vec<Block>) {
+        self.code.insert(name, Fn::new(args, code));
     }
 
-    pub fn get_block(&self, label: Ident) -> Option<&Block> {
-        self.code.iter().find(|b| b.label == label)
+    pub fn get_fn(&mut self, name: Ident) -> &Fn {
+        &self.code[&name]
+    }
+
+    #[allow(needless_lifetimes)]
+    pub fn fns<'a>(&'a self) -> impl Iterator<Item = &'a Fn> {
+        self.code.values()
     }
 }
 
@@ -237,8 +279,10 @@ impl fmt::Display for Assembly {
 
         try!(writeln!(f, ".text"));
 
-        for line in &self.code {
-            try!(writeln!(f, "{}", line))
+        for func in self.fns() {
+            for block in func.code() {
+                try!(writeln!(f, "{}", block))
+            }
         }
 
         Ok(())
@@ -282,6 +326,7 @@ impl fmt::Display for Argument {
             Argument::Address(ref val) => write!(f, "{}", val),
             Argument::Label(ref label) => write!(f, "{}", label),
             Argument::Register(ref reg) => write!(f, "{}", reg),
+            Argument::StackSlot(ref name) => write!(f, "{{{}}}", name),
             Argument::Indirect { size, base, index, disp } => {
                 if let Some(size) = size {
                     match size {

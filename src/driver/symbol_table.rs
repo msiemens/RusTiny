@@ -129,7 +129,7 @@ impl<'a> SymbolTable {
     pub fn variable_kind(&self, mut scope: ast::NodeId, name: &Ident) -> Option<VariableKind> {
         // First, look in the current block and its parents
         loop {
-            if let Some(_) = self.lookup_variable(scope, name) {
+            if self.lookup_variable(scope, name).is_some() {
                 return Some(VariableKind::Local)
             }
 

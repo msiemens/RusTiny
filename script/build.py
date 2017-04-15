@@ -67,7 +67,8 @@ def build_rules(release):
     if not rules_dest.exists():
         recompile_needed = True
 
-    recompile_needed |= rules_input.stat().st_mtime > rules_dest.stat().st_mtime
+    if not recompile_needed:
+        recompile_needed |= rules_input.stat().st_mtime > rules_dest.stat().st_mtime
 
     if recompile_needed:
         # Compile rules

@@ -477,8 +477,8 @@ rules!{
 
     [%(dst) = alloca; ..] => {
         // TODO: Collect allocas and replace usage with indirect arguments
-        mov $dst, rsp;
-        sub rsi, 4;
+//        mov $dst, rsp;
+//        sub rsi, 4;
     },
 
     [%(dst) = load %(src); ..] => {

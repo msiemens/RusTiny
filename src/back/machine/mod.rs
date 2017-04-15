@@ -38,6 +38,30 @@ pub enum MachineRegister {
 }
 
 
+impl MachineRegister {
+    pub fn all() -> &'static [MachineRegister] {
+        const ALL: &'static [MachineRegister] = &[
+            MachineRegister::RAX,
+            MachineRegister::RBX,
+            MachineRegister::RCX,
+            MachineRegister::RDX,
+            MachineRegister::RSI,
+            MachineRegister::RDI,
+            MachineRegister::R8,
+            MachineRegister::R9,
+            MachineRegister::R10,
+            MachineRegister::R11,
+            MachineRegister::R12,
+            MachineRegister::R13,
+            MachineRegister::R14,
+            MachineRegister::R15,
+        ];
+
+        ALL
+    }
+}
+
+
 impl fmt::Display for MachineRegister {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match *self {
