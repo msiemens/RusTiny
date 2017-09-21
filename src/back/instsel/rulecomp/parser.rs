@@ -612,7 +612,7 @@ impl<'a> Parser<'a> {
         } else if self.eat(Token::FatArrow) {
             Impl::Asm(self.parse_asm_impl())
         } else {
-            self.unexpected_token(None);
+            self.unexpected_token(None)
         };
 
         Node::new(Rule {

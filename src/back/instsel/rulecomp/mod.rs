@@ -433,7 +433,7 @@ fn translate_asm_arg(arg: &AsmArg, types: &HashMap<Ident, IrArg>) -> String {
             match *types.get(arg).unwrap() {
                 IrArg::Register(IrRegister(id, IrRegisterKind::Local)) => format!("asm::Argument::Register(asm::Register::Virtual({}))", id),
                 IrArg::Register(IrRegister(id, IrRegisterKind::Stack)) => format!("asm::Argument::StackSlot({})", id),
-                IrArg::Literal(..) => format!("asm::Argument::Immediate({} as machine::Word)", arg),
+                IrArg::Literal(..) => format!("asm::Argument::Immediate(machine::Word::from({}))", arg),
                 IrArg::Static(..) => format!("asm::Argument::Address({})", arg),
             }
         }

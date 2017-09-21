@@ -54,7 +54,7 @@ impl Session {
 
     /// Abort complation
     pub fn abort(&self) -> ! {
-        error::abort();
+        error::abort()
     }
 }
 
@@ -70,5 +70,5 @@ pub fn session() -> Rc<Session> {
         })
     };
 
-    SESSION.with(|o| o.clone())
+    SESSION.with(|o| Rc::clone(o))
 }

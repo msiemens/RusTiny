@@ -12,7 +12,7 @@ pub fn read_file(input_path: &str) -> String {
         Ok(f) => f,
         Err(err) => {
             fatal!("Can't open {}: {}", input_path, err);
-            session().abort();
+            session().abort()
         }
     };
 
@@ -22,7 +22,7 @@ pub fn read_file(input_path: &str) -> String {
         Ok(..) => {},
         Err(_) => {
             fatal!("Can't read {}", input_path);
-            session().abort();
+            session().abort()
         }
     };
 
@@ -30,7 +30,7 @@ pub fn read_file(input_path: &str) -> String {
         Ok(contents) => return contents,
         Err(_) => {
             fatal!("{} is not UTF-8 encoed", input_path);
-            session().abort();
+            session().abort()
         }
     };
 }
@@ -41,7 +41,7 @@ pub fn write_file(output_path: &str, contents: &str) {
         Ok(f) => f,
         Err(err) => {
             fatal!("Can't open {}: {}", output_path, err);
-            session().abort();
+            session().abort()
         }
     };
 
@@ -49,7 +49,7 @@ pub fn write_file(output_path: &str, contents: &str) {
         Ok(..) => {},
         Err(_) => {
             fatal!("Can't write {}", output_path);
-            session().abort();
+            session().abort()
         }
     };
 }

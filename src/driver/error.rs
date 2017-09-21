@@ -51,7 +51,7 @@ fn colors_enabled() -> bool {
 
 /// Abort compilation
 pub fn abort() -> ! {
-    process::exit(1);
+    process::exit(1)
 }
 
 

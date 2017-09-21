@@ -2,7 +2,6 @@
 
 extern crate clap;
 extern crate env_logger;
-extern crate rustc_serialize;
 extern crate rustiny;
 
 use clap::{Arg, App};

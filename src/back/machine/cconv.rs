@@ -50,7 +50,7 @@ fn translate_value(value: &ir::Value) -> asm::Argument {
         },
 
         ir::Value::Immediate(ir::Immediate(val)) => {
-            asm::Argument::Immediate(val as Word)
+            asm::Argument::Immediate(Word::from(val))
         },
 
         ir::Value::Static(..) => unimplemented!()
