@@ -40,7 +40,7 @@ pub enum MachineRegister {
 
 impl MachineRegister {
     pub fn all() -> &'static [MachineRegister] {
-        const ALL: &'static [MachineRegister] = &[
+        const ALL: &[MachineRegister] = &[
             MachineRegister::RAX,
             MachineRegister::RBX,
             MachineRegister::RCX,

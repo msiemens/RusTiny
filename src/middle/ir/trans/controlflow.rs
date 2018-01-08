@@ -73,6 +73,7 @@ impl Translator {
     }
 
     /// Translate a while expression
+    #[allow(unit_expr)]
     pub fn trans_while(&mut self,
                        cond: &ast::Expression,
                        body: &ast::Node<ast::Block>,

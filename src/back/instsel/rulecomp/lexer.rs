@@ -58,7 +58,7 @@ impl<'a> Lexer<'a> {
     // --- Lexer: Helpers -------------------------------------------------------
 
     /// Report a fatal error back to the user
-    fn fatal(&self, msg: String) -> ! {
+    fn fatal<S: AsRef<str>>(&self, msg: S) -> ! {
         fatal_at!(msg; self.get_source());
         session().abort()
     }

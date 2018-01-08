@@ -59,7 +59,7 @@ impl<'a> Parser<'a> {
     // --- Error handling -------------------------------------------------------
 
     /// Stop compiling because of a fatal error
-    fn fatal(&self, msg: String) -> ! {
+    fn fatal<S: AsRef<str>>(&self, msg: S) -> ! {
         fatal_at!(msg; self.span);
         session().abort()
     }

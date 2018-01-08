@@ -57,7 +57,7 @@ impl<'a> Lexer<'a> {
     // --- Lexer: Helpers -------------------------------------------------------
 
     /// Report a fatal error back to the user
-    fn fatal(&self, msg: String) -> ! {
+    fn fatal<S: AsRef<str>>(&self, msg: S) -> ! {
         fatal_at!(msg; self.get_source());
         session().abort()
     }
@@ -185,7 +185,7 @@ impl<'a> Lexer<'a> {
         self.bump();  // '\'' matched, move on
 
         let c = self.curr.unwrap_or_else(|| {
-            self.fatal("expected a char, found EOF".into());
+            self.fatal("expected a char, found EOF");
         });
         let tok = if c == '\\' {
             // Escaped char, let's take a look on one more char
@@ -194,7 +194,7 @@ impl<'a> Lexer<'a> {
                 Some('n')  => Token::Char('\n'),
                 Some('\'') => Token::Char('\''),
                 Some(c) => self.fatal(format!("unsupported or invalid escape sequence: \\{}", c)),
-                None => self.fatal("expected escaped char, found EOF".into())
+                None => self.fatal("expected escaped char, found EOF")
             }
         } else {
             Token::Char(c)

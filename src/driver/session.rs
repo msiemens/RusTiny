@@ -34,14 +34,14 @@ pub struct Session {
 
 impl Session {
     /// Print an error with a source location
-    pub fn span_err<T: HasSourceLocation>(&self, msg: String, loc: T) {
-        error::fatal_at(&*msg, loc.loc());
+    pub fn span_err<T: HasSourceLocation, S: AsRef<str>>(&self, msg: S, loc: T) {
+        error::fatal_at(msg, loc.loc());
         *self.errors.borrow_mut() = true;
     }
 
     /// Print an error
-    pub fn err(&self, msg: String) {
-        error::fatal(&*msg);
+    pub fn err<S: AsRef<str>>(&self, msg: S) {
+        error::fatal(msg);
         *self.errors.borrow_mut() = true;
     }
 

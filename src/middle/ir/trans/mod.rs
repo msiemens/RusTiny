@@ -366,13 +366,14 @@ impl Translator {
         // Emit the symbol
         let fcx = self.fcx.take().unwrap();
         self.ir.emit(ir::Symbol::Function {
-            name: name,
+            name,
             body: fcx.body,
             args: bindings.iter().map(|b| *b.name).collect(),
         });
     }
 
     /// Translate an AST code block
+    #[allow(unit_expr)]
     fn trans_block(&mut self,
                    b: &ast::Node<ast::Block>,
                    block: &mut ir::Block,

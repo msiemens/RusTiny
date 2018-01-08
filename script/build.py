@@ -33,7 +33,7 @@ def run(mode, release, args=None):
         return
 
     if mode == 'check':
-        cmd = ['cargo', 'rustc', '-Zno-trans'] + args
+        cmd = ['cargo', 'check'] + args
 
         cprint('Running {!r} ...'.format(' '.join(cmd)), 'blue')
         sys.exit(subprocess.call(cmd))

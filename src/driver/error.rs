@@ -66,20 +66,20 @@ fn print_error(stderr: &mut io::Stderr) {
 }
 
 /// Report a fatal error
-pub fn fatal(msg: &str) {
+pub fn fatal<S: AsRef<str>>(msg: S) {
     let mut stderr = io::stderr();
 
     print_error(&mut stderr);
-    writeln!(&mut stderr, ": {}", msg).ok();
+    writeln!(&mut stderr, ": {}", msg.as_ref()).ok();
 }
 
 
 /// Report a fatal error at a source location
-pub fn fatal_at(msg: &str, source: Loc) {
+pub fn fatal_at<S: AsRef<str>>(msg: S, source: Loc) {
     let mut stderr = io::stderr();
 
     print_error(&mut stderr);
-    writeln!(&mut stderr, " in line {}:{}: {}", source.line, source.col, msg).ok();
+    writeln!(&mut stderr, " in line {}:{}: {}", source.line, source.col, msg.as_ref()).ok();
 }
 
 

@@ -14,13 +14,13 @@
 #![allow(doc_markdown)]
 #![allow(new_without_default)]
 #![allow(new_without_default_derive)]
-#![allow(while_let_loop)]  // Clippy is buggy here with multiple if lets (see Manishearth/rust-clippy#771)
 #![allow(needless_return)]  // Overly strict
 
 extern crate ansi_term;
 extern crate term;
 #[macro_use] extern crate lazy_static;
 #[macro_use] extern crate log;
+#[cfg(test)] #[macro_use] extern crate pretty_assertions;
 extern crate rustc_serialize;
 
 #[macro_use] pub mod macros;

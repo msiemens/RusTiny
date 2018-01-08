@@ -340,7 +340,7 @@ if __name__ == '__main__':
         suites = default_set
 
     # Build the compiler in debug mode
-    build.run('build', release=False)
+    build.run('build', release=True)
 
     # Run specified set of test suites
     for suite in suites:

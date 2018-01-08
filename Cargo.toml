@@ -27,3 +27,6 @@ lazy_static = "*"
 log = "*"
 rustc-serialize = "*"
 term = "*"
+
+[dev-dependencies]
+pretty_assertions = "0.3.4"

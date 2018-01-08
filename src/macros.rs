@@ -6,8 +6,7 @@ macro_rules! fatal(
 
     ($msg:expr) => (
         {
-            use std::borrow::ToOwned;
-            $crate::driver::session().err($msg.to_owned())
+            $crate::driver::session().err($msg)
         }
     );
 );
@@ -20,8 +19,7 @@ macro_rules! fatal_at(
 
     ($msg:expr; $loc:expr) => (
         {
-            use std::borrow::ToOwned;
-            $crate::driver::session().span_err($msg.to_owned(), $loc)
+            $crate::driver::session().span_err($msg, $loc)
         }
     );
 );
