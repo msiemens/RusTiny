@@ -1,4 +1,6 @@
 # RusTiny
+[![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2Fmsiemens%2FRusTiny.svg?type=shield)](https://app.fossa.io/projects/git%2Bgithub.com%2Fmsiemens%2FRusTiny?ref=badge_shield)
+
 
 This is an educational compiler for a Rust-like language that was originally
 planned to target the fictional [Tiny architecture](https://github.com/msiemens/rust-tinyasm). But due to Tiny's limitations, RusTiny now targets x86-64 machines.
@@ -34,3 +36,7 @@ Resources I found helpful:
 
 - [**Introduction to Compiler Design** by Torben Ægidius Mogensen](http://www.springer.com/us/book/9780857298287)
 - [**Engineering a Compiler** by Keith D. Cooper & Linda Torczon](http://store.elsevier.com/product.jsp?isbn=9780120884780)
+
+
+## License
+[![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2Fmsiemens%2FRusTiny.svg?type=large)](https://app.fossa.io/projects/git%2Bgithub.com%2Fmsiemens%2FRusTiny?ref=badge_large)
