@@ -516,6 +516,7 @@ rules!{
     },
 
     [ret %(val)] => {
+        // TODO: Use calling convention here
         mov rax, $val;
         leave;  // Reset the stack pointer
         ret;

@@ -12,9 +12,7 @@ struct SymbolTableBuilder<'a> {
 
 impl<'a> SymbolTableBuilder<'a> {
     fn new(sytbl: &'a SymbolTable) -> SymbolTableBuilder<'a> {
-        SymbolTableBuilder {
-            sytbl: sytbl
-        }
+        SymbolTableBuilder { sytbl }
     }
 }
 

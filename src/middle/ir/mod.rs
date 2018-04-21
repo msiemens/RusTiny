@@ -164,50 +164,32 @@ impl Block {
 
     fn ret(&mut self, value: Option<Value>) {
         assert_eq!(self.last, ControlFlowInstruction::NotYetProcessed, "self.last is already set: `{}`", self.last);
-        self.last = ControlFlowInstruction::Return { value: value }
+        self.last = ControlFlowInstruction::Return { value }
     }
 
     fn branch(&mut self, cond: Value, conseq: Label, altern: Label) {
         assert_eq!(self.last, ControlFlowInstruction::NotYetProcessed, "self.last is already set: `{}`", self.last);
-        self.last = ControlFlowInstruction::Branch {
-            cond: cond,
-            conseq: conseq,
-            altern: altern
-        }
+        self.last = ControlFlowInstruction::Branch { cond, conseq, altern }
     }
 
     fn jump(&mut self, dest: Label) {
         assert_eq!(self.last, ControlFlowInstruction::NotYetProcessed, "self.last is already set: `{}`", self.last);
-        self.last = ControlFlowInstruction::Jump { dest: dest }
+        self.last = ControlFlowInstruction::Jump { dest }
     }
 
     fn binop(&mut self, op: InfixOp, lhs: Value, rhs: Value, dst: Register) {
         assert_eq!(self.last, ControlFlowInstruction::NotYetProcessed, "self.last is already set: `{}`", self.last);
-        self.inst.push_back(Instruction::BinOp {
-            op: op,
-            lhs: lhs,
-            rhs: rhs,
-            dst: dst
-        })
+        self.inst.push_back(Instruction::BinOp { op, lhs, rhs, dst })
     }
 
     fn unop(&mut self, op: PrefixOp, item: Value, dst: Register) {
         assert_eq!(self.last, ControlFlowInstruction::NotYetProcessed, "self.last is already set: `{}`", self.last);
-        self.inst.push_back(Instruction::UnOp {
-            op: op,
-            item: item,
-            dst: dst
-        })
+        self.inst.push_back(Instruction::UnOp { op, item, dst })
     }
 
     fn cmp(&mut self, cmp: CmpOp, lhs: Value, rhs: Value, dst: Register) {
         assert_eq!(self.last, ControlFlowInstruction::NotYetProcessed, "self.last is already set: `{}`", self.last);
-        self.inst.push_back(Instruction::Cmp {
-            cmp: cmp,
-            lhs: lhs,
-            rhs: rhs,
-            dst: dst
-        })
+        self.inst.push_back(Instruction::Cmp { cmp, lhs, rhs, dst })
     }
 
     fn alloc(&mut self, reg: Register) {
@@ -238,49 +220,33 @@ impl Block {
     fn load(&mut self, src: Value, dst: Register) {
         assert_eq!(self.last, ControlFlowInstruction::NotYetProcessed, "self.last is already set: `{}`", self.last);
 
-        self.inst.push_back(Instruction::Load {
-            src: src,
-            dst: dst
-        })
+        self.inst.push_back(Instruction::Load { src, dst })
     }
 
     // Optimization for storing to a register
     fn store_reg(&mut self, src: Value, dst: Register) {
         assert_eq!(self.last, ControlFlowInstruction::NotYetProcessed, "self.last is already set: `{}`", self.last);
 
-        self.inst.push_back(Instruction::Store {
-            src: src,
-            dst: Value::Register(dst)
-        })
+        self.inst.push_back(Instruction::Store { src, dst: Value::Register(dst) })
     }
 
     fn store(&mut self, src: Value, dst: Value) {
         assert_eq!(self.last, ControlFlowInstruction::NotYetProcessed, "self.last is already set: `{}`", self.last);
         assert!(match dst { Value::Immediate(..) => false, _ => true }, "attempt to store in an immediate");
 
-        self.inst.push_back(Instruction::Store {
-            src: src,
-            dst: dst
-        })
+        self.inst.push_back(Instruction::Store { src, dst })
     }
 
     fn call(&mut self, name: Ident, args: Vec<Value>, dst: Register) {
         assert_eq!(self.last, ControlFlowInstruction::NotYetProcessed, "self.last is already set: `{}`", self.last);
 
-        self.inst.push_back(Instruction::Call {
-            name: name,
-            args: args,
-            dst: dst
-        })
+        self.inst.push_back(Instruction::Call { name, args, dst })
     }
 
     fn phi(&mut self, srcs: Vec<(Value, Label)>, dst: Register) {
         assert_eq!(self.last, ControlFlowInstruction::NotYetProcessed, "self.last is already set: `{}`", self.last);
 
-        self.phis.push(Phi {
-            srcs: srcs,
-            dst: dst
-        })
+        self.phis.push(Phi { srcs, dst })
     }
 }
 
@@ -508,37 +474,39 @@ impl fmt::Display for Symbol {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match *self {
             Symbol::Global { ref name, ref value } => {
-                write!(f, "static {} = {}\n\n", name, value)
+                try!(writeln!(f, "static {} = {}", name, value));
+                try!(writeln!(f));
             },
             Symbol::Function { ref name, ref body, ref args } => {
-                try!(write!(f, "fn {}({}) {{\n", name, connect!(args, "{}", ", ")));
+                try!(writeln!(f, "fn {}({}) {{", name, connect!(args, "{}", ", ")));
                 for block in body {
                     try!(write!(f, "{}", block));
                 }
-                try!(write!(f, "}}\n\n"));
-
-                Ok(())
+                try!(writeln!(f, "}}"));
+                try!(writeln!(f));
             },
         }
+
+        Ok(())
     }
 }
 
 impl fmt::Display for Block {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        try!(write!(f, "{}:\n", self.label));
+        try!(writeln!(f, "{}:", self.label));
 
         for phi in &self.phis {
-            try!(write!(f, "    {} = phi {}\n", phi.dst, phi.srcs.iter()
+            try!(writeln!(f, "    {} = phi {}", phi.dst, phi.srcs.iter()
                          .map(|src| format!("[ {}, {} ]", src.0, src.1))
                          .collect::<Vec<_>>()
                          .join(" ")))
         }
 
         for inst in &self.inst {
-            try!(write!(f, "    {}\n", inst));
+            try!(writeln!(f, "    {}", inst));
         }
 
-        try!(write!(f, "    {}\n", self.last));
+        try!(writeln!(f, "    {}", self.last));
 
         Ok(())
     }

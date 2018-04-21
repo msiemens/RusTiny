@@ -354,10 +354,7 @@ impl<'a> Parser<'a> {
             }
         }
 
-        Node::new(AsmInstr {
-            mnemonic: mnemonic,
-            args: args
-        }, lo + self.span)
+        Node::new(AsmInstr { mnemonic, args }, lo + self.span)
     }
 
     fn parse_asm_arg(&mut self) -> Node<AsmArg> {
@@ -518,12 +515,7 @@ impl<'a> Parser<'a> {
 
         self.expect(Token::RBracket);
 
-        AsmArg::Indirect {
-            size: size,
-            base: base,
-            index: index,
-            disp: disp,
-        }
+        AsmArg::Indirect { size, base, index, disp }
     }
 
     // --- Parse patterns & impls -----------------------------------------------
@@ -561,11 +553,7 @@ impl<'a> Parser<'a> {
             None
         };
 
-        Node::new(Pattern {
-            ir_patterns: patterns,
-            last: last,
-            cond: cond
-        }, lo + self.span)
+        Node::new(Pattern { ir_patterns: patterns, last,  cond }, lo + self.span)
     }
 
     fn parse_rust_impl(&mut self) -> Node<Ident> {
@@ -615,9 +603,6 @@ impl<'a> Parser<'a> {
             self.unexpected_token(None)
         };
 
-        Node::new(Rule {
-            pattern: pattern,
-            implementation: implementation,
-        }, lo + self.span)
+        Node::new(Rule { pattern, implementation }, lo + self.span)
     }
 }

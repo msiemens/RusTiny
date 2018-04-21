@@ -1,4 +1,3 @@
-#![feature(conservative_impl_trait)]
 #![feature(plugin)]
 #![feature(slice_patterns)]
 #![feature(specialization)]

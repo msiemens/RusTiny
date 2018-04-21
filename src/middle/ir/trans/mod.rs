@@ -205,7 +205,7 @@ impl Translator {
         assert_ne!(block.last, ir::ControlFlowInstruction::NotYetProcessed);
 
         let mut new_block = ir::Block {
-            label: label,
+            label,
             inst: VecDeque::new(),
             last: ir::ControlFlowInstruction::NotYetProcessed,
             phis: Vec::new(),
@@ -314,6 +314,8 @@ impl Translator {
         };
 
         // Register arguments as stack slots
+        // TODO: Maybe use calling convention here?
+        // (only use stack for non-register arguments)
         for binding in bindings.iter().rev() {
             self.register_stack_slot(*binding.name);
         };
@@ -373,7 +375,6 @@ impl Translator {
     }
 
     /// Translate an AST code block
-    #[allow(unit_expr)]
     fn trans_block(&mut self,
                    b: &ast::Node<ast::Block>,
                    block: &mut ir::Block,

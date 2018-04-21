@@ -44,10 +44,9 @@ impl Deref for Ident {
     type Target = str;
 
     fn deref(&self) -> &str {
-        unsafe { mem::transmute(&*(session().interner.resolve(*self))) }
+        session().interner.resolve(*self).into_str()
     }
 }
-
 
 
 /// An string stored in the interner
@@ -61,6 +60,11 @@ impl InternedString {
         InternedString {
             string: Rc::new(string.to_owned()),
         }
+    }
+
+    pub fn into_str(self) -> &'static str {
+        // self.string is in a RC so this transmute should be safe
+        unsafe { mem::transmute::<&str, &str>(&*self.string) }
     }
 }
 
@@ -100,7 +104,7 @@ impl Deref for InternedString {
 /// The interner itself
 pub struct Interner {
     map: RefCell<HashMap<InternedString, Ident>>,
-    vec: RefCell<Vec<InternedString>>
+    vec: RefCell<Vec<InternedString>>,
 }
 
 impl Interner {
@@ -108,7 +112,7 @@ impl Interner {
     pub fn new() -> Interner {
         Interner {
             map: RefCell::new(HashMap::new()),
-            vec: RefCell::new(Vec::new())
+            vec: RefCell::new(Vec::new()),
         }
     }
 

@@ -31,7 +31,7 @@ struct TypeCheck<'a> {
 impl<'a> TypeCheck<'a> {
     fn new(sytbl: &'a SymbolTable) -> TypeCheck<'a> {
         TypeCheck {
-            sytbl: sytbl,
+            sytbl,
             types: HashMap::new(),
             scope: NodeId(!0),
             fctx: FunctionContext {
@@ -54,7 +54,7 @@ impl<'a> TypeCheck<'a> {
 
     fn check_fn(&mut self, return_ty: Type, body: &Node<Block>) {
         self.fctx = FunctionContext {
-            return_ty: return_ty,
+            return_ty,
             explicit_return: false,
         };
 

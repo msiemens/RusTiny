@@ -83,7 +83,9 @@ fn translate_rule(rule: &Rule) -> String {
     for pattern in &rule.pattern.ir_patterns {
         update_pattern_types(pattern, &mut arg_types);
     }
-    rule.pattern.last.as_ref().map(|l| update_pattern_last_types(l, &mut arg_types));
+    if let Some(l) = rule.pattern.last.as_ref() {
+        update_pattern_last_types(l, &mut arg_types);
+    }
 
     let mut s = "        ".to_owned();
     s.push_str(&translate_pattern(&rule.pattern));
@@ -423,7 +425,7 @@ fn translate_asm_arg(arg: &AsmArg, types: &HashMap<Ident, IrArg>) -> String {
                     reg)
         }
         AsmArg::StackSlot(ref reg) => {
-            format!("asm::Argument::StackSlot({})", reg)
+            format!("asm::Argument::StackSlot(asm::Register::Virtual({}))", reg)
         }
         AsmArg::NewRegister(ref reg) => {
             format!("asm::Argument::Register(asm::Register::Virtual({}))",

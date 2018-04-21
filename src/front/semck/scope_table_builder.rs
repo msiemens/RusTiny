@@ -18,7 +18,7 @@ impl<'a> ScopeTableBuilder<'a> {
         ScopeTableBuilder {
             current_scope: None,
             current_symbol: None,
-            sytbl: sytbl
+            sytbl
         }
     }
 

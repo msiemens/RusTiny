@@ -32,12 +32,12 @@ impl<'a> Lexer<'a> {
         // .unwrap_or_else(|| (0, None));  // Set `curr` to None
 
         Lexer {
-            source: source,
+            source,
 
-            pos: pos,
-            curr: curr,
+            pos,
+            curr,
 
-            iter: iter,
+            iter,
 
             lineno: 1,
         }

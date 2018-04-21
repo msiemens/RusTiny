@@ -8,15 +8,14 @@ use middle::ir;
 #[derive(Clone, Debug)]
 pub struct Fn {
     args: Vec<Ident>,
-    code: Vec<Block>
+    code: Vec<Block>,
+    /// Stack usage in bytes
+    pub stack_usage: i32,
 }
 
 impl Fn {
     pub fn new(args: Vec<Ident>, code: Vec<Block>) -> Fn {
-        Fn {
-            args: args,
-            code: code
-        }
+        Fn { args, code, stack_usage: 0 }
     }
 
     pub fn emit_block(&mut self, block: Block) {
@@ -27,9 +26,12 @@ impl Fn {
         self.code.iter().find(|b| b.label == label)
     }
 
-    #[allow(needless_lifetimes)]  // Produces an ICE without lifetimes (presumably #41182)
-    pub fn code<'a>(&'a self) -> impl Iterator<Item = &'a Block> + DoubleEndedIterator + ExactSizeIterator {
+    pub fn code(&self) -> impl Iterator<Item = &Block> + DoubleEndedIterator + ExactSizeIterator {
         self.code.iter()
+    }
+
+    pub fn code_mut(&mut self) -> impl Iterator<Item = &mut Block> + DoubleEndedIterator + ExactSizeIterator {
+        self.code.iter_mut()
     }
 }
 
@@ -45,7 +47,7 @@ pub struct Block {
 impl Block {
     pub fn new(label: Ident) -> Block {
         Block {
-            label: label,
+            label,
             asm: Vec::new(),
             phis: Vec::new(),
             successors: Vec::new(),
@@ -65,10 +67,12 @@ impl Block {
         self.label
     }
 
-
-    #[allow(needless_lifetimes)]
-    pub fn code<'a>(&'a self) -> impl Iterator<Item = &'a AssemblyLine> + DoubleEndedIterator + ExactSizeIterator {
+    pub fn code(&self) -> impl Iterator<Item = &AssemblyLine> + DoubleEndedIterator + ExactSizeIterator {
         self.asm.iter()
+    }
+
+    pub fn code_mut(&mut self) -> impl Iterator<Item = &mut AssemblyLine> + DoubleEndedIterator + ExactSizeIterator {
+        self.asm.iter_mut()
     }
 
     pub fn len(&self) -> usize {
@@ -105,15 +109,12 @@ pub enum AssemblyLine {
 #[derive(Clone, Debug)]
 pub struct Instruction {
     mnemonic: Ident,
-    args: Vec<Argument>,
+    pub args: Vec<Argument>,
 }
 
 impl Instruction {
     pub fn new(mnemonic: Ident, args: Vec<Argument>) -> Instruction {
-        Instruction {
-            mnemonic: mnemonic,
-            args: args,
-        }
+        Instruction { mnemonic, args }
     }
 
     pub fn inputs(&self) -> Vec<&Register> {
@@ -190,8 +191,13 @@ pub enum Argument {
     Register(Register),
 
     /// A stack slot whose position is yet to be determined
-    /// Used for function arguments and variables stored in memory
-    StackSlot(Ident),
+    ///
+    /// Basically a register which also needs a slot on the
+    /// stack.
+    ///
+    /// Used for function arguments (assuming all args are
+    /// passed on the stack) and variables stored in memory
+    StackSlot(Register),
 
     // [base + index * scale + disp]
     // Example: mov eax, DWORD PTR [rbp-4]
@@ -259,30 +265,34 @@ impl Assembly {
     pub fn fns<'a>(&'a self) -> impl Iterator<Item = &'a Fn> {
         self.code.values()
     }
+
+    pub fn fns_mut(&mut self) -> impl Iterator<Item = &mut Fn> {
+        self.code.values_mut()
+    }
 }
 
 
 impl fmt::Display for Assembly {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        try!(writeln!(f, ".intel_syntax noprefix"));
+        writeln!(f, ".intel_syntax noprefix")?;
 
         if !self.data.is_empty() {
-            try!(writeln!(f, ""));
-            try!(writeln!(f, ".data"));
-            try!(writeln!(f, ".align 4"));
+            writeln!(f)?;
+            writeln!(f, ".data")?;
+            writeln!(f, ".align 4")?;
 
             for line in &self.data {
-                try!(writeln!(f, "{}", line))
+                writeln!(f, "{}", line)?
             }
 
-            try!(writeln!(f, ""));
+            writeln!(f)?;
         }
 
-        try!(writeln!(f, ".text"));
+        writeln!(f, ".text")?;
 
         for func in self.fns() {
             for block in func.code() {
-                try!(writeln!(f, "{}", block))
+                writeln!(f, "{}", block)?
             }
         }
 
@@ -293,7 +303,7 @@ impl fmt::Display for Assembly {
 impl fmt::Display for Block {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         for line in &self.asm {
-            try!(writeln!(f, "{}", line))
+            writeln!(f, "{}", line)?
         }
 
         Ok(())
@@ -311,9 +321,9 @@ impl fmt::Display for AssemblyLine {
 
 impl fmt::Display for Instruction {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        try!(write!(f, "{}", self.mnemonic));
+        write!(f, "{}", self.mnemonic)?;
         if !self.args.is_empty() {
-            try!(write!(f, " "));
+            write!(f, " ")?;
         }
         write!(f, "{}", connect!(self.args, "{}", ", "))
     }
@@ -331,14 +341,14 @@ impl fmt::Display for Argument {
             Argument::Indirect { size, base, index, disp } => {
                 if let Some(size) = size {
                     match size {
-                        OperandSize::Byte => try!(write!(f, "byte ptr ")),
-                        OperandSize::Word => try!(write!(f, "word ptr ")),
-                        OperandSize::DWord => try!(write!(f, "dword ptr ")),
-                        OperandSize::QWord => try!(write!(f, "qword ptr ")),
+                        OperandSize::Byte => write!(f, "byte ptr ")?,
+                        OperandSize::Word => write!(f, "word ptr ")?,
+                        OperandSize::DWord => write!(f, "dword ptr ")?,
+                        OperandSize::QWord => write!(f, "qword ptr ")?,
                     }
                 }
 
-                try!(write!(f, "["));
+                write!(f, "[")?;
                 let parts: Vec<_> = vec![
                     base.map(|r| format!("{}", r)),
                     index.map(|(idx, k)| format!("{} * {}", idx, k)),

@@ -15,11 +15,7 @@ pub struct PrettyPrinter<'a, W: 'a> {
 
 impl<'a, W: Write> PrettyPrinter<'a, W> {
     pub fn print(program: &'a [Node<Symbol>], out: &mut W) {
-        PrettyPrinter {
-            indent: 0,
-            program: program,
-            out: out
-        }.print_program();
+        PrettyPrinter { indent: 0, program, out }.print_program();
     }
 
     fn print_indent(&mut self) {
@@ -50,13 +46,13 @@ impl<'a, W: Write> PrettyPrinter<'a, W> {
     fn print_static(&mut self, binding: &Binding, value: &Expression) {
         write!(self.out, "static {:?} = ", binding).ok();
         self.print_expression(value);
-        write!(self.out, ";\n").ok();
+        writeln!(self.out, ";").ok();
     }
 
     fn print_constant(&mut self, binding: &Binding, value: &Expression) {
         write!(self.out, "const {:?} = ", binding).ok();
         self.print_expression(value);
-        write!(self.out, ";\n").ok();
+        writeln!(self.out, ";").ok();
     }
 
     fn print_function(&mut self,
@@ -65,7 +61,7 @@ impl<'a, W: Write> PrettyPrinter<'a, W> {
                       ret_ty: &Type,
                       body: &Block)
     {
-        write!(self.out, "\n").ok();
+        writeln!(self.out).ok();
         write!(&mut self.out, "fn {}({}) -> {:?} ",
                name,
                bindings
@@ -79,7 +75,7 @@ impl<'a, W: Write> PrettyPrinter<'a, W> {
 
     fn print_block(&mut self, block: &Block) {
         //self.print_indent();
-        write!(self.out, "{{\n").ok();
+        writeln!(self.out, "{{").ok();
 
         self.indent += 1;
 
@@ -91,7 +87,7 @@ impl<'a, W: Write> PrettyPrinter<'a, W> {
         else {
             self.print_indent();
             self.print_expression(&block.expr);
-            write!(self.out, "\n").ok();
+            writeln!(self.out).ok();
         }
 
         self.indent -= 1;
@@ -107,11 +103,11 @@ impl<'a, W: Write> PrettyPrinter<'a, W> {
             Statement::Declaration { ref binding, ref value } => {
                 write!(&mut self.out, "let {:?} = ", binding).ok();
                 self.print_expression(value);
-                write!(self.out, ";\n").ok();
+                writeln!(self.out, ";").ok();
             },
             Statement::Expression { ref val } => {
                 self.print_expression(val);
-                write!(self.out, ";\n").ok();
+                writeln!(self.out, ";").ok();
             }
         }
     }

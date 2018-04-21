@@ -224,8 +224,8 @@ impl<'a> Parser<'a> {
         let ty = self.parse_type();
 
         Node::new(Binding {
-            ty: ty,
-            name: name
+            ty,
+            name
         }, lo + self.span)
     }
 
@@ -314,7 +314,7 @@ impl<'a> Parser<'a> {
         debug!("done parsing a block");
 
         Node::new(Block {
-            stmts: stmts,
+            stmts,
             expr: Box::new(expr)
         }, lo + self.span)
     }
@@ -503,8 +503,8 @@ impl<'a> Parser<'a> {
 
         Node::new(Symbol::Function{
             name: ident,
-            bindings: bindings,
-            ret_ty: ret_ty,
+            bindings,
+            ret_ty,
             body: Box::new(body)
         }, lo + self.span)
     }

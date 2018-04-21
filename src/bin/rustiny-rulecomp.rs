@@ -12,7 +12,7 @@ use rustiny::util::{read_file, write_file};
 
 #[cfg(not(test))]
 fn main() {
-    env_logger::init().unwrap();
+    env_logger::init();
 
     // Parse arguments
     let app = App::new("rustiny-rulecomp")

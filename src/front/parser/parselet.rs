@@ -123,7 +123,7 @@ impl ParseletManager {
     {
         self.infix.insert(t, Box::new(BinaryOperatorParselet {
             preced: precedence.val(),
-            assoc: assoc
+            assoc
         }));
     }
 
@@ -196,7 +196,7 @@ define_prefix!(PrefixOperatorParselet:
         };
 
         let hi = operand.span;
-        Node::new(Expression::Prefix { op: op, item: Box::new(operand) }, lo + hi)
+        Node::new(Expression::Prefix { op, item: Box::new(operand) }, lo + hi)
     }
 );
 
@@ -245,7 +245,7 @@ impl InfixParselet for BinaryOperatorParselet {
 
             let hi = right.span;
             Node::new(Expression::AssignOp {
-                op: op,
+                op,
                 lhs: Box::new(left),
                 rhs: Box::new(right)
             }, lo + hi)
@@ -254,7 +254,7 @@ impl InfixParselet for BinaryOperatorParselet {
 
             let hi = right.span;
             Node::new(Expression::Infix {
-                op: op,
+                op,
                 lhs: Box::new(left),
                 rhs: Box::new(right)
             }, lo + hi)
@@ -306,7 +306,7 @@ impl InfixParselet for CallParselet {
 
         Node::new(Expression::Call {
             func: Box::new(left),
-            args: args
+            args
         }, lo + parser.span)
     }
 

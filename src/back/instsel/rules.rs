@@ -508,19 +508,19 @@ pub fn trans_instr(instr: &[&ir::Instruction],
             (1, false)
         },
         [IrLine::Instruction(&ir::Instruction::Load { src: ir::Value::Register(ir::Register::Stack(src)), dst: ir::Register::Local(dst) }), ..] => {
-            code.emit_instruction(asm::Instruction::new(Ident::from_str("mov"), vec![asm::Argument::Register(asm::Register::Virtual(dst)), asm::Argument::StackSlot(src)]));
+            code.emit_instruction(asm::Instruction::new(Ident::from_str("mov"), vec![asm::Argument::Register(asm::Register::Virtual(dst)), asm::Argument::StackSlot(asm::Register::Virtual(src))]));
             (1, false)
         },
         [IrLine::Instruction(&ir::Instruction::Load { src: ir::Value::Static(src), dst: ir::Register::Local(dst) }), ..] => {
-            code.emit_instruction(asm::Instruction::new(Ident::from_str("mov"), vec![asm::Argument::Register(asm::Register::Virtual(dst)), asm::Argument::StackSlot(src)]));
+            code.emit_instruction(asm::Instruction::new(Ident::from_str("mov"), vec![asm::Argument::Register(asm::Register::Virtual(dst)), asm::Argument::StackSlot(asm::Register::Virtual(src))]));
             (1, false)
         },
         [IrLine::Instruction(&ir::Instruction::Store { src: ir::Value::Register(ir::Register::Local(val)), dst: ir::Value::Register(ir::Register::Stack(dst)) }), ..] => {
-            code.emit_instruction(asm::Instruction::new(Ident::from_str("mov"), vec![asm::Argument::StackSlot(dst), asm::Argument::Register(asm::Register::Virtual(val))]));
+            code.emit_instruction(asm::Instruction::new(Ident::from_str("mov"), vec![asm::Argument::StackSlot(asm::Register::Virtual(dst)), asm::Argument::Register(asm::Register::Virtual(val))]));
             (1, false)
         },
         [IrLine::Instruction(&ir::Instruction::Store { src: ir::Value::Immediate(ir::Immediate(val)), dst: ir::Value::Register(ir::Register::Stack(dst)) }), ..] => {
-            code.emit_instruction(asm::Instruction::new(Ident::from_str("mov"), vec![asm::Argument::StackSlot(dst), asm::Argument::Immediate(machine::Word::from(val))]));
+            code.emit_instruction(asm::Instruction::new(Ident::from_str("mov"), vec![asm::Argument::StackSlot(asm::Register::Virtual(dst)), asm::Argument::Immediate(machine::Word::from(val))]));
             (1, false)
         },
         [IrLine::Instruction(&ir::Instruction::Store { src: ir::Value::Register(ir::Register::Local(val)), dst: ir::Value::Register(ir::Register::Local(dst)) }), ..] => {

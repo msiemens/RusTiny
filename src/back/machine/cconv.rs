@@ -46,7 +46,7 @@ fn translate_value(value: &ir::Value) -> asm::Argument {
         },
 
         ir::Value::Register(ir::Register::Stack(reg)) => {
-            asm::Argument::StackSlot(reg)
+            asm::Argument::StackSlot(asm::Register::Virtual(reg))
         },
 
         ir::Value::Immediate(ir::Immediate(val)) => {

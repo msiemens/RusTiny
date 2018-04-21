@@ -30,7 +30,7 @@ struct InstructionSelector<'a> {
 impl<'a> InstructionSelector<'a> {
     fn new(ir: &'a ir::Program) -> InstructionSelector<'a> {
         InstructionSelector {
-            ir: ir,
+            ir,
             code: asm::Assembly::new(),
         }
     }
