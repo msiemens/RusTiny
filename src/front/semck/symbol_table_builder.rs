@@ -2,12 +2,11 @@
 
 use driver::session;
 use driver::symbol_table::SymbolTable;
-use front::ast::*;
 use front::ast::visit::*;
-
+use front::ast::*;
 
 struct SymbolTableBuilder<'a> {
-    sytbl: &'a SymbolTable
+    sytbl: &'a SymbolTable,
 }
 
 impl<'a> SymbolTableBuilder<'a> {
@@ -21,12 +20,11 @@ impl<'v> Visitor<'v> for SymbolTableBuilder<'v> {
         let name = symbol.get_ident();
 
         match self.sytbl.register_symbol(name, symbol.clone_stripped()) {
-            Ok(..) => {},
-            Err(..) => fatal_at!("cannot redeclare `{}`", &name; symbol)
+            Ok(..) => {}
+            Err(..) => fatal_at!("cannot redeclare `{}`", &name; symbol),
         };
     }
 }
-
 
 pub fn run(program: &[Node<Symbol>]) {
     let symbol_table = &session().symbol_table;

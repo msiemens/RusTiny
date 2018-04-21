@@ -35,13 +35,11 @@
 
 // TODO: Handle constraints (e.g. div -> CL)
 
+use back::machine::asm::{self, Assembly /*, AssemblyLine, Register*/};
 use std::fmt::Write;
-use back::machine::asm::{self, Assembly/*, AssemblyLine, Register*/};
 use util;
 
-
 mod lifetime_intervals;
-
 
 pub fn allocate_regs(mut asm: Assembly) -> Assembly {
     let mut s = String::new();
@@ -69,13 +67,13 @@ pub fn allocate_regs(mut asm: Assembly) -> Assembly {
                                 // func.stack_usage += 1;
 
                                 // ...
-                            },
+                            }
 
                             asm::Argument::Register(asm::Register::Virtual(_reg)) => {
                                 // func.stack_usage += 1;
 
                                 // ...
-                            },
+                            }
 
                             asm::Argument::Indirect {
                                 base: Some(asm::Register::Virtual(_base)),
@@ -85,7 +83,7 @@ pub fn allocate_regs(mut asm: Assembly) -> Assembly {
                                 // func.stack_usage += 1;
 
                                 // ...
-                            },
+                            }
 
                             asm::Argument::Indirect {
                                 base: None,
@@ -95,7 +93,7 @@ pub fn allocate_regs(mut asm: Assembly) -> Assembly {
                                 // func.stack_usage += 1;
 
                                 // ...
-                            },
+                            }
 
                             asm::Argument::Indirect {
                                 base: Some(asm::Register::Virtual(_base)),
@@ -105,7 +103,7 @@ pub fn allocate_regs(mut asm: Assembly) -> Assembly {
                                 // func.stack_usage += 1;
 
                                 // ...
-                            },
+                            }
 
                             _ => {}
                         }

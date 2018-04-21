@@ -7,17 +7,15 @@
 //! This assumes that the instructions order won't change.
 // TODO: Hanle while loop headers
 
-use std::cmp::{min, max};
-use std::collections::HashMap;
 use back::machine::asm::{Assembly, AssemblyLine, Block, Register};
 use driver::interner::Ident;
 use middle::ir;
-
+use std::cmp::{max, min};
+use std::collections::HashMap;
 
 pub type Interval = (usize, usize);
 // (block, register) -> [Interval, *]
 pub type LifetimeIntervals = HashMap<(Ident, Register), Vec<Interval>>;
-
 
 pub fn build_intervals(asm: &Assembly) -> LifetimeIntervals {
     let mut lifetimes = HashMap::new();
@@ -26,24 +24,26 @@ pub fn build_intervals(asm: &Assembly) -> LifetimeIntervals {
     // for each block b in reverse order do
     for func in asm.fns() {
         for block in func.code().rev() {
-            let block: &Block = block;  // Help IntelliJ-Rust infer the types
+            let block: &Block = block; // Help IntelliJ-Rust infer the types
 
             trace!("block: {}", block.label());
             trace!("lifetimes: {:#?}", lifetimes);
             trace!("live_in: {:?}", live_in);
 
             // live = union of successor.liveIn for each successor of b
-            let mut live: Vec<Register> = block.successors().iter()
-                .filter_map(|label| {
-                    live_in.get(label)
-                })
+            let mut live: Vec<Register> = block
+                .successors()
+                .iter()
+                .filter_map(|label| live_in.get(label))
                 .flat_map(|v| v)
                 .cloned()
                 .collect();
 
             // for each phi function phi of successors of b do
             //      live.add(phi.inputOf(b))
-            let phis: Vec<&ir::Phi> = block.successors().iter()
+            let phis: Vec<&ir::Phi> = block
+                .successors()
+                .iter()
                 .filter_map(|label| func.get_block(*label))
                 .flat_map(|block| block.phis())
                 .collect();
@@ -62,7 +62,12 @@ pub fn build_intervals(asm: &Assembly) -> LifetimeIntervals {
             trace!("Adding intervals for live");
             trace!("live: {:?}", live);
             for &virtual_reg in &live {
-                merge_or_create_interval(&mut lifetimes, (block.label(), virtual_reg), 0, block.len() - 1);
+                merge_or_create_interval(
+                    &mut lifetimes,
+                    (block.label(), virtual_reg),
+                    0,
+                    block.len() - 1,
+                );
             }
 
             // for each operation op of b in reverse order do
@@ -81,7 +86,7 @@ pub fn build_intervals(asm: &Assembly) -> LifetimeIntervals {
                         // live.remove(opd)
 
                         if let Register::Machine(..) = *reg {
-                            continue
+                            continue;
                         }
 
                         shorten_interval(&mut lifetimes, &mut live, (block.label(), *reg), i);
@@ -101,7 +106,7 @@ pub fn build_intervals(asm: &Assembly) -> LifetimeIntervals {
                         // live.add(opd)
 
                         if let Register::Machine(..) = *reg {
-                            continue
+                            continue;
                         }
 
                         merge_or_create_interval(&mut lifetimes, (block.label(), *reg), 0, i);
@@ -146,35 +151,49 @@ pub fn build_intervals(asm: &Assembly) -> LifetimeIntervals {
     lifetimes
 }
 
-fn shorten_interval(lifetimes: &mut LifetimeIntervals,
-                    live: &mut Vec<Register>,
-                    entry: (Ident, Register),
-                    from: usize) {
+fn shorten_interval(
+    lifetimes: &mut LifetimeIntervals,
+    live: &mut Vec<Register>,
+    entry: (Ident, Register),
+    from: usize,
+) {
     trace!("Shortening {:?} to {}..", entry.1, from);
 
     lifetimes
-        .entry(entry).or_insert_with(|| {
+        .entry(entry)
+        .or_insert_with(|| {
             live.push(entry.1);
             vec![(from, from)]
         })
-        .last_mut().unwrap().0 = from;
+        .last_mut()
+        .unwrap()
+        .0 = from;
 }
 
-fn merge_or_create_interval(lifetimes: &mut LifetimeIntervals, entry: (Ident, Register), from: usize, to: usize) {
+fn merge_or_create_interval(
+    lifetimes: &mut LifetimeIntervals,
+    entry: (Ident, Register),
+    from: usize,
+    to: usize,
+) {
     assert!(from <= to);
 
-    trace!("New interval for ({}, {}): {}, {}", entry.0, entry.1, from, to);
+    trace!(
+        "New interval for ({}, {}): {}, {}",
+        entry.0,
+        entry.1,
+        from,
+        to
+    );
 
-    let intervals = lifetimes
-        .entry(entry)
-        .or_insert_with(Vec::new);
+    let intervals = lifetimes.entry(entry).or_insert_with(Vec::new);
 
     trace!("Existing intervals: {:?}", intervals);
 
     for interval in intervals.iter_mut() {
         if interval.0 <= from && interval.1 >= to {
             trace!("Superset for {:?} already exists", interval);
-            return
+            return;
         }
 
         if interval.1 >= from || to >= interval.0 {
@@ -189,7 +208,6 @@ fn merge_or_create_interval(lifetimes: &mut LifetimeIntervals, entry: (Ident, Re
     // No interval to merge with found
     intervals.push((from, to));
 }
-
 
 #[cfg(test)]
 mod test {

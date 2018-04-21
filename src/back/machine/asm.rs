@@ -1,9 +1,8 @@
+use back::machine::{MachineRegister, Word};
+use driver::interner::Ident;
+use middle::ir;
 use std::collections::HashMap;
 use std::fmt;
-use driver::interner::Ident;
-use back::machine::{MachineRegister, Word};
-use middle::ir;
-
 
 #[derive(Clone, Debug)]
 pub struct Fn {
@@ -15,7 +14,11 @@ pub struct Fn {
 
 impl Fn {
     pub fn new(args: Vec<Ident>, code: Vec<Block>) -> Fn {
-        Fn { args, code, stack_usage: 0 }
+        Fn {
+            args,
+            code,
+            stack_usage: 0,
+        }
     }
 
     pub fn emit_block(&mut self, block: Block) {
@@ -30,11 +33,12 @@ impl Fn {
         self.code.iter()
     }
 
-    pub fn code_mut(&mut self) -> impl Iterator<Item = &mut Block> + DoubleEndedIterator + ExactSizeIterator {
+    pub fn code_mut(
+        &mut self,
+    ) -> impl Iterator<Item = &mut Block> + DoubleEndedIterator + ExactSizeIterator {
         self.code.iter_mut()
     }
 }
-
 
 #[derive(Clone, Debug)]
 pub struct Block {
@@ -62,23 +66,25 @@ impl Block {
         self.asm.push(AssemblyLine::Directive(d));
     }
 
-
     pub fn label(&self) -> Ident {
         self.label
     }
 
-    pub fn code(&self) -> impl Iterator<Item = &AssemblyLine> + DoubleEndedIterator + ExactSizeIterator {
+    pub fn code(
+        &self,
+    ) -> impl Iterator<Item = &AssemblyLine> + DoubleEndedIterator + ExactSizeIterator {
         self.asm.iter()
     }
 
-    pub fn code_mut(&mut self) -> impl Iterator<Item = &mut AssemblyLine> + DoubleEndedIterator + ExactSizeIterator {
+    pub fn code_mut(
+        &mut self,
+    ) -> impl Iterator<Item = &mut AssemblyLine> + DoubleEndedIterator + ExactSizeIterator {
         self.asm.iter_mut()
     }
 
     pub fn len(&self) -> usize {
         self.asm.len()
     }
-
 
     pub fn phis(&self) -> &[ir::Phi] {
         &self.phis
@@ -87,7 +93,6 @@ impl Block {
     pub fn set_phis(&mut self, phis: Vec<ir::Phi>) {
         self.phis.extend(phis);
     }
-
 
     pub fn successors(&self) -> &[Ident] {
         &self.successors
@@ -98,13 +103,11 @@ impl Block {
     }
 }
 
-
 #[derive(Clone, Debug)]
 pub enum AssemblyLine {
     Directive(String),
-    Instruction(Instruction)
+    Instruction(Instruction),
 }
-
 
 #[derive(Clone, Debug)]
 pub struct Instruction {
@@ -156,15 +159,19 @@ impl Instruction {
     fn is_inplace(&self) -> bool {
         match &*self.mnemonic {
             "add" | "sub" | "and" | "or" | "xor" | "sal" | "sar" | "idiv" | "neg" | "not" => true,
-            _ => false
+            _ => false,
         }
     }
 
     fn get_regs<'a>(&'a self, args: &'a [Argument]) -> Vec<&Register> {
-        args.iter().flat_map(|arg| {
-            match *arg {
+        args.iter()
+            .flat_map(|arg| match *arg {
                 Argument::Register(ref r) => vec![r],
-                Argument::Indirect { ref base, ref index, .. } => {
+                Argument::Indirect {
+                    ref base,
+                    ref index,
+                    ..
+                } => {
                     let mut regs = Vec::new();
                     if let Some(ref r) = *base {
                         regs.push(r);
@@ -174,13 +181,12 @@ impl Instruction {
                     }
 
                     regs
-                },
-                _ => Vec::new()
-            }
-        }).collect()
+                }
+                _ => Vec::new(),
+            })
+            .collect()
     }
 }
-
 
 #[derive(Copy, Clone, Debug)]
 pub enum Argument {
@@ -209,7 +215,6 @@ pub enum Argument {
     },
 }
 
-
 #[derive(Copy, Clone, Debug)]
 pub enum OperandSize {
     Byte,
@@ -217,7 +222,6 @@ pub enum OperandSize {
     DWord,
     QWord,
 }
-
 
 #[derive(Copy, Clone, Debug, Eq, Hash, PartialEq)]
 pub enum Register {
@@ -229,11 +233,10 @@ impl Register {
     pub fn into_machine(self) -> MachineRegister {
         match self {
             Register::Machine(r) => r,
-            _ => panic!("Register::into_machine({:?})", self)
+            _ => panic!("Register::into_machine({:?})", self),
         }
     }
 }
-
 
 #[derive(Debug)]
 pub struct Assembly {
@@ -270,7 +273,6 @@ impl Assembly {
         self.code.values_mut()
     }
 }
-
 
 impl fmt::Display for Assembly {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
@@ -338,7 +340,12 @@ impl fmt::Display for Argument {
             Argument::Label(ref label) => write!(f, "{}", label),
             Argument::Register(ref reg) => write!(f, "{}", reg),
             Argument::StackSlot(ref name) => write!(f, "{{{}}}", name),
-            Argument::Indirect { size, base, index, disp } => {
+            Argument::Indirect {
+                size,
+                base,
+                index,
+                disp,
+            } => {
                 if let Some(size) = size {
                     match size {
                         OperandSize::Byte => write!(f, "byte ptr ")?,
@@ -352,15 +359,16 @@ impl fmt::Display for Argument {
                 let parts: Vec<_> = vec![
                     base.map(|r| format!("{}", r)),
                     index.map(|(idx, k)| format!("{} * {}", idx, k)),
-                    disp.map(|r| format!("{}", r))
-                ].into_iter().filter_map(|o| o).collect();
+                    disp.map(|r| format!("{}", r)),
+                ].into_iter()
+                    .filter_map(|o| o)
+                    .collect();
 
                 write!(f, "{}]", connect!(parts, "{}", " + "))
-            },
+            }
         }
     }
 }
-
 
 impl fmt::Display for Register {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {

@@ -4,13 +4,11 @@
 
 use front::ast::{Node, Symbol};
 
-
 mod break_verifier;
 mod lvalue_check;
 mod main_presence_check;
 mod scope_table_builder;
 mod symbol_table_builder;
-
 
 pub fn run(program: &[Node<Symbol>]) {
     main_presence_check::run(program);

@@ -1,9 +1,9 @@
 //! All tokens that `RusTiny` understands
 
-use std::fmt;
-use driver::interner::Ident;
 use driver;
+use driver::interner::Ident;
 use front::ast::{BinOp, UnOp};
+use std::fmt;
 
 // --- List of tokens -----------------------------------------------------------
 
@@ -33,21 +33,19 @@ pub enum Token {
 impl Token {
     pub fn ty(&self) -> TokenType {
         match *self {
-            Token::BinOp(op)    => TokenType::BinOp(op),
-            Token::UnOp(..)     => TokenType::UnOp,
-            Token::LParen       => TokenType::LParen,
-            Token::Eq           => TokenType::Eq,
+            Token::BinOp(op) => TokenType::BinOp(op),
+            Token::UnOp(..) => TokenType::UnOp,
+            Token::LParen => TokenType::LParen,
+            Token::Eq => TokenType::Eq,
 
-            Token::Keyword(kw)  => {
-                match kw {
-                    Keyword::True | Keyword::False => TokenType::Literal,
-                    _                              => TokenType::Other
-                }
+            Token::Keyword(kw) => match kw {
+                Keyword::True | Keyword::False => TokenType::Literal,
+                _ => TokenType::Other,
             },
-            Token::Ident(..)                 => TokenType::Ident,
+            Token::Ident(..) => TokenType::Ident,
             Token::Int(..) | Token::Char(..) => TokenType::Literal,
 
-            _ => TokenType::Other
+            _ => TokenType::Other,
         }
     }
 }
@@ -62,7 +60,7 @@ pub enum TokenType {
     UnOp,
     BinOp(BinOp),
 
-    Other
+    Other,
 }
 
 impl fmt::Display for Token {
@@ -70,30 +68,29 @@ impl fmt::Display for Token {
         use self::Token::*;
 
         match *self {
-            BinOp(ref op)       => write!(f, "{}", op),
-            UnOp(ref op)        => write!(f, "{}", op),
+            BinOp(ref op) => write!(f, "{}", op),
+            UnOp(ref op) => write!(f, "{}", op),
 
-            LParen              => write!(f, "("),
-            RParen              => write!(f, ")"),
-            LBrace              => write!(f, "{{"),
-            RBrace              => write!(f, "}}"),
-            Comma               => write!(f, ","),
-            Colon               => write!(f, ":"),
-            Semicolon           => write!(f, ";"),
-            RArrow              => write!(f, "->"),
-            Eq                  => write!(f, "="),
+            LParen => write!(f, "("),
+            RParen => write!(f, ")"),
+            LBrace => write!(f, "{{"),
+            RBrace => write!(f, "}}"),
+            Comma => write!(f, ","),
+            Colon => write!(f, ":"),
+            Semicolon => write!(f, ";"),
+            RArrow => write!(f, "->"),
+            Eq => write!(f, "="),
 
-            Int(i)              => write!(f, "{}", i),
-            Char(c)             => write!(f, "{}", c),
+            Int(i) => write!(f, "{}", i),
+            Char(c) => write!(f, "{}", c),
 
-            Keyword(ref kw)     => write!(f, "{}", kw),
-            Ident(id)           => write!(f, "{}", id),
-            Type(ty)            => write!(f, "{}", ty),
-            Token::EOF          => write!(f, "EOF"),
+            Keyword(ref kw) => write!(f, "{}", kw),
+            Ident(id) => write!(f, "{}", id),
+            Type(ty) => write!(f, "{}", ty),
+            Token::EOF => write!(f, "EOF"),
         }
     }
 }
-
 
 // --- List of keywords ---------------------------------------------------------
 

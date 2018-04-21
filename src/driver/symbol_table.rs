@@ -20,18 +20,17 @@
 //! The actual scope is implemented by `BlockScope`. It stores the variables
 //! declared in this scope and optionally the ID of the parent scope.
 
-use std::cell::RefCell;
-use std::collections::HashMap;
 use driver::interner::Ident;
 use front::ast;
 use middle::ir;
+use std::cell::RefCell;
+use std::collections::HashMap;
 use util::TryInsert;
-
 
 #[derive(Debug)]
 pub struct SymbolTable {
     scopes: RefCell<HashMap<ast::NodeId, BlockScope>>,
-    symbols: RefCell<HashMap<Ident, ast::Symbol>>
+    symbols: RefCell<HashMap<Ident, ast::Symbol>>,
 }
 
 impl<'a> SymbolTable {
@@ -45,13 +44,17 @@ impl<'a> SymbolTable {
     /// Register a new symbol
     pub fn register_symbol(&self, name: Ident, symbol: ast::Symbol) -> Result<(), &'static str> {
         let mut symbols = self.symbols.borrow_mut();
-        symbols.try_insert(name, symbol).map_err(|()| "the symbol already exists")
+        symbols
+            .try_insert(name, symbol)
+            .map_err(|()| "the symbol already exists")
     }
 
     /// Register a new scope
     pub fn register_scope(&self, scope: ast::NodeId) -> Result<(), &'static str> {
         let mut scopes = self.scopes.borrow_mut();
-        scopes.try_insert(scope, BlockScope::new()).map_err(|()| "the block's node id is not unique")
+        scopes
+            .try_insert(scope, BlockScope::new())
+            .map_err(|()| "the block's node id is not unique")
     }
 
     /// Register a variable in a scope
@@ -59,16 +62,26 @@ impl<'a> SymbolTable {
     /// # Panics
     ///
     /// Panics when the scope doesn't exist
-    pub fn register_variable(&self, scope: ast::NodeId, binding: &ast::Binding) -> Result<(), &'static str> {
+    pub fn register_variable(
+        &self,
+        scope: ast::NodeId,
+        binding: &ast::Binding,
+    ) -> Result<(), &'static str> {
         let mut scopes = self.scopes.borrow_mut();
-        let vars = &mut scopes.get_mut(&scope)
+        let vars = &mut scopes
+            .get_mut(&scope)
             .expect(&format!("unregistered scope: {:?}", scope))
             .vars;
 
-        vars.try_insert(*binding.name, Variable { ty: binding.ty, reg: None, slot: None })
-            .map_err(|()| "the variable already exists")
+        vars.try_insert(
+            *binding.name,
+            Variable {
+                ty: binding.ty,
+                reg: None,
+                slot: None,
+            },
+        ).map_err(|()| "the variable already exists")
     }
-
 
     /// Look up the type of a variable
     ///
@@ -83,14 +96,22 @@ impl<'a> SymbolTable {
     /// Look up a symbol
     pub fn lookup_symbol(&self, name: &Ident) -> Option<ast::Symbol> {
         let symbols = self.symbols.borrow();
-        symbols.get(name).cloned()  // FIXME: Without clone?
+        symbols.get(name).cloned() // FIXME: Without clone?
     }
 
     /// Look up a function's argument types and the return type
-    pub fn lookup_function(&self, name: &Ident) -> Option<(Vec<ast::Node<ast::Binding>>, ast::Type)> {
+    pub fn lookup_function(
+        &self,
+        name: &Ident,
+    ) -> Option<(Vec<ast::Node<ast::Binding>>, ast::Type)> {
         let symbols = self.symbols.borrow();
         symbols.get(name).and_then(|symbol| {
-            if let ast::Symbol::Function { ref bindings, ref ret_ty, .. } = *symbol {
+            if let ast::Symbol::Function {
+                ref bindings,
+                ref ret_ty,
+                ..
+            } = *symbol
+            {
                 Some((bindings.to_vec(), *ret_ty))
             } else {
                 None
@@ -98,20 +119,19 @@ impl<'a> SymbolTable {
         })
     }
 
-
     /// Look up the type of a variable
     pub fn resolve_variable(&self, mut scope: ast::NodeId, name: &Ident) -> Option<Variable> {
         // First, look in the current block and its parents
         loop {
             if let Some(var) = self.lookup_variable(scope, name) {
-                return Some(var)
+                return Some(var);
             }
 
             if let Some(parent) = self.parent_scope(scope) {
                 // Continue searching in the parent scope
                 scope = parent
             } else {
-                break  // No more parent scopes, search in statics/consts
+                break; // No more parent scopes, search in statics/consts
             }
         }
 
@@ -119,9 +139,13 @@ impl<'a> SymbolTable {
         match self.lookup_symbol(name) {
             Some(ast::Symbol::Static { ref binding, .. })
             | Some(ast::Symbol::Constant { ref binding, .. }) => {
-                return Some(Variable { ty: binding.ty, reg: None, slot: None })
+                return Some(Variable {
+                    ty: binding.ty,
+                    reg: None,
+                    slot: None,
+                })
             }
-            Some(_) | None => return None  // Variable not found or refers to a function
+            Some(_) | None => return None, // Variable not found or refers to a function
         };
     }
 
@@ -132,7 +156,9 @@ impl<'a> SymbolTable {
     /// Panics when the scope doesn't exist
     pub fn set_parent_scope(&self, scope: ast::NodeId, parent: ast::NodeId) {
         let mut scopes = self.scopes.borrow_mut();
-        let scope = scopes.get_mut(&scope).expect(&format!("unregistered scope: {:?}", scope));
+        let scope = scopes
+            .get_mut(&scope)
+            .expect(&format!("unregistered scope: {:?}", scope));
         scope.parent = Some(parent);
     }
 
@@ -146,20 +172,21 @@ impl<'a> SymbolTable {
         scopes[&scope].parent
     }
 
-
     /// Set the register of a variable
     ///
     /// # Panics
     ///
     /// Panics when the scope or variable doesn't exist
-    pub fn set_register(&self,
-                        scope: ast::NodeId,
-                        name: &Ident,
-                        reg: ir::Register) {
+    pub fn set_register(&self, scope: ast::NodeId, name: &Ident, reg: ir::Register) {
         let mut scopes = self.scopes.borrow_mut();
-        let scope = scopes.get_mut(&scope).expect(&format!("unregistered scope: {:?}", scope));
-        let var = scope.vars.entry(*name)
-            .or_insert_with(|| Variable {ty: ast::Type::Unit, reg: None, slot: None});
+        let scope = scopes
+            .get_mut(&scope)
+            .expect(&format!("unregistered scope: {:?}", scope));
+        let var = scope.vars.entry(*name).or_insert_with(|| Variable {
+            ty: ast::Type::Unit,
+            reg: None,
+            slot: None,
+        });
 
         var.reg = Some(reg);
     }
@@ -169,35 +196,35 @@ impl<'a> SymbolTable {
     /// # Panics
     ///
     /// Panics when the scope or variable doesn't exist
-    pub fn set_slot(&self,
-                        scope: ast::NodeId,
-                        name: &Ident,
-                        reg: ir::Register) {
+    pub fn set_slot(&self, scope: ast::NodeId, name: &Ident, reg: ir::Register) {
         let mut scopes = self.scopes.borrow_mut();
-        let scope = scopes.get_mut(&scope).expect(&format!("unregistered scope: {:?}", scope));
-        let var = scope.vars.entry(*name)
-            .or_insert_with(|| Variable {ty: ast::Type::Unit, reg: None, slot: None});
+        let scope = scopes
+            .get_mut(&scope)
+            .expect(&format!("unregistered scope: {:?}", scope));
+        let var = scope.vars.entry(*name).or_insert_with(|| Variable {
+            ty: ast::Type::Unit,
+            reg: None,
+            slot: None,
+        });
 
         var.slot = Some(reg);
     }
 }
 
-
 #[derive(Debug)]
 pub struct BlockScope {
     pub vars: HashMap<Ident, Variable>,
-    pub parent: Option<ast::NodeId>
+    pub parent: Option<ast::NodeId>,
 }
 
 impl BlockScope {
     pub fn new() -> BlockScope {
         BlockScope {
             vars: HashMap::new(),
-            parent: None
+            parent: None,
         }
     }
 }
-
 
 #[derive(Copy, Clone, Debug)]
 pub struct Variable {

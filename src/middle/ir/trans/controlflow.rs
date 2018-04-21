@@ -9,9 +9,7 @@ use middle::ir::trans::{Dest, Translator};
 
 impl Translator {
     /// Translate a return statement
-    pub fn trans_return(&mut self,
-                        val: &ast::Expression,
-                        block: &mut ir::Block) {
+    pub fn trans_return(&mut self, val: &ast::Expression, block: &mut ir::Block) {
         // Store the return value in the return slot and jump to the return block
         let val = self.trans_expr_to_value(val, block);
         let return_slot = self.fcx().return_slot.unwrap();
@@ -21,12 +19,14 @@ impl Translator {
     }
 
     /// Translate an if expression
-    pub fn trans_if(&mut self,
-                    cond: &ast::Expression,
-                    conseq: &ast::Node<ast::Block>,
-                    altern: Option<&ast::Node<ast::Block>>,
-                    block: &mut ir::Block,
-                    dest: Dest) {
+    pub fn trans_if(
+        &mut self,
+        cond: &ast::Expression,
+        conseq: &ast::Node<ast::Block>,
+        altern: Option<&ast::Node<ast::Block>>,
+        block: &mut ir::Block,
+        dest: Dest,
+    ) {
         let cond_ir = self.trans_expr_to_value(cond, block);
 
         match altern {
@@ -42,7 +42,7 @@ impl Translator {
                 self.trans_block(conseq, block, dest);
                 // FIXME: Better solution?
                 if !block.finalized() {
-                    block.jump(label_next);  // Skip the 'else' part
+                    block.jump(label_next); // Skip the 'else' part
                 }
 
                 // The 'else' block
@@ -53,7 +53,7 @@ impl Translator {
                 }
 
                 self.commit_block_and_continue(block, label_next);
-            },
+            }
             None => {
                 let label_conseq = self.next_free_label(Ident::from_str("conseq"));
                 let label_next = self.next_free_label(Ident::from_str("next"));
@@ -73,10 +73,12 @@ impl Translator {
     }
 
     /// Translate a while expression
-    pub fn trans_while(&mut self,
-                       cond: &ast::Expression,
-                       body: &ast::Node<ast::Block>,
-                       block: &mut ir::Block) {
+    pub fn trans_while(
+        &mut self,
+        cond: &ast::Expression,
+        body: &ast::Node<ast::Block>,
+        block: &mut ir::Block,
+    ) {
         let label_cond = self.next_free_label(Ident::from_str("while_cond"));
         let label_body = self.next_free_label(Ident::from_str("while_body"));
         let label_next = self.next_free_label(Ident::from_str("while_exit"));
@@ -103,8 +105,7 @@ impl Translator {
     }
 
     /// Translate a break expression
-    pub fn trans_break(&mut self,
-                       block: &mut ir::Block) {
+    pub fn trans_break(&mut self, block: &mut ir::Block) {
         block.jump(self.fcx().loop_exit.unwrap());
     }
 }

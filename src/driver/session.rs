@@ -16,13 +16,12 @@
 //! This isn't a really clean solution either, but it's better than the
 //! alternatives IMO.
 
-use std::cell::RefCell;
-use std::rc::Rc;
 use driver::codemap::Codemap;
 use driver::error::{self, HasSourceLocation};
 use driver::interner::Interner;
 use driver::symbol_table::SymbolTable;
-
+use std::cell::RefCell;
+use std::rc::Rc;
 
 /// The current compiling session
 pub struct Session {
@@ -57,7 +56,6 @@ impl Session {
         error::abort()
     }
 }
-
 
 /// Get a reference to the thread local session object
 pub fn session() -> Rc<Session> {

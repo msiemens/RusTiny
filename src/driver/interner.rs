@@ -17,6 +17,7 @@
 //! The implementation is adapted from https://github.com/rust-lang/rust/blob/79dd393a4f144fa5e6f81c720c782de3175810d7/src/libsyntax/util/interner.rs
 //! Strings are stored in the thread local storage.
 
+use driver::session;
 use std::borrow::Borrow;
 use std::cell::RefCell;
 use std::cmp::Ordering;
@@ -25,8 +26,6 @@ use std::fmt;
 use std::mem;
 use std::ops::Deref;
 use std::rc::Rc;
-use driver::session;
-
 
 /// An identifier refering to an interned string
 #[derive(Copy, Clone, Eq, PartialEq, PartialOrd, Ord, Hash)]
@@ -47,7 +46,6 @@ impl Deref for Ident {
         session().interner.resolve(*self).into_str()
     }
 }
-
 
 /// An string stored in the interner
 #[derive(Clone, PartialEq, Hash, PartialOrd)]
@@ -90,16 +88,19 @@ impl fmt::Display for InternedString {
 
 // Needed for indexing a HashMap<InternedString, _> by a &str
 impl Borrow<str> for InternedString {
-    fn borrow(&self) -> &str { &self.string[..] }
+    fn borrow(&self) -> &str {
+        &self.string[..]
+    }
 }
 
 // *interned_string becomes a &str
 impl Deref for InternedString {
     type Target = str;
 
-    fn deref(&self) -> &str { &self.string[..] }
+    fn deref(&self) -> &str {
+        &self.string[..]
+    }
 }
-
 
 /// The interner itself
 pub struct Interner {

@@ -21,7 +21,6 @@
 use std::cell::RefCell;
 use std::ops::{Add, Sub};
 
-
 #[derive(Copy, Clone, Debug, PartialEq, PartialOrd)]
 pub struct BytePos(pub u32);
 
@@ -55,20 +54,18 @@ impl Sub for BytePos {
     }
 }
 
-
 /// A source location (used for error reporting)
 #[derive(Clone, Copy)]
 pub struct Loc {
     /// The (1-based) line number
     pub line: u32,
     /// The (1-based) column offset
-    pub col: u32
+    pub col: u32,
 }
-
 
 pub struct Codemap {
     /// Mapping of the line number to the start index
-    lines: RefCell<Vec<BytePos>>
+    lines: RefCell<Vec<BytePos>>,
 }
 
 impl Codemap {
@@ -77,7 +74,9 @@ impl Codemap {
         let mut lines = Vec::new();
         lines.push(BytePos(0));
 
-        Codemap { lines: RefCell::new(lines) }
+        Codemap {
+            lines: RefCell::new(lines),
+        }
     }
 
     /// Register the beginning of a new line at a given offset
@@ -123,13 +122,18 @@ impl Codemap {
         debug!("line: {:?}", line);
         debug!("offset: {:?}", offset);
 
-        debug_assert!(pos >= offset,
-                      "pos ({:?}) >= offset ({:?})\nlines: {:?}\nline:{:?}",
-                      pos, offset, lines, line);
+        debug_assert!(
+            pos >= offset,
+            "pos ({:?}) >= offset ({:?})\nlines: {:?}\nline:{:?}",
+            pos,
+            offset,
+            lines,
+            line
+        );
 
         Loc {
             line: line as u32 + 1,
-            col: (pos - offset).as_int()
+            col: (pos - offset).as_int(),
         }
     }
 }

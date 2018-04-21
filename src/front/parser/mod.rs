@@ -71,14 +71,12 @@
 use driver::interner::Ident;
 use driver::session;
 use front::ast::*;
-use front::Lexer;
-use front::tokens::{Token, Keyword};
 use front::parser::parselet::PARSELET_MANAGER;
+use front::tokens::{Keyword, Token};
+use front::Lexer;
 
-
-mod parselet;  // Parselets for the Pratt parser
+mod parselet; // Parselets for the Pratt parser
 mod test;
-
 
 pub struct Parser<'a> {
     token: Token,
@@ -97,7 +95,7 @@ impl<'a> Parser<'a> {
         Parser {
             token: first_token.value,
             span: first_token.span,
-            lexer: lx
+            lexer: lx,
         }
     }
 
@@ -128,9 +126,11 @@ impl<'a> Parser<'a> {
     /// Stop compiling because of an unexpected token
     fn unexpected_token(&self, expected: Option<&'static str>) -> ! {
         match expected {
-            Some(ex) => self.fatal(format!("unexpected token: `{}`, expected {}",
-                                   &self.token, ex)),
-            None => self.fatal(format!("unexpected token: `{}`", &self.token))
+            Some(ex) => self.fatal(format!(
+                "unexpected token: `{}`, expected {}",
+                &self.token, ex
+            )),
+            None => self.fatal(format!("unexpected token: `{}`", &self.token)),
         }
     }
 
@@ -173,7 +173,7 @@ impl<'a> Parser<'a> {
         let span = self.span;
         let ident = match self.token {
             Token::Ident(id) => id,
-            _ => self.unexpected_token(Some("an identifier"))
+            _ => self.unexpected_token(Some("an identifier")),
         };
         self.bump();
 
@@ -190,13 +190,11 @@ impl<'a> Parser<'a> {
             Token::Char(c) => Value::Char(c),
             Token::Keyword(Keyword::True) => Value::Bool(true),
             Token::Keyword(Keyword::False) => Value::Bool(false),
-            _ => self.unexpected_token(Some("a literal"))
+            _ => self.unexpected_token(Some("a literal")),
         };
         self.bump();
 
-        Node::new(Expression::Literal {
-            val: value
-        }, span)
+        Node::new(Expression::Literal { val: value }, span)
     }
 
     /// Parse a builitin type
@@ -207,7 +205,7 @@ impl<'a> Parser<'a> {
         let ty: Result<Type, ()> = (*ident).parse();
         match ty {
             Ok(ty) => ty,
-            Err(()) => self.unexpected_token(Some("a type"))
+            Err(()) => self.unexpected_token(Some("a type")),
         }
     }
 
@@ -223,10 +221,7 @@ impl<'a> Parser<'a> {
         self.expect(Token::Colon);
         let ty = self.parse_type();
 
-        Node::new(Binding {
-            ty,
-            name
-        }, lo + self.span)
+        Node::new(Binding { ty, name }, lo + self.span)
     }
 
     /// Parse a block of expressions
@@ -252,8 +247,8 @@ impl<'a> Parser<'a> {
             match self.token {
                 Token::Keyword(Keyword::Let) => {
                     stmts.push(self.parse_declaration());
-                    continue
-                },
+                    continue;
+                }
 
                 // If and While expressions can appear as statements ...
                 // ... without a trainling semicolon!
@@ -261,21 +256,27 @@ impl<'a> Parser<'a> {
                     let lo = self.span;
                     let if_expr = self.parse_if();
 
-                    stmts.push(Node::new(Statement::Expression {
-                        val: Box::new(if_expr)
-                    }, lo + self.span));
-                    continue
-                },
+                    stmts.push(Node::new(
+                        Statement::Expression {
+                            val: Box::new(if_expr),
+                        },
+                        lo + self.span,
+                    ));
+                    continue;
+                }
 
                 Token::Keyword(Keyword::While) => {
                     let lo = self.span;
                     let while_expr = self.parse_while();
 
-                    stmts.push(Node::new(Statement::Expression {
-                        val: Box::new(while_expr)
-                    }, lo + self.span));
-                    continue
-                },
+                    stmts.push(Node::new(
+                        Statement::Expression {
+                            val: Box::new(while_expr),
+                        },
+                        lo + self.span,
+                    ));
+                    continue;
+                }
 
                 _ => {}
             }
@@ -286,7 +287,7 @@ impl<'a> Parser<'a> {
 
             if self.token == Token::RBrace {
                 // We've reached the end of the block already
-                break
+                break;
             }
 
             // Parse the expression
@@ -297,9 +298,12 @@ impl<'a> Parser<'a> {
 
             if self.eat(Token::Semicolon) {
                 // It's actually a statement
-                stmts.push(Node::new(Statement::Expression {
-                    val: Box::new(maybe_expr)
-                }, lo + self.span));
+                stmts.push(Node::new(
+                    Statement::Expression {
+                        val: Box::new(maybe_expr),
+                    },
+                    lo + self.span,
+                ));
             } else {
                 // It's the last expr
                 expr = Some(maybe_expr);
@@ -313,10 +317,13 @@ impl<'a> Parser<'a> {
 
         debug!("done parsing a block");
 
-        Node::new(Block {
-            stmts,
-            expr: Box::new(expr)
-        }, lo + self.span)
+        Node::new(
+            Block {
+                stmts,
+                expr: Box::new(expr),
+            },
+            lo + self.span,
+        )
     }
 
     // --- Parsing: Statements --------------------------------------------------
@@ -336,10 +343,13 @@ impl<'a> Parser<'a> {
 
         self.expect(Token::Semicolon);
 
-        Node::new(Statement::Declaration {
-            binding: Box::new(binding),
-            value: Box::new(value)
-        }, lo + self.span)
+        Node::new(
+            Statement::Declaration {
+                binding: Box::new(binding),
+                value: Box::new(value),
+            },
+            lo + self.span,
+        )
     }
 
     // --- Parsing: Expressions -------------------------------------------------
@@ -367,18 +377,16 @@ impl<'a> Parser<'a> {
                     self.parse_expression()
                 };
 
-                Node::new(Expression::Return {
-                    val: Box::new(val)
-                }, lo + self.span)
-            },
+                Node::new(Expression::Return { val: Box::new(val) }, lo + self.span)
+            }
             Token::Keyword(Keyword::Break) => {
                 let lo = self.span;
 
                 self.bump();
 
                 Node::new(Expression::Break, lo + self.span)
-            },
-            _ => self.pratt_parser(precedence)
+            }
+            _ => self.pratt_parser(precedence),
         }
     }
 
@@ -386,7 +394,7 @@ impl<'a> Parser<'a> {
     fn current_precedence(&self) -> u32 {
         match PARSELET_MANAGER.lookup_infix(self.token) {
             Some(p) => p.precedence(),
-            None => 0
+            None => 0,
         }
     }
 
@@ -399,8 +407,8 @@ impl<'a> Parser<'a> {
             Some(p) => {
                 debug!("prefix: parselet: {:?}", p.name());
                 p
-            },
-            None => self.unexpected_token(Some("a prefix expression"))
+            }
+            None => self.unexpected_token(Some("a prefix expression")),
         };
 
         // Parse the prefix expression
@@ -445,11 +453,14 @@ impl<'a> Parser<'a> {
             None
         };
 
-        Node::new(Expression::If {
-            cond: Box::new(cond),
-            conseq: Box::new(conseq),
-            altern: altern.map(Box::new)
-        }, lo + self.span)
+        Node::new(
+            Expression::If {
+                cond: Box::new(cond),
+                conseq: Box::new(conseq),
+                altern: altern.map(Box::new),
+            },
+            lo + self.span,
+        )
     }
 
     fn parse_while(&mut self) -> Node<Expression> {
@@ -461,10 +472,13 @@ impl<'a> Parser<'a> {
         let cond = self.parse_expression();
         let body = self.parse_block();
 
-        Node::new(Expression::While {
-            cond: Box::new(cond),
-            body: Box::new(body)
-        }, lo + self.span)
+        Node::new(
+            Expression::While {
+                cond: Box::new(cond),
+                body: Box::new(body),
+            },
+            lo + self.span,
+        )
     }
 
     // --- Parsing: Symbols -----------------------------------------------------
@@ -485,7 +499,7 @@ impl<'a> Parser<'a> {
         while self.token != Token::RParen {
             bindings.push(self.parse_binding());
             if !self.eat(Token::Comma) {
-                break
+                break;
             }
         }
 
@@ -501,12 +515,15 @@ impl<'a> Parser<'a> {
         // Parse the body
         let body = self.parse_block();
 
-        Node::new(Symbol::Function{
-            name: ident,
-            bindings,
-            ret_ty,
-            body: Box::new(body)
-        }, lo + self.span)
+        Node::new(
+            Symbol::Function {
+                name: ident,
+                bindings,
+                ret_ty,
+                body: Box::new(body),
+            },
+            lo + self.span,
+        )
     }
 
     fn parse_static(&mut self) -> Node<Symbol> {
@@ -524,10 +541,13 @@ impl<'a> Parser<'a> {
 
         self.expect(Token::Semicolon);
 
-        Node::new(Symbol::Static {
-            binding: Box::new(binding),
-            value: Box::new(value)
-        }, lo + self.span)
+        Node::new(
+            Symbol::Static {
+                binding: Box::new(binding),
+                value: Box::new(value),
+            },
+            lo + self.span,
+        )
     }
 
     fn parse_const(&mut self) -> Node<Symbol> {
@@ -545,10 +565,13 @@ impl<'a> Parser<'a> {
 
         self.expect(Token::Semicolon);
 
-        Node::new(Symbol::Constant {
-            binding: Box::new(binding),
-            value: Box::new(value)
-        }, lo + self.span)
+        Node::new(
+            Symbol::Constant {
+                binding: Box::new(binding),
+                value: Box::new(value),
+            },
+            lo + self.span,
+        )
     }
 
     fn parse_symbol(&mut self) -> Node<Symbol> {
@@ -560,9 +583,7 @@ impl<'a> Parser<'a> {
             Token::Keyword(Keyword::Static) => self.parse_static(),
             Token::Keyword(Keyword::Const) => self.parse_const(),
             //Token::Keyword(Keyword::Impl) => unimplemented!(),  // TODO: Implement
-
-            _ => self.unexpected_token(Some("a symbol"))
+            _ => self.unexpected_token(Some("a symbol")),
         }
     }
-
 }

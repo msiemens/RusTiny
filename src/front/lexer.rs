@@ -1,13 +1,12 @@
 //! The lexer: split the source into a stream of tokens
 
-use std::borrow::ToOwned;
-use std::str::CharIndices;
+use driver::codemap::{BytePos, Loc};
 use driver::interner::Ident;
 use driver::session;
-use driver::codemap::{BytePos, Loc};
-use front::ast::{BinOp, UnOp, Spanned};
-use front::tokens::{Token, lookup_keyword};
-
+use front::ast::{BinOp, Spanned, UnOp};
+use front::tokens::{lookup_keyword, Token};
+use std::borrow::ToOwned;
+use std::str::CharIndices;
 
 pub struct Lexer<'a> {
     source: &'a str,
@@ -16,7 +15,7 @@ pub struct Lexer<'a> {
     pos: usize,
     curr: Option<char>,
 
-    lineno: usize
+    lineno: usize,
 }
 
 impl<'a> Lexer<'a> {
@@ -25,10 +24,9 @@ impl<'a> Lexer<'a> {
     /// Create a new lexer from a given string and file name
     pub fn new(source: &'a str, _: &'a str) -> Lexer<'a> {
         let mut iter = source.char_indices();
-        let (pos, curr) = iter.next()
-            .map_or_else(|| (0, None), |(p, c)| (p, Some(c)));
-            //.map(|(p, c)| (p, Some(c)))  // Make `curr` an Option
-            //.unwrap_or_else(|| (0, None));  // Set `curr` to None
+        let (pos, curr) = iter.next().map_or_else(|| (0, None), |(p, c)| (p, Some(c)));
+        //.map(|(p, c)| (p, Some(c)))  // Make `curr` an Option
+        //.unwrap_or_else(|| (0, None));  // Set `curr` to None
 
         Lexer {
             source,
@@ -38,7 +36,7 @@ impl<'a> Lexer<'a> {
 
             iter,
 
-            lineno: 1
+            lineno: 1,
         }
     }
 
@@ -91,7 +89,7 @@ impl<'a> Lexer<'a> {
     fn curr_escaped(&self) -> String {
         match self.curr {
             Some(c) => c.escape_default().collect(),
-            None    => "EOF".to_owned()
+            None => "EOF".to_owned(),
         }
     }
 
@@ -101,11 +99,10 @@ impl<'a> Lexer<'a> {
             // Build error message
             let found_str = match self.curr {
                 Some(_) => format!("`{}`", self.curr_escaped()),
-                None    => "EOF".to_owned()
+                None => "EOF".to_owned(),
             };
 
-            self.fatal(format!("Expected `{}`, found {}",
-                               expect, found_str))
+            self.fatal(format!("Expected `{}`, found {}", expect, found_str))
         }
 
         // Consume the current character
@@ -114,11 +111,15 @@ impl<'a> Lexer<'a> {
 
     /// Collect & consume all consecutive characters into a string as long as a condition is true
     fn collect<F>(&mut self, cond: F) -> &'a str
-            where F: Fn(&char) -> bool
+    where
+        F: Fn(&char) -> bool,
     {
         let start = self.pos;
 
-        debug!("start colleting (start = {}, char = {:?})", start, self.curr);
+        debug!(
+            "start colleting (start = {}, char = {:?})",
+            start, self.curr
+        );
 
         while let Some(c) = self.curr {
             if cond(&c) {
@@ -135,10 +136,15 @@ impl<'a> Lexer<'a> {
 
     /// Consume all consecutive characters matching a condition
     fn eat_all<F>(&mut self, cond: F)
-            where F: Fn(&char) -> bool {
+    where
+        F: Fn(&char) -> bool,
+    {
         while let Some(c) = self.curr {
-            if cond(&c) { self.bump(); }
-            else { break; }
+            if cond(&c) {
+                self.bump();
+            } else {
+                break;
+            }
         }
     }
 
@@ -153,9 +159,7 @@ impl<'a> Lexer<'a> {
     fn tokenize_ident(&mut self) -> Token {
         debug!("tokenizing an ident");
 
-        let ident = self.collect(|c| {
-            c.is_alphabetic() || c.is_numeric() || *c == '_'
-        });
+        let ident = self.collect(|c| c.is_alphabetic() || c.is_numeric() || *c == '_');
 
         // Check whether it's a keyword or an identifier
         if let Some(kw) = lookup_keyword(ident) {
@@ -170,9 +174,9 @@ impl<'a> Lexer<'a> {
         debug!("tokenizing a digit");
 
         let integer_str = self.collect(|c| c.is_numeric());
-        let integer     = match integer_str.parse() {
+        let integer = match integer_str.parse() {
             Ok(i) => i,
-            Err(_) => self.fatal(format!("invalid integer: `{}`", integer_str))
+            Err(_) => self.fatal(format!("invalid integer: `{}`", integer_str)),
         };
 
         Token::Int(integer)
@@ -182,7 +186,7 @@ impl<'a> Lexer<'a> {
     fn tokenize_char(&mut self) -> Token {
         debug!("tokenizing a char");
 
-        self.bump();  // '\'' matched, move on
+        self.bump(); // '\'' matched, move on
 
         let c = self.curr.unwrap_or_else(|| {
             self.fatal("expected a char, found EOF");
@@ -191,15 +195,15 @@ impl<'a> Lexer<'a> {
             // Escaped char, let's take a look on one more char
             self.bump();
             match self.curr {
-                Some('n')  => Token::Char('\n'),
+                Some('n') => Token::Char('\n'),
                 Some('\'') => Token::Char('\''),
                 Some(c) => self.fatal(format!("unsupported or invalid escape sequence: \\{}", c)),
-                None => self.fatal("expected escaped char, found EOF")
+                None => self.fatal("expected escaped char, found EOF"),
             }
         } else {
             Token::Char(c)
         };
-        self.bump();  // Matched a (possibly escaped) character, move along
+        self.bump(); // Matched a (possibly escaped) character, move along
 
         // Match closing quote
         self.expect('\'');
@@ -233,8 +237,11 @@ impl<'a> Lexer<'a> {
             );
         );
 
-        debug!("tokenizing with current character = `{}` at {}",
-                 self.curr_escaped(), self.pos);
+        debug!(
+            "tokenizing with current character = `{}` at {}",
+            self.curr_escaped(),
+            self.pos
+        );
 
         let c = self.curr.unwrap();
         let lo = self.pos;
@@ -291,7 +298,7 @@ impl<'a> Lexer<'a> {
 
             '\'' => self.tokenize_char(),
 
-            c if c.is_alphabetic()  => self.tokenize_ident(),
+            c if c.is_alphabetic() => self.tokenize_ident(),
 
             c if c.is_numeric() => self.tokenize_integer(),
 
@@ -305,8 +312,8 @@ impl<'a> Lexer<'a> {
 
                 self.bump();
                 return None;
-            },
-            c => self.fatal(format!("unexpected character: `{}`", c))
+            }
+            c => self.fatal(format!("unexpected character: `{}`", c)),
         };
 
         debug!("emitted token: `{:?}`", token);

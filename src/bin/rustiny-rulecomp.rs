@@ -5,10 +5,9 @@ extern crate clap;
 extern crate env_logger;
 extern crate rustiny;
 
-use clap::{Arg, App};
+use clap::{App, Arg};
 
 use rustiny::util::{read_file, write_file};
-
 
 #[cfg(not(test))]
 fn main() {
@@ -18,16 +17,18 @@ fn main() {
     let app = App::new("rustiny-rulecomp")
         .version(env!("CARGO_PKG_VERSION"))
         .author("Markus SIemens <markus@m-siemens.de>")
-
-        .arg(Arg::with_name("output")
-            .short("o")
-            .value_name("OUTPUT")
-            .help("Sets the output file"))
-
-        .arg(Arg::with_name("INPUT")
-            .help("Sets the file to compile")
-            .required(true)
-            .index(1));
+        .arg(
+            Arg::with_name("output")
+                .short("o")
+                .value_name("OUTPUT")
+                .help("Sets the output file"),
+        )
+        .arg(
+            Arg::with_name("INPUT")
+                .help("Sets the file to compile")
+                .required(true)
+                .index(1),
+        );
     let args = app.get_matches();
 
     // Read source file

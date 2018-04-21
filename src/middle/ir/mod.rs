@@ -1,18 +1,15 @@
+use driver::interner::Ident;
+use front::ast;
 use std::collections::VecDeque;
 use std::fmt;
 use std::iter::IntoIterator;
 use std::slice;
 use std::vec::IntoIter;
-use driver::interner::Ident;
-use front::ast;
-
 
 mod trans;
 pub mod visit;
 
-
 pub use middle::ir::trans::translate;
-
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct Label(pub Ident);
@@ -43,7 +40,7 @@ pub enum Value {
 impl Value {
     pub fn reg(self) -> Register {
         if let Value::Register(r) = self {
-            return r
+            return r;
         } else {
             panic!("Invalid Value::reg({:?})", self);
         }
@@ -57,7 +54,7 @@ pub enum Register {
 
     /// A stack slot
     /// Basically a pointer that points to a variable stored on the stack
-    Stack(Ident)
+    Stack(Ident),
 }
 
 impl Register {
@@ -68,7 +65,7 @@ impl Register {
 
     pub fn ident(&self) -> Ident {
         match *self {
-            Register::Local(id) | Register::Stack(id) => id
+            Register::Local(id) | Register::Stack(id) => id,
         }
     }
 }
@@ -82,7 +79,6 @@ impl Immediate {
     }
 }
 
-
 pub struct Program(Vec<Symbol>);
 
 impl Program {
@@ -94,12 +90,12 @@ impl Program {
         self.0.push(s);
     }
 
-    #[allow(needless_lifetimes)]  // Actually not so needless it seems
+    #[allow(needless_lifetimes)] // Actually not so needless it seems
     pub fn iter<'a>(&'a self) -> slice::Iter<'a, Symbol> {
         self.0.iter()
     }
 
-    #[allow(needless_lifetimes)]  // Actually not so needless it seems
+    #[allow(needless_lifetimes)] // Actually not so needless it seems
     pub fn iter_mut<'a>(&'a mut self) -> slice::IterMut<'a, Symbol> {
         self.0.iter_mut()
     }
@@ -127,13 +123,11 @@ impl<'a> IntoIterator for &'a Program {
 // impl<'a> IntoIterator for &'a mut Program {
 //     type Item = &'a Symbol;
 //     type IntoIter = slice::IterMut<'a, Symbol>;
-// 
+//
 //     fn into_iter(self) -> slice::IterMut<'a, Symbol> {
 //         self.0.iter()
 //     }
 // }
-
-
 
 #[derive(Clone, Debug)]
 pub enum Symbol {
@@ -148,13 +142,12 @@ pub enum Symbol {
     },
 }
 
-
 #[derive(Clone, Debug)]
 pub struct Block {
     pub label: Label,
     pub inst: VecDeque<Instruction>,
     pub last: ControlFlowInstruction,
-    pub phis: Vec<Phi>
+    pub phis: Vec<Phi>,
 }
 
 impl Block {
@@ -163,32 +156,67 @@ impl Block {
     }
 
     fn ret(&mut self, value: Option<Value>) {
-        assert_eq!(self.last, ControlFlowInstruction::NotYetProcessed, "self.last is already set: `{}`", self.last);
+        assert_eq!(
+            self.last,
+            ControlFlowInstruction::NotYetProcessed,
+            "self.last is already set: `{}`",
+            self.last
+        );
         self.last = ControlFlowInstruction::Return { value }
     }
 
     fn branch(&mut self, cond: Value, conseq: Label, altern: Label) {
-        assert_eq!(self.last, ControlFlowInstruction::NotYetProcessed, "self.last is already set: `{}`", self.last);
-        self.last = ControlFlowInstruction::Branch { cond, conseq, altern }
+        assert_eq!(
+            self.last,
+            ControlFlowInstruction::NotYetProcessed,
+            "self.last is already set: `{}`",
+            self.last
+        );
+        self.last = ControlFlowInstruction::Branch {
+            cond,
+            conseq,
+            altern,
+        }
     }
 
     fn jump(&mut self, dest: Label) {
-        assert_eq!(self.last, ControlFlowInstruction::NotYetProcessed, "self.last is already set: `{}`", self.last);
+        assert_eq!(
+            self.last,
+            ControlFlowInstruction::NotYetProcessed,
+            "self.last is already set: `{}`",
+            self.last
+        );
         self.last = ControlFlowInstruction::Jump { dest }
     }
 
     fn binop(&mut self, op: InfixOp, lhs: Value, rhs: Value, dst: Register) {
-        assert_eq!(self.last, ControlFlowInstruction::NotYetProcessed, "self.last is already set: `{}`", self.last);
-        self.inst.push_back(Instruction::BinOp { op, lhs, rhs, dst })
+        assert_eq!(
+            self.last,
+            ControlFlowInstruction::NotYetProcessed,
+            "self.last is already set: `{}`",
+            self.last
+        );
+        self.inst
+            .push_back(Instruction::BinOp { op, lhs, rhs, dst })
     }
 
     fn unop(&mut self, op: PrefixOp, item: Value, dst: Register) {
-        assert_eq!(self.last, ControlFlowInstruction::NotYetProcessed, "self.last is already set: `{}`", self.last);
+        assert_eq!(
+            self.last,
+            ControlFlowInstruction::NotYetProcessed,
+            "self.last is already set: `{}`",
+            self.last
+        );
         self.inst.push_back(Instruction::UnOp { op, item, dst })
     }
 
     fn cmp(&mut self, cmp: CmpOp, lhs: Value, rhs: Value, dst: Register) {
-        assert_eq!(self.last, ControlFlowInstruction::NotYetProcessed, "self.last is already set: `{}`", self.last);
+        assert_eq!(
+            self.last,
+            ControlFlowInstruction::NotYetProcessed,
+            "self.last is already set: `{}`",
+            self.last
+        );
         self.inst.push_back(Instruction::Cmp { cmp, lhs, rhs, dst })
     }
 
@@ -197,18 +225,17 @@ impl Block {
         // which may already be finalized
 
         // Find position of first non-alloca instruction
-        let first_non_alloca = self.inst.iter()
-            .position(|inst| {
-                if let Instruction::Alloca { .. } = *inst {
-                    false
-                } else {
-                    true
-                }
-            });
+        let first_non_alloca = self.inst.iter().position(|inst| {
+            if let Instruction::Alloca { .. } = *inst {
+                false
+            } else {
+                true
+            }
+        });
 
         let insert_pos = match first_non_alloca {
             Some(pos) => pos,
-            None => 0
+            None => 0,
         };
 
         // Insert new alloca after last alloca
@@ -218,38 +245,71 @@ impl Block {
     }
 
     fn load(&mut self, src: Value, dst: Register) {
-        assert_eq!(self.last, ControlFlowInstruction::NotYetProcessed, "self.last is already set: `{}`", self.last);
+        assert_eq!(
+            self.last,
+            ControlFlowInstruction::NotYetProcessed,
+            "self.last is already set: `{}`",
+            self.last
+        );
 
         self.inst.push_back(Instruction::Load { src, dst })
     }
 
     // Optimization for storing to a register
     fn store_reg(&mut self, src: Value, dst: Register) {
-        assert_eq!(self.last, ControlFlowInstruction::NotYetProcessed, "self.last is already set: `{}`", self.last);
+        assert_eq!(
+            self.last,
+            ControlFlowInstruction::NotYetProcessed,
+            "self.last is already set: `{}`",
+            self.last
+        );
 
-        self.inst.push_back(Instruction::Store { src, dst: Value::Register(dst) })
+        self.inst.push_back(Instruction::Store {
+            src,
+            dst: Value::Register(dst),
+        })
     }
 
     fn store(&mut self, src: Value, dst: Value) {
-        assert_eq!(self.last, ControlFlowInstruction::NotYetProcessed, "self.last is already set: `{}`", self.last);
-        assert!(match dst { Value::Immediate(..) => false, _ => true }, "attempt to store in an immediate");
+        assert_eq!(
+            self.last,
+            ControlFlowInstruction::NotYetProcessed,
+            "self.last is already set: `{}`",
+            self.last
+        );
+        assert!(
+            match dst {
+                Value::Immediate(..) => false,
+                _ => true,
+            },
+            "attempt to store in an immediate"
+        );
 
         self.inst.push_back(Instruction::Store { src, dst })
     }
 
     fn call(&mut self, name: Ident, args: Vec<Value>, dst: Register) {
-        assert_eq!(self.last, ControlFlowInstruction::NotYetProcessed, "self.last is already set: `{}`", self.last);
+        assert_eq!(
+            self.last,
+            ControlFlowInstruction::NotYetProcessed,
+            "self.last is already set: `{}`",
+            self.last
+        );
 
         self.inst.push_back(Instruction::Call { name, args, dst })
     }
 
     fn phi(&mut self, srcs: Vec<(Value, Label)>, dst: Register) {
-        assert_eq!(self.last, ControlFlowInstruction::NotYetProcessed, "self.last is already set: `{}`", self.last);
+        assert_eq!(
+            self.last,
+            ControlFlowInstruction::NotYetProcessed,
+            "self.last is already set: `{}`",
+            self.last
+        );
 
         self.phis.push(Phi { srcs, dst })
     }
 }
-
 
 #[derive(Clone, Debug, PartialEq, Hash)]
 #[allow(missing_copy_implementations)]
@@ -271,13 +331,14 @@ pub enum ControlFlowInstruction {
 impl ControlFlowInstruction {
     pub fn successors(&self) -> Vec<Ident> {
         match *self {
-            ControlFlowInstruction::Branch { conseq, altern, .. } => vec![conseq.ident(), altern.ident()],
+            ControlFlowInstruction::Branch { conseq, altern, .. } => {
+                vec![conseq.ident(), altern.ident()]
+            }
             ControlFlowInstruction::Jump { dest } => vec![dest.ident()],
-            _ => Vec::new()
+            _ => Vec::new(),
         }
     }
 }
-
 
 #[derive(Clone, Debug, Hash)]
 pub struct Phi {
@@ -285,39 +346,38 @@ pub struct Phi {
     pub dst: Register,
 }
 
-
 #[derive(Clone, Debug, Hash)]
 pub enum Instruction {
     BinOp {
         op: InfixOp,
         lhs: Value,
         rhs: Value,
-        dst: Register
+        dst: Register,
     },
     UnOp {
         op: PrefixOp,
         item: Value,
-        dst: Register
+        dst: Register,
     },
 
     Cmp {
         cmp: CmpOp,
         lhs: Value,
         rhs: Value,
-        dst: Register
+        dst: Register,
     },
 
     // MemOp
     Alloca {
-        dst: Register,  // Where to put the address
+        dst: Register, // Where to put the address
     },
     Load {
-        src: Value,     // The memory address
-        dst: Register,  // Where to store the value
+        src: Value,    // The memory address
+        dst: Register, // Where to store the value
     },
     Store {
-        src: Value,     // The value to store
-        dst: Value,     // The memory address (Register or Static)
+        src: Value, // The value to store
+        dst: Value, // The memory address (Register or Static)
     },
 
     // Other
@@ -328,23 +388,22 @@ pub enum Instruction {
     },
 }
 
-
 #[derive(Clone, Copy, Debug, Hash)]
 pub enum InfixOp {
     // Arithmetical
-    Add,  // +
-    Sub,  // -
-    Mul,  // *
-    Div,  // /
-    Pow,  // **
-    Mod,  // %
-    Shl,  // <<
-    Shr,  // >>
+    Add, // +
+    Sub, // -
+    Mul, // *
+    Div, // /
+    Pow, // **
+    Mod, // %
+    Shl, // <<
+    Shr, // >>
 
     // Bitwise
-    And,  // &
-    Or,   // |
-    Xor,  // ^
+    And, // &
+    Or,  // |
+    Xor, // ^
 }
 
 impl InfixOp {
@@ -363,7 +422,7 @@ impl InfixOp {
             ast::BinOp::BitOr => InfixOp::Or,
             ast::BinOp::Shl => InfixOp::Shl,
             ast::BinOp::Shr => InfixOp::Shr,
-            _ => panic!("InfixOp::from_ast_op with invalid op: `{}`", op)
+            _ => panic!("InfixOp::from_ast_op with invalid op: `{}`", op),
         }
     }
 }
@@ -371,10 +430,10 @@ impl InfixOp {
 #[derive(Clone, Copy, Debug, Hash)]
 pub enum PrefixOp {
     // Arithmetical
-    Neg,  // -
+    Neg, // -
 
     // Bitwise
-    Not,  // !
+    Not, // !
 }
 
 impl PrefixOp {
@@ -388,12 +447,12 @@ impl PrefixOp {
 
 #[derive(Clone, Copy, Debug, Hash)]
 pub enum CmpOp {
-    Lt,  // <
-    Le,  // <=
-    Eq,  // ==
-    Ne,  // !=
-    Ge,  // >=
-    Gt,  // >
+    Lt, // <
+    Le, // <=
+    Eq, // ==
+    Ne, // !=
+    Ge, // >=
+    Gt, // >
 }
 
 impl CmpOp {
@@ -405,11 +464,10 @@ impl CmpOp {
             ast::BinOp::Ne => CmpOp::Ne,
             ast::BinOp::Ge => CmpOp::Ge,
             ast::BinOp::Gt => CmpOp::Gt,
-            _ => panic!("CmpOp::from_ast_op with invalid op: `{}`", op)
+            _ => panic!("CmpOp::from_ast_op with invalid op: `{}`", op),
         }
     }
 }
-
 
 // --- Debug implementations ----------------------------------------------------
 
@@ -427,7 +485,6 @@ impl fmt::Debug for Immediate {
         write!(f, "Immediate({})", self.0)
     }
 }
-
 
 impl fmt::Display for Label {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
@@ -473,18 +530,30 @@ impl fmt::Display for Program {
 impl fmt::Display for Symbol {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match *self {
-            Symbol::Global { ref name, ref value } => {
+            Symbol::Global {
+                ref name,
+                ref value,
+            } => {
                 try!(writeln!(f, "static {} = {}", name, value));
                 try!(writeln!(f));
-            },
-            Symbol::Function { ref name, ref body, ref args } => {
-                try!(writeln!(f, "fn {}({}) {{", name, connect!(args, "{}", ", ")));
+            }
+            Symbol::Function {
+                ref name,
+                ref body,
+                ref args,
+            } => {
+                try!(writeln!(
+                    f,
+                    "fn {}({}) {{",
+                    name,
+                    connect!(args, "{}", ", ")
+                ));
                 for block in body {
                     try!(write!(f, "{}", block));
                 }
                 try!(writeln!(f, "}}"));
                 try!(writeln!(f));
-            },
+            }
         }
 
         Ok(())
@@ -496,10 +565,16 @@ impl fmt::Display for Block {
         try!(writeln!(f, "{}:", self.label));
 
         for phi in &self.phis {
-            try!(writeln!(f, "    {} = phi {}", phi.dst, phi.srcs.iter()
-                         .map(|src| format!("[ {}, {} ]", src.0, src.1))
-                         .collect::<Vec<_>>()
-                         .join(" ")))
+            try!(writeln!(
+                f,
+                "    {} = phi {}",
+                phi.dst,
+                phi.srcs
+                    .iter()
+                    .map(|src| format!("[ {}, {} ]", src.0, src.1))
+                    .collect::<Vec<_>>()
+                    .join(" ")
+            ))
         }
 
         for inst in &self.inst {
@@ -515,29 +590,17 @@ impl fmt::Display for Block {
 impl fmt::Display for ControlFlowInstruction {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match *self {
-            ControlFlowInstruction::Return {
-                ref value,
-            } => {
-                match *value {
-                    Some(v) => write!(f, "ret {}", v),
-                    None => write!(f, "ret void"),
-                }
+            ControlFlowInstruction::Return { ref value } => match *value {
+                Some(v) => write!(f, "ret {}", v),
+                None => write!(f, "ret void"),
             },
             ControlFlowInstruction::Branch {
                 ref cond,
                 ref conseq,
                 ref altern,
-            } => {
-                write!(f, "br {} {} {}", cond, conseq, altern)
-            },
-            ControlFlowInstruction::Jump {
-                ref dest,
-            } => {
-                write!(f, "jmp {}", dest)
-            },
-            ControlFlowInstruction::NotYetProcessed => {
-                write!(f, "<...>")
-            }
+            } => write!(f, "br {} {} {}", cond, conseq, altern),
+            ControlFlowInstruction::Jump { ref dest } => write!(f, "jmp {}", dest),
+            ControlFlowInstruction::NotYetProcessed => write!(f, "<...>"),
         }
     }
 }
@@ -550,68 +613,46 @@ impl fmt::Display for Instruction {
                 ref lhs,
                 ref rhs,
                 ref dst,
-            } => {
-                write!(f, "{} = {} {} {}", dst, op, lhs, rhs)
-            },
+            } => write!(f, "{} = {} {} {}", dst, op, lhs, rhs),
             Instruction::UnOp {
                 ref op,
                 ref item,
                 ref dst,
-            } => {
-                write!(f, "{} = {} {}", dst, op, item)
-            },
+            } => write!(f, "{} = {} {}", dst, op, item),
 
             Instruction::Cmp {
                 ref cmp,
                 ref lhs,
                 ref rhs,
                 ref dst,
-            } => {
-                write!(f, "{} = cmp {} {} {}", dst, cmp, lhs, rhs)
-            },
+            } => write!(f, "{} = cmp {} {} {}", dst, cmp, lhs, rhs),
 
             // MemOp
-            Instruction::Alloca {
-                ref dst
-            } => {
-                write!(f, "{} = alloca", dst)
-            },
-            Instruction::Load {
-                ref src,
-                ref dst,
-            } => {
-                write!(f, "{} = load {}", dst, src)
-            },
-            Instruction::Store {
-                ref src,
-                ref dst,
-            } => {
-                write!(f, "store {} {}", src, dst)
-            },
+            Instruction::Alloca { ref dst } => write!(f, "{} = alloca", dst),
+            Instruction::Load { ref src, ref dst } => write!(f, "{} = load {}", dst, src),
+            Instruction::Store { ref src, ref dst } => write!(f, "store {} {}", src, dst),
 
             // Other
-//            Instruction::Phi {
-//                ref srcs,
-//                ref dst,
-//            } => {
-//                write!(f, "{} = phi {}", dst, srcs.iter()
-//                        .map(|src| format!("[ {}, {} ]", src.0, src.1))
-//                        .collect::<Vec<_>>()
-//                        .join(" "))
-//            },
+            //            Instruction::Phi {
+            //                ref srcs,
+            //                ref dst,
+            //            } => {
+            //                write!(f, "{} = phi {}", dst, srcs.iter()
+            //                        .map(|src| format!("[ {}, {} ]", src.0, src.1))
+            //                        .collect::<Vec<_>>()
+            //                        .join(" "))
+            //            },
             Instruction::Call {
                 ref name,
                 ref args,
-                ref dst
+                ref dst,
             } => {
                 if args.is_empty() {
-                   write!(f, "{} = call {}", dst, name)
+                    write!(f, "{} = call {}", dst, name)
                 } else {
-                    write!(f, "{} = call {} {}", dst, name,
-                           connect!(args, "{}", " "))
+                    write!(f, "{} = call {} {}", dst, name, connect!(args, "{}", " "))
                 }
-
-            },
+            }
         }
     }
 }

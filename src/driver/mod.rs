@@ -4,29 +4,26 @@
 //!
 //! The driver is responsible for coordinating all steps of compilation.
 
-use std::fmt::Write;
+use back;
 use front;
 use middle;
-use back;
+use std::fmt::Write;
 use util::write_file;
 
 pub use self::session::session;
 
-
 pub mod codemap;
 mod error;
 pub mod interner;
-pub mod symbol_table;
 mod session;
-
+pub mod symbol_table;
 
 #[derive(Clone, Copy, Debug, PartialEq, RustcDecodable)]
 pub enum CompilationTarget {
     Ir,
     Asm,
-    Bin
+    Bin,
 }
-
 
 macro_rules! print_or_write {
     ($output_file:expr, $s:expr) => {
@@ -40,9 +37,13 @@ macro_rules! print_or_write {
     };
 }
 
-
 /// The main entry point for compiling a file
-pub fn compile_input(source: &str, input_file: &str, output_file: Option<&str>, target: CompilationTarget) {
+pub fn compile_input(
+    source: &str,
+    input_file: &str,
+    output_file: Option<&str>,
+    target: CompilationTarget,
+) {
     // --- Front end ------------------------------------------------------------
     // Set up
     front::setup();
@@ -62,7 +63,7 @@ pub fn compile_input(source: &str, input_file: &str, output_file: Option<&str>, 
 
     if target == CompilationTarget::Ir {
         print_or_write!(output_file, ir);
-        return
+        return;
     }
 
     //    use util;
@@ -76,7 +77,6 @@ pub fn compile_input(source: &str, input_file: &str, output_file: Option<&str>, 
 
     // Phase 5: Machine code generation
     // middle::calculate_liveness(&ir);
-
 
     let assembly = back::select_instructions(&ir);
 

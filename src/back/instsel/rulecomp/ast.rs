@@ -1,8 +1,7 @@
+use back::machine::asm::OperandSize;
+use back::machine::MachineRegister;
 use driver::interner::Ident;
 use front::ast::Node;
-use back::machine::MachineRegister;
-use back::machine::asm::OperandSize;
-
 
 #[derive(Clone, Debug)]
 pub struct Rule {
@@ -61,7 +60,7 @@ pub enum IrArg {
 impl IrArg {
     pub fn get_name(&self) -> Ident {
         match *self {
-            IrArg::Register(IrRegister(id, ..)) | IrArg::Literal(id)| IrArg::Static(id) => id,
+            IrArg::Register(IrRegister(id, ..)) | IrArg::Literal(id) | IrArg::Static(id) => id,
         }
     }
 }
@@ -69,7 +68,7 @@ impl IrArg {
 #[derive(Copy, Clone, Debug)]
 pub enum IrRegisterKind {
     Local,
-    Stack
+    Stack,
 }
 
 #[derive(Copy, Clone, Debug)]

@@ -1,8 +1,8 @@
 //! All tokens that the rule parser understands
 
-use std::fmt;
 use driver;
 use driver::interner::Ident;
+use std::fmt;
 
 // --- List of tokens -----------------------------------------------------------
 
@@ -74,7 +74,6 @@ impl fmt::Display for Token {
         }
     }
 }
-
 
 // --- List of keywords ---------------------------------------------------------
 

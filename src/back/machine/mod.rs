@@ -3,13 +3,11 @@
 
 use std::fmt;
 
-
 pub mod cconv;
-#[macro_use] pub mod asm;
-
+#[macro_use]
+pub mod asm;
 
 pub type Word = u64;
-
 
 #[derive(Copy, Clone, Debug, Eq, Hash, PartialEq)]
 pub enum MachineRegister {
@@ -37,7 +35,6 @@ pub enum MachineRegister {
     CL,
 }
 
-
 impl MachineRegister {
     pub fn all() -> &'static [MachineRegister] {
         const ALL: &[MachineRegister] = &[
@@ -60,7 +57,6 @@ impl MachineRegister {
         ALL
     }
 }
-
 
 impl fmt::Display for MachineRegister {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {

@@ -1,12 +1,11 @@
+use back::instsel::rulecomp::ast::*;
+use back::instsel::rulecomp::lexer::Lexer;
+use back::instsel::rulecomp::tokens::{Keyword, Token};
+use back::machine::asm::OperandSize;
+use back::machine::MachineRegister;
 use driver::interner::Ident;
 use driver::session;
 use front::ast::{Node, Span};
-use back::machine::MachineRegister;
-use back::machine::asm::OperandSize;
-use back::instsel::rulecomp::ast::*;
-use back::instsel::rulecomp::lexer::Lexer;
-use back::instsel::rulecomp::tokens::{Token, Keyword};
-
 
 pub struct Parser<'a> {
     token: Token,
@@ -25,7 +24,7 @@ impl<'a> Parser<'a> {
         Parser {
             token: first_token.value,
             span: first_token.span,
-            lexer: lx
+            lexer: lx,
         }
     }
 
@@ -45,7 +44,7 @@ impl<'a> Parser<'a> {
             rules.push(self.parse_rule());
 
             if !self.eat(Token::Comma) {
-                break
+                break;
             }
         }
 
@@ -67,9 +66,11 @@ impl<'a> Parser<'a> {
     /// Stop compiling because of an unexpected token
     fn unexpected_token(&self, expected: Option<&'static str>) -> ! {
         match expected {
-            Some(ex) => self.fatal(format!("unexpected token: `{}`, expected {}",
-                                   &self.token, ex)),
-            None => self.fatal(format!("unexpected token: `{}`", &self.token))
+            Some(ex) => self.fatal(format!(
+                "unexpected token: `{}`, expected {}",
+                &self.token, ex
+            )),
+            None => self.fatal(format!("unexpected token: `{}`", &self.token)),
         }
     }
 
@@ -110,7 +111,7 @@ impl<'a> Parser<'a> {
         let span = self.span;
         let ident = match self.token {
             Token::Ident(id) => id,
-            _ => self.unexpected_token(Some("an identifier"))
+            _ => self.unexpected_token(Some("an identifier")),
         };
         self.bump();
 
@@ -124,23 +125,21 @@ impl<'a> Parser<'a> {
             Token::Keyword(Keyword::Ret)
             | Token::Keyword(Keyword::Br)
             | Token::Keyword(Keyword::Jmp) => true,
-            _ => false
+            _ => false,
         }
     }
 
     fn parse_ir_pattern(&mut self) -> Node<IrPattern> {
         // Grammar: not funny
         macro_rules! binop {
-            ($dst:ident, $pat:path) => {
-                {
-                    self.bump();
-                    let arg1 = self.parse_ir_arg();
-                    self.expect(Token::Comma);
-                    let arg2 = self.parse_ir_arg();
+            ($dst:ident, $pat:path) => {{
+                self.bump();
+                let arg1 = self.parse_ir_arg();
+                self.expect(Token::Comma);
+                let arg2 = self.parse_ir_arg();
 
-                    $pat($dst, arg1, arg2)
-                }
-            }
+                $pat($dst, arg1, arg2)
+            }};
         }
 
         debug!("parsing an ir pattern");
@@ -167,16 +166,16 @@ impl<'a> Parser<'a> {
                 Token::Keyword(Keyword::Shl) => binop!(dst, IrPattern::Shl),
                 Token::Keyword(Keyword::Shr) => binop!(dst, IrPattern::Shr),
                 Token::Keyword(Keyword::And) => binop!(dst, IrPattern::And),
-                Token::Keyword(Keyword::Or)  => binop!(dst, IrPattern::Or),
+                Token::Keyword(Keyword::Or) => binop!(dst, IrPattern::Or),
                 Token::Keyword(Keyword::Xor) => binop!(dst, IrPattern::Xor),
                 Token::Keyword(Keyword::Neg) => {
                     self.bump();
                     IrPattern::Neg(dst, self.parse_ir_arg())
-                },
+                }
                 Token::Keyword(Keyword::Not) => {
                     self.bump();
                     IrPattern::Not(dst, self.parse_ir_arg())
-                },
+                }
                 Token::Keyword(Keyword::Cmp) => {
                     self.bump();
 
@@ -187,18 +186,18 @@ impl<'a> Parser<'a> {
                         Token::Keyword(Keyword::Ne) => binop!(dst, IrPattern::CmpNe),
                         Token::Keyword(Keyword::Ge) => binop!(dst, IrPattern::CmpGe),
                         Token::Keyword(Keyword::Gt) => binop!(dst, IrPattern::CmpGt),
-                        _ => self.fatal(format!("Invalid comparison: {}", self.token))
+                        _ => self.fatal(format!("Invalid comparison: {}", self.token)),
                     }
-                },
+                }
                 Token::Keyword(Keyword::Alloca) => {
                     self.bump();
                     IrPattern::Alloca(dst)
-                },
+                }
                 Token::Keyword(Keyword::Load) => {
                     self.bump();
                     let val = self.parse_ir_arg();
                     IrPattern::Load(dst, val)
-                },
+                }
                 Token::Keyword(Keyword::Call) => {
                     self.bump();
 
@@ -212,10 +211,9 @@ impl<'a> Parser<'a> {
                     self.expect(Token::RBracket);
 
                     IrPattern::Call(dst, func, args)
-                },
-                _ => self.unexpected_token(Some("an ir keyword"))
+                }
+                _ => self.unexpected_token(Some("an ir keyword")),
             }
-
         };
 
         Node::new(pattern, lo + self.span)
@@ -236,7 +234,7 @@ impl<'a> Parser<'a> {
                 };
 
                 IrPatternLast::Ret(val)
-            },
+            }
             Token::Keyword(Keyword::Br) => {
                 self.bump();
                 let cond = self.parse_ir_arg();
@@ -246,12 +244,12 @@ impl<'a> Parser<'a> {
                 let altern = self.parse_ir_label();
 
                 IrPatternLast::Br(cond, conseq, altern)
-            },
+            }
             Token::Keyword(Keyword::Jmp) => {
                 self.bump();
                 IrPatternLast::Jmp(self.parse_ir_label())
-            },
-            _ => self.unexpected_token(None)
+            }
+            _ => self.unexpected_token(None),
         };
 
         Node::new(last, lo + self.span)
@@ -272,7 +270,7 @@ impl<'a> Parser<'a> {
                 self.expect(Token::LParen);
                 ident = self.parse_ident();
                 self.expect(Token::RParen);
-            },
+            }
 
             Token::LBrace => {
                 kind = IrRegisterKind::Stack;
@@ -280,9 +278,9 @@ impl<'a> Parser<'a> {
                 self.bump();
                 ident = self.parse_ident();
                 self.expect(Token::RBrace);
-            },
+            }
 
-            tok => panic!("Unexpected token: {}, expected PERCENT or LBrace", tok)
+            tok => panic!("Unexpected token: {}, expected PERCENT or LBrace", tok),
         }
 
         Node::new(IrRegister(*ident, kind), lo + self.span)
@@ -311,7 +309,7 @@ impl<'a> Parser<'a> {
                 self.expect(Token::RParen);
 
                 IrArg::Literal(*ident)
-            },
+            }
             Token::At => {
                 self.bump();
                 self.expect(Token::LParen);
@@ -319,8 +317,8 @@ impl<'a> Parser<'a> {
                 self.expect(Token::RParen);
 
                 IrArg::Static(*ident)
-            },
-            _ => self.unexpected_token(Some("one of '%' | '0'"))
+            }
+            _ => self.unexpected_token(Some("one of '%' | '0'")),
         };
 
         Node::new(arg, lo + self.span)
@@ -342,15 +340,15 @@ impl<'a> Parser<'a> {
                 // thus we need to extract them
                 self.bump();
                 Node::new(Ident::from_str(&format!("{}", kw)), lo + self.span)
-            },
-            _ => self.unexpected_token(Some("a mnemonic"))
+            }
+            _ => self.unexpected_token(Some("a mnemonic")),
         };
 
         while self.token != Token::Semicolon {
             args.push(self.parse_asm_arg());
 
             if !self.eat(Token::Comma) {
-                break
+                break;
             }
         }
 
@@ -366,14 +364,14 @@ impl<'a> Parser<'a> {
             Token::Dollar => {
                 self.bump();
                 AsmArg::IrArg(self.parse_ident())
-            },
+            }
             Token::LBrace => {
                 self.bump();
                 let ident = self.parse_ident();
                 self.expect(Token::RBrace);
 
                 AsmArg::StackSlot(ident)
-            },
+            }
             Token::Percent => {
                 self.bump();
                 self.expect(Token::LParen);
@@ -381,41 +379,39 @@ impl<'a> Parser<'a> {
                 self.expect(Token::RParen);
 
                 AsmArg::NewRegister(ident)
-            },
+            }
             Token::Dot => {
                 self.bump();
 
                 AsmArg::Label(self.parse_ident())
-            },
+            }
             Token::Literal(literal) => {
                 self.bump();
 
                 AsmArg::Literal(Node::new(literal, lo + self.span))
-            },
-            Token::LBracket => {
-                self.parse_asm_memory_operand(None)
             }
+            Token::LBracket => self.parse_asm_memory_operand(None),
             Token::Keyword(Keyword::Byte) => {
                 self.bump();
                 self.expect(Token::Keyword(Keyword::Ptr));
                 self.parse_asm_memory_operand(Some(OperandSize::Byte))
-            },
+            }
             Token::Keyword(Keyword::Word) => {
                 self.bump();
                 self.expect(Token::Keyword(Keyword::Ptr));
                 self.parse_asm_memory_operand(Some(OperandSize::Word))
-            },
+            }
             Token::Keyword(Keyword::DWord) => {
                 self.bump();
                 self.expect(Token::Keyword(Keyword::Ptr));
                 self.parse_asm_memory_operand(Some(OperandSize::DWord))
-            },
+            }
             Token::Keyword(Keyword::QWord) => {
                 self.bump();
                 self.expect(Token::Keyword(Keyword::Ptr));
                 self.parse_asm_memory_operand(Some(OperandSize::QWord))
-            },
-            _ => AsmArg::Register(self.parse_asm_register())
+            }
+            _ => AsmArg::Register(self.parse_asm_register()),
         };
 
         Node::new(arg, lo + self.span)
@@ -430,8 +426,8 @@ impl<'a> Parser<'a> {
             "rdx" => MachineRegister::RDX,
             "rsi" => MachineRegister::RSI,
             "rdi" => MachineRegister::RDI,
-            "r8"  => MachineRegister::R8,
-            "r9"  => MachineRegister::R9,
+            "r8" => MachineRegister::R8,
+            "r9" => MachineRegister::R9,
             "r10" => MachineRegister::R10,
             "r11" => MachineRegister::R11,
             "r12" => MachineRegister::R12,
@@ -440,8 +436,8 @@ impl<'a> Parser<'a> {
             "r15" => MachineRegister::R15,
             "rsp" => MachineRegister::RSP,
             "rbp" => MachineRegister::RBP,
-            "cl"  => MachineRegister::CL,
-            _ => self.fatal(format!("Invalid register: {}", ident))
+            "cl" => MachineRegister::CL,
+            _ => self.fatal(format!("Invalid register: {}", ident)),
         }
     }
 
@@ -469,7 +465,7 @@ impl<'a> Parser<'a> {
                 } else {
                     base = Some(Box::new(reg));
                 }
-            },
+            }
             _ => {
                 self.unexpected_token(Some("a register"));
             }
@@ -489,16 +485,14 @@ impl<'a> Parser<'a> {
                     self.bump();
 
                     index = Some((Box::new(reg), scale));
-                },
-                _ => {}  // Propably the displacement
+                }
+                _ => {} // Propably the displacement
             }
         }
 
         // Parse displacement
         match self.token {
-            Token::Literal(lit) => {
-                disp = Some(lit.parse().unwrap())
-            },
+            Token::Literal(lit) => disp = Some(lit.parse().unwrap()),
             Token::Minus => {
                 self.bump();
 
@@ -509,13 +503,18 @@ impl<'a> Parser<'a> {
                 };
 
                 self.bump();
-            },
+            }
             _ => {}
         }
 
         self.expect(Token::RBracket);
 
-        AsmArg::Indirect { size, base, index, disp }
+        AsmArg::Indirect {
+            size,
+            base,
+            index,
+            disp,
+        }
     }
 
     // --- Parse patterns & impls -----------------------------------------------
@@ -532,10 +531,10 @@ impl<'a> Parser<'a> {
 
         loop {
             if self.eat(Token::DoubleDot) {
-                break
+                break;
             } else if self.on_last_pattern() {
                 last = Some(self.parse_ir_pattern_last());
-                break
+                break;
             } else {
                 patterns.push(self.parse_ir_pattern());
                 self.expect(Token::Semicolon);
@@ -553,7 +552,14 @@ impl<'a> Parser<'a> {
             None
         };
 
-        Node::new(Pattern { ir_patterns: patterns, last,  cond }, lo + self.span)
+        Node::new(
+            Pattern {
+                ir_patterns: patterns,
+                last,
+                cond,
+            },
+            lo + self.span,
+        )
     }
 
     fn parse_rust_impl(&mut self) -> Node<Ident> {
@@ -603,6 +609,12 @@ impl<'a> Parser<'a> {
             self.unexpected_token(None)
         };
 
-        Node::new(Rule { pattern, implementation }, lo + self.span)
+        Node::new(
+            Rule {
+                pattern,
+                implementation,
+            },
+            lo + self.span,
+        )
     }
 }

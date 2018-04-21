@@ -1,17 +1,16 @@
 //! Make sure a `main` function is present
 
-use front::ast::*;
 use front::ast::visit::*;
-
+use front::ast::*;
 
 struct MainPresenceCheck {
-    main_present: bool
+    main_present: bool,
 }
 
 impl MainPresenceCheck {
     fn new() -> MainPresenceCheck {
         MainPresenceCheck {
-            main_present: false
+            main_present: false,
         }
     }
 }

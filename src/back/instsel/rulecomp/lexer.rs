@@ -1,13 +1,12 @@
 //! The lexer: split the source into a stream of tokens
 
-use std::borrow::ToOwned;
-use std::str::CharIndices;
+use back::instsel::rulecomp::tokens::{lookup_keyword, Token};
+use driver::codemap::{BytePos, Loc};
 use driver::interner::Ident;
 use driver::session;
-use driver::codemap::{BytePos, Loc};
 use front::ast::Spanned;
-use back::instsel::rulecomp::tokens::{Token, lookup_keyword};
-
+use std::borrow::ToOwned;
+use std::str::CharIndices;
 
 pub struct Lexer<'a> {
     source: &'a str,
@@ -25,8 +24,7 @@ impl<'a> Lexer<'a> {
     /// Create a new lexer from a given string and file name
     pub fn new(source: &'a str, _: &'a str) -> Lexer<'a> {
         let mut iter = source.char_indices();
-        let (pos, curr) = iter.next()
-                              .map_or_else(|| (0, None), |(p, c)| (p, Some(c)));
+        let (pos, curr) = iter.next().map_or_else(|| (0, None), |(p, c)| (p, Some(c)));
         // FIXME: Document
         // .map(|(p, c)| (p, Some(c)))  // Make `curr` an Option
         // .unwrap_or_else(|| (0, None));  // Set `curr` to None
@@ -92,17 +90,21 @@ impl<'a> Lexer<'a> {
     fn curr_escaped(&self) -> String {
         match self.curr {
             Some(c) => c.escape_default().collect(),
-            None    => "EOF".to_owned()
+            None => "EOF".to_owned(),
         }
     }
 
     /// Collect & consume all consecutive characters into a string as long as a condition is true
     fn collect<F>(&mut self, cond: F) -> &'a str
-            where F: Fn(&char) -> bool
+    where
+        F: Fn(&char) -> bool,
     {
         let start = self.pos;
 
-        debug!("start colleting (start = {}, char = {:?})", start, self.curr);
+        debug!(
+            "start colleting (start = {}, char = {:?})",
+            start, self.curr
+        );
 
         while let Some(c) = self.curr {
             if cond(&c) {
@@ -119,7 +121,9 @@ impl<'a> Lexer<'a> {
 
     /// Consume all consecutive characters matching a condition
     fn eat_all<F>(&mut self, cond: F)
-            where F: Fn(&char) -> bool {
+    where
+        F: Fn(&char) -> bool,
+    {
         while let Some(c) = self.curr {
             if cond(&c) {
                 self.bump();
@@ -152,9 +156,7 @@ impl<'a> Lexer<'a> {
     fn tokenize_ident(&mut self) -> Token {
         debug!("tokenizing an ident");
 
-        let ident = self.collect(|c| {
-            c.is_alphabetic() || c.is_numeric() || *c == '_'
-        });
+        let ident = self.collect(|c| c.is_alphabetic() || c.is_numeric() || *c == '_');
 
         // Check whether it's a keyword or an identifier
         if let Some(kw) = lookup_keyword(ident) {
@@ -168,9 +170,7 @@ impl<'a> Lexer<'a> {
     fn tokenize_literal(&mut self) -> Token {
         debug!("tokenizing a literal");
 
-        let literal = self.collect(|c| {
-            c.is_alphabetic() || c.is_numeric() || *c == '_'
-        });
+        let literal = self.collect(|c| c.is_alphabetic() || c.is_numeric() || *c == '_');
 
         Token::Literal(Ident::from_str(literal))
     }
@@ -201,8 +201,11 @@ impl<'a> Lexer<'a> {
             );
         );
 
-        debug!("tokenizing with current character = `{}` at {}",
-                 self.curr_escaped(), self.pos);
+        debug!(
+            "tokenizing with current character = `{}` at {}",
+            self.curr_escaped(),
+            self.pos
+        );
 
         let c = self.curr.unwrap();
         let lo = self.pos;
@@ -218,10 +221,8 @@ impl<'a> Lexer<'a> {
 
             '0' => emit!(self, Token::Zero),
 
-            '=' => {
-                emit!(self, next: '>' => Token::FatArrow;
-                               default: Token::Equal)
-            }
+            '=' => emit!(self, next: '>' => Token::FatArrow;
+                               default: Token::Equal),
 
             '+' => emit!(self, Token::Plus),
 
@@ -249,10 +250,8 @@ impl<'a> Lexer<'a> {
 
             ';' => emit!(self, Token::Semicolon),
 
-            '/' => {
-                emit!(self, next: '/' => { self.skip_comment(); return None };
-                               default: self.fatal(format!("unexpected character: `{}`", c)))
-            }
+            '/' => emit!(self, next: '/' => { self.skip_comment(); return None };
+                               default: self.fatal(format!("unexpected character: `{}`", c))),
 
             c if c.is_alphabetic() => self.tokenize_ident(),
 

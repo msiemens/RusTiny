@@ -24,7 +24,6 @@ macro_rules! fatal_at(
     );
 );
 
-
 #[macro_export]
 macro_rules! with_reset(
     ($val:expr, $tmp:expr, $f:block) => (
@@ -41,10 +40,13 @@ macro_rules! with_reset(
     );
 );
 
-
 #[macro_export]
 macro_rules! connect {
-    ($items:expr, $fmt:expr, $connector:expr) => (
-        $items.iter().map(|t| format!($fmt, t)).collect::<Vec<_>>().join($connector)
-    )
+    ($items:expr, $fmt:expr, $connector:expr) => {
+        $items
+            .iter()
+            .map(|t| format!($fmt, t))
+            .collect::<Vec<_>>()
+            .join($connector)
+    };
 }

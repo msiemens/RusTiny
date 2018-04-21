@@ -6,13 +6,12 @@
 pub mod pretty;
 pub mod visit;
 
+use driver::interner::Ident;
+use driver::session;
 use std::cell::Cell;
 use std::fmt;
 use std::ops::{Add, Deref, DerefMut};
 use std::str::FromStr;
-use driver::interner::Ident;
-use driver::session;
-
 
 // --- Types and Values ---------------------------------------------------------
 
@@ -22,7 +21,7 @@ pub enum Type {
     Int,
     Char,
     Unit,
-    Err,  // Special type used for expressions with type errors
+    Err, // Special type used for expressions with type errors
 }
 
 impl FromStr for Type {
@@ -30,19 +29,18 @@ impl FromStr for Type {
     fn from_str(s: &str) -> Result<Self, ()> {
         match s {
             "bool" => Ok(Type::Bool),
-            "int"  => Ok(Type::Int),
+            "int" => Ok(Type::Int),
             "char" => Ok(Type::Char),
-            _ => Err(())
+            _ => Err(()),
         }
     }
 }
-
 
 #[derive(Copy, Clone, Debug)]
 pub enum Value {
     Bool(bool),
     Int(u32),
-    Char(char)
+    Char(char),
 }
 
 impl Value {
@@ -63,7 +61,6 @@ impl Value {
     }
 }
 
-
 // --- Operators ----------------------------------------------------------------
 
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Hash)]
@@ -71,7 +68,7 @@ pub enum UnOp {
     /// `!`
     Not,
     /// `-`
-    Neg
+    Neg,
 }
 
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Hash)]
@@ -113,7 +110,7 @@ pub enum BinOp {
     /// `>=`
     Ge,
     /// `>`
-    Gt
+    Gt,
 }
 
 #[derive(Copy, Clone, Debug, Eq, PartialEq)]
@@ -121,24 +118,28 @@ pub enum BinOpType {
     Arithmetic,
     Logic,
     Bitwise,
-    Comparison
+    Comparison,
 }
 
 impl BinOp {
     pub fn get_type(&self) -> BinOpType {
         match *self {
-            BinOp::Add | BinOp::Sub
-                | BinOp::Mul | BinOp::Div
-                | BinOp::Mod | BinOp::Pow
-                | BinOp::Shl | BinOp::Shr => BinOpType::Arithmetic,
+            BinOp::Add
+            | BinOp::Sub
+            | BinOp::Mul
+            | BinOp::Div
+            | BinOp::Mod
+            | BinOp::Pow
+            | BinOp::Shl
+            | BinOp::Shr => BinOpType::Arithmetic,
             BinOp::And | BinOp::Or => BinOpType::Logic,
             BinOp::BitXor | BinOp::BitAnd | BinOp::BitOr => BinOpType::Bitwise,
-            BinOp::EqEq | BinOp::Lt | BinOp::Le
-                | BinOp::Ne | BinOp::Ge | BinOp::Gt => BinOpType::Comparison
+            BinOp::EqEq | BinOp::Lt | BinOp::Le | BinOp::Ne | BinOp::Ge | BinOp::Gt => {
+                BinOpType::Comparison
+            }
         }
     }
 }
-
 
 // --- The AST itself -----------------------------------------------------------
 // Note: Box<T> is used almost everywhere where elements are nested in other elements
@@ -154,11 +155,10 @@ impl NodeId {
     }
 }
 
-
 #[derive(Copy, Clone, Debug)]
 pub struct Span {
-    pub pos: u32,  // 0-indexed
-    pub len: u32
+    pub pos: u32, // 0-indexed
+    pub len: u32,
 }
 
 impl Add for Span {
@@ -167,25 +167,29 @@ impl Add for Span {
     fn add(self, rhs: Span) -> Span {
         Span {
             pos: self.pos,
-            len: rhs.pos + rhs.len - self.pos
+            len: rhs.pos + rhs.len - self.pos,
         }
     }
 }
 
 pub const EMPTY_SPAN: Span = Span { pos: 0, len: 0 };
 
-
 pub struct Spanned<T> {
     pub value: T,
-    pub span: Span
+    pub span: Span,
 }
 
 impl<T> Spanned<T> {
     pub fn new(t: T, lo: u32, hi: u32) -> Spanned<T> {
-        Spanned { value: t, span: Span { pos: lo, len: hi - lo } }
+        Spanned {
+            value: t,
+            span: Span {
+                pos: lo,
+                len: hi - lo,
+            },
+        }
     }
 }
-
 
 /// A node in the AST
 ///
@@ -195,16 +199,24 @@ impl<T> Spanned<T> {
 pub struct Node<T> {
     node: T,
     pub span: Span,
-    pub id: NodeId
+    pub id: NodeId,
 }
 
 impl<T> Node<T> {
     pub fn new(t: T, s: Span) -> Node<T> {
-        Node { node: t, span: s, id: NodeId(Node::<T>::get_next_id()) }
+        Node {
+            node: t,
+            span: s,
+            id: NodeId(Node::<T>::get_next_id()),
+        }
     }
 
     pub fn dummy(t: T) -> Node<T> {
-        Node { node: t, span: EMPTY_SPAN, id: NodeId(!0) }
+        Node {
+            node: t,
+            span: EMPTY_SPAN,
+            id: NodeId(!0),
+        }
     }
 
     pub fn unwrap(self) -> T {
@@ -239,13 +251,10 @@ impl<T> DerefMut for Node<T> {
     }
 }
 
-
 impl<T: Copy> Copy for Node<T> {}
-
 
 /// A program is a list of symbols
 pub type Program = Vec<Node<Symbol>>;
-
 
 /// A top level symbol
 #[derive(Clone, Debug)]
@@ -255,36 +264,36 @@ pub enum Symbol {
         name: Node<Ident>,
         bindings: Vec<Node<Binding>>,
         ret_ty: Type,
-        body: Box<Node<Block>>
+        body: Box<Node<Block>>,
     },
 
     /// A static value (can be modified at runtime)
     Static {
         binding: Box<Node<Binding>>,
-        value: Box<Node<Expression>>
+        value: Box<Node<Expression>>,
     },
 
     /// A constant value. Usages will be replaced with the value at compilation time
     Constant {
         binding: Box<Node<Binding>>,
-        value: Box<Node<Expression>>
-    }
+        value: Box<Node<Expression>>,
+    },
 }
 
 impl Symbol {
     pub fn get_ident(&self) -> Ident {
         match *self {
-            Symbol::Function   { ref name, .. }    => **name,
-            Symbol::Static     { ref binding, .. }
-            | Symbol::Constant { ref binding, .. } => *binding.name,
+            Symbol::Function { ref name, .. } => **name,
+            Symbol::Static { ref binding, .. } | Symbol::Constant { ref binding, .. } => {
+                *binding.name
+            }
         }
     }
 
     pub fn get_value(&self) -> &Expression {
         match *self {
-            Symbol::Function   { .. } => panic!("Symbol::get_value called on function"),
-            Symbol::Static     { ref value, .. }
-            | Symbol::Constant { ref value, .. } => value,
+            Symbol::Function { .. } => panic!("Symbol::get_value called on function"),
+            Symbol::Static { ref value, .. } | Symbol::Constant { ref value, .. } => value,
         }
     }
 
@@ -292,11 +301,11 @@ impl Symbol {
     pub fn clone_stripped(&self) -> Symbol {
         let mut clone = (*self).clone();
         match clone {
-            Symbol::Static { .. } | Symbol::Constant { .. } => {},
+            Symbol::Static { .. } | Symbol::Constant { .. } => {}
             Symbol::Function { ref mut body, .. } => {
                 *body = Box::new(Node::dummy(Block {
                     stmts: vec![],
-                    expr: Box::new(Node::dummy(Expression::Unit))
+                    expr: Box::new(Node::dummy(Expression::Unit)),
                 }))
             }
         };
@@ -305,35 +314,31 @@ impl Symbol {
     }
 }
 
-
 /// A block of statements (e.g. function body, if body, ...)
 #[derive(Clone, Debug)]
 pub struct Block {
     pub stmts: Vec<Node<Statement>>,
-    pub expr: Box<Node<Expression>>
+    pub expr: Box<Node<Expression>>,
 }
-
 
 /// A binding of a value to a name (e.g. local variable, function argument)
 #[derive(Clone, Copy, Debug)]
 pub struct Binding {
     pub ty: Type,
-    pub name: Node<Ident>
+    pub name: Node<Ident>,
 }
-
 
 /// A declaration or an expression terminated with a semicolon
 #[derive(Clone, Debug)]
 pub enum Statement {
     Declaration {
         binding: Box<Node<Binding>>,
-        value: Box<Node<Expression>>
+        value: Box<Node<Expression>>,
     },
     Expression {
-        val: Box<Node<Expression>>
-    }
+        val: Box<Node<Expression>>,
+    },
 }
-
 
 /// An expression. The real 'meat' of the language.
 ///
@@ -346,37 +351,31 @@ pub enum Statement {
 #[derive(Clone, Debug)]
 pub enum Expression {
     /// A literal value
-    Literal {
-        val: Value
-    },
+    Literal { val: Value },
 
     /// A variable referenced by name
-    Variable {
-        name: Node<Ident>
-    },
+    Variable { name: Node<Ident> },
 
     /// An assignment expression
     Assign {
         lhs: Box<Node<Expression>>,
-        rhs: Box<Node<Expression>>
+        rhs: Box<Node<Expression>>,
     },
 
     /// An assignment expression with an additional operator (ex: `a += 1`)
     AssignOp {
         op: BinOp,
         lhs: Box<Node<Expression>>,
-        rhs: Box<Node<Expression>>
+        rhs: Box<Node<Expression>>,
     },
 
     /// Exit the function with an optional return value
-    Return {
-        val: Box<Node<Expression>>
-    },
+    Return { val: Box<Node<Expression>> },
 
     /// A function call
     Call {
         func: Box<Node<Expression>>,
-        args: Vec<Node<Expression>>
+        args: Vec<Node<Expression>>,
     },
 
     /// A grouped expression. Used for operator precedence, ex: `2 * (3 + 5)`,
@@ -387,20 +386,20 @@ pub enum Expression {
     Infix {
         op: BinOp,
         lhs: Box<Node<Expression>>,
-        rhs: Box<Node<Expression>>
+        rhs: Box<Node<Expression>>,
     },
 
     // An expressoin with a prefix operator (`-2`, `!a`)
     Prefix {
         op: UnOp,
-        item: Box<Node<Expression>>
+        item: Box<Node<Expression>>,
     },
 
     /// A conditional with an optional `else` branch
     If {
         cond: Box<Node<Expression>>,
         conseq: Box<Node<Block>>,
-        altern: Option<Box<Node<Block>>>
+        altern: Option<Box<Node<Block>>>,
     },
 
     /// A while loop
@@ -413,30 +412,28 @@ pub enum Expression {
     Break,
 
     //For  // There is currently no `for` loop! Rust uses `for x in iterator`, but
-           // as RusTiny doesn't have iterators (or structs for that matter), that
-           // wouldn't make much sense. Having a classical C-style for loop on the
-           // other hand would be useful but can be abused much more...
-
+    // as RusTiny doesn't have iterators (or structs for that matter), that
+    // wouldn't make much sense. Having a classical C-style for loop on the
+    // other hand would be useful but can be abused much more...
     /// An expression without any content
-    Unit
+    Unit,
 }
 
 impl Expression {
     pub fn unwrap_ident(&self) -> Ident {
         match *self {
             Expression::Variable { ref name } => **name,
-            _ => panic!("expression doesn't contain an ident")
+            _ => panic!("expression doesn't contain an ident"),
         }
     }
 
     pub fn unwrap_literal(&self) -> Value {
         match *self {
             Expression::Literal { ref val } => *val,
-            _ => panic!("expression doesn't contain a literal")
+            _ => panic!("expression doesn't contain a literal"),
         }
     }
 }
-
 
 // --- Debug implementations ----------------------------------------------------
 
@@ -452,7 +449,6 @@ impl<T: fmt::Display> fmt::Display for Node<T> {
     }
 }
 
-
 impl fmt::Display for Binding {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "{}: {}", self.name, self.ty)
@@ -464,11 +460,11 @@ impl fmt::Display for Type {
         use self::Type::*;
 
         match *self {
-            Bool    => write!(f, "bool"),
-            Int     => write!(f, "int"),
-            Char    => write!(f, "char"),
-            Unit    => write!(f, "()"),
-            Err     => write!(f, "[type error]"),
+            Bool => write!(f, "bool"),
+            Int => write!(f, "int"),
+            Char => write!(f, "char"),
+            Unit => write!(f, "()"),
+            Err => write!(f, "[type error]"),
         }
     }
 }
@@ -479,8 +475,8 @@ impl fmt::Display for Value {
 
         match *self {
             Bool(b) => write!(f, "{}", b),
-            Int(i)  => write!(f, "{}", i),
-            Char(c) => write!(f, "{}", c)
+            Int(i) => write!(f, "{}", i),
+            Char(c) => write!(f, "{}", c),
         }
     }
 }
@@ -490,25 +486,25 @@ impl fmt::Display for BinOp {
         use self::BinOp::*;
 
         match *self {
-            Add     => write!(f, "+"),
-            Sub     => write!(f, "-"),
-            Mul     => write!(f, "*"),
-            Div     => write!(f, "/"),
-            Mod     => write!(f, "%"),
-            Pow     => write!(f, "**"),
-            And     => write!(f, "&&"),
-            Or      => write!(f, "||"),
-            BitXor  => write!(f, "^"),
-            BitAnd  => write!(f, "&"),
-            BitOr   => write!(f, "|"),
-            Shl     => write!(f, "<<"),
-            Shr     => write!(f, ">>"),
-            EqEq    => write!(f, "=="),
-            Lt      => write!(f, "<"),
-            Le      => write!(f, "<="),
-            Ne      => write!(f, "!="),
-            Ge      => write!(f, ">="),
-            Gt      => write!(f, ">")
+            Add => write!(f, "+"),
+            Sub => write!(f, "-"),
+            Mul => write!(f, "*"),
+            Div => write!(f, "/"),
+            Mod => write!(f, "%"),
+            Pow => write!(f, "**"),
+            And => write!(f, "&&"),
+            Or => write!(f, "||"),
+            BitXor => write!(f, "^"),
+            BitAnd => write!(f, "&"),
+            BitOr => write!(f, "|"),
+            Shl => write!(f, "<<"),
+            Shr => write!(f, ">>"),
+            EqEq => write!(f, "=="),
+            Lt => write!(f, "<"),
+            Le => write!(f, "<="),
+            Ne => write!(f, "!="),
+            Ge => write!(f, ">="),
+            Gt => write!(f, ">"),
         }
     }
 }
@@ -518,15 +514,20 @@ impl fmt::Display for UnOp {
         use self::UnOp::*;
 
         match *self {
-            Neg     => write!(f, "-"),
-            Not     => write!(f, "!")
+            Neg => write!(f, "-"),
+            Not => write!(f, "!"),
         }
     }
 }
 
 impl fmt::Debug for Ident {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "Ident({}) = `{}`", self.0, session().interner.resolve(*self))
+        write!(
+            f,
+            "Ident({}) = `{}`",
+            self.0,
+            session().interner.resolve(*self)
+        )
     }
 }
 

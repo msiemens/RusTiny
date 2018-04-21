@@ -8,9 +8,8 @@
 //! }
 //! ```
 
-use front::ast::*;
 use front::ast::visit::*;
-
+use front::ast::*;
 
 struct LValueCheck;
 
@@ -21,7 +20,7 @@ impl LValueCheck {
 
     fn check_expr(&self, expr: &Node<Expression>) {
         if let Expression::Variable { .. } = **expr {
-            return  // Everything's okay
+            return; // Everything's okay
         } else {
             fatal_at!("left-hand side of assignment is not a variable"; expr);
         }
@@ -31,9 +30,10 @@ impl LValueCheck {
 impl<'v> Visitor<'v> for LValueCheck {
     fn visit_expression(&mut self, expr: &'v Node<Expression>) {
         match **expr {
-            Expression::Assign { ref lhs, .. }
-            | Expression::AssignOp { ref lhs, .. } => self.check_expr(lhs),
-            _ => { walk_expression(self, expr) }
+            Expression::Assign { ref lhs, .. } | Expression::AssignOp { ref lhs, .. } => {
+                self.check_expr(lhs)
+            }
+            _ => walk_expression(self, expr),
         }
     }
 }

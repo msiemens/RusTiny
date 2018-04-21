@@ -3,14 +3,13 @@
 use driver::interner::Ident;
 use driver::session;
 use driver::symbol_table::SymbolTable;
-use front::ast::*;
 use front::ast::visit::*;
-
+use front::ast::*;
 
 struct ScopeTableBuilder<'a> {
     current_scope: Option<NodeId>,
     current_symbol: Option<Ident>,
-    sytbl: &'a SymbolTable
+    sytbl: &'a SymbolTable,
 }
 
 impl<'a> ScopeTableBuilder<'a> {
@@ -18,32 +17,34 @@ impl<'a> ScopeTableBuilder<'a> {
         ScopeTableBuilder {
             current_scope: None,
             current_symbol: None,
-            sytbl
+            sytbl,
         }
     }
 
     fn init_function_scope(&mut self, scope: NodeId) {
-        let current_symbol = self.current_symbol
-            .expect("current symbol is None");
+        let current_symbol = self.current_symbol.expect("current symbol is None");
         let bindings;
 
         {
             // Get the function's arguments
-            let symbol = self.sytbl.lookup_symbol(&current_symbol)
+            let symbol = self.sytbl
+                .lookup_symbol(&current_symbol)
                 .expect("current symbol is not registered");
 
             bindings = if let Symbol::Function { ref bindings, .. } = symbol {
                 bindings.clone()
             } else {
-                panic!("current symbol is not a function");  // shouldn't happen
+                panic!("current symbol is not a function"); // shouldn't happen
             };
         }
 
         // Register arguments in scope table
         for binding in bindings {
-            self.sytbl.register_variable(scope, &binding).unwrap_or_else(|_| {
-                fatal_at!("multiple parameters with name: `{}`", binding.name; &binding.name);
-            });
+            self.sytbl
+                .register_variable(scope, &binding)
+                .unwrap_or_else(|_| {
+                    fatal_at!("multiple parameters with name: `{}`", binding.name; &binding.name);
+                });
         }
     }
 
@@ -53,7 +54,7 @@ impl<'a> ScopeTableBuilder<'a> {
             name
         } else {
             fatal_at!("cannot call non-function"; expr);
-            return
+            return;
         };
 
         // Look up the symbol in the symbol table
@@ -61,12 +62,12 @@ impl<'a> ScopeTableBuilder<'a> {
             symbol
         } else {
             fatal_at!("no such function: `{}`", &name; expr);
-            return
+            return;
         };
 
         // Verify the symbol is a function
         if let Symbol::Function { .. } = symbol {
-            return  // Everything's okay
+            return; // Everything's okay
         } else {
             fatal_at!("cannot call non-function"; expr)
         }
@@ -77,8 +78,8 @@ impl<'a> ScopeTableBuilder<'a> {
             .expect("resolving a variable without a containing scope");
 
         match self.sytbl.resolve_variable(current_scope, name) {
-            Some(..) => {},
-            None => fatal_at!("variable `{}` not declared", &name; name)
+            Some(..) => {}
+            None => fatal_at!("variable `{}` not declared", &name; name),
         };
     }
 
@@ -87,8 +88,8 @@ impl<'a> ScopeTableBuilder<'a> {
             .expect("resolving a declaration without a containing scope");
 
         match self.sytbl.register_variable(scope, binding) {
-            Ok(..) => {},
-            Err(..) => fatal_at!("cannot redeclare `{}`", binding.name; binding)
+            Ok(..) => {}
+            Err(..) => fatal_at!("cannot redeclare `{}`", binding.name; binding),
         };
     }
 }
@@ -136,11 +137,11 @@ impl<'v> Visitor<'v> for ScopeTableBuilder<'v> {
         match **expr {
             Expression::Call { ref func, .. } => {
                 self.resolve_call(func);
-                return  // Don't visit sub-expressions
-            },
+                return; // Don't visit sub-expressions
+            }
             Expression::Variable { ref name } => {
                 self.resolve_variable(name);
-            },
+            }
             _ => {}
         }
 

@@ -44,18 +44,16 @@
 
 // TODO: SSA verifier?
 
-use std::collections::{HashMap, HashSet, VecDeque};
-use std::mem;
 use driver::interner::Ident;
 use driver::session;
 use front::ast;
-use middle::ir::{self, Register};
 use front::ast::visit::*;
-
+use middle::ir::{self, Register};
+use std::collections::{HashMap, HashSet, VecDeque};
+use std::mem;
 
 mod controlflow;
 mod expr;
-
 
 /// Information about the function that we're translating right now
 ///
@@ -83,7 +81,7 @@ struct FunctionContext {
     stack_slots: HashSet<Ident>,
 
     /// All registers used in this function
-    registers: HashMap<Ident, Register>,  // FIXME: Can we use a HashSet<Ident> instead here?
+    registers: HashMap<Ident, Register>, // FIXME: Can we use a HashSet<Ident> instead here?
 
     /// The current block's scope
     scope: ast::NodeId,
@@ -99,7 +97,6 @@ struct FunctionContext {
     loop_exit: Option<ir::Label>,
 }
 
-
 #[derive(Clone, Copy)]
 pub enum VariableKind {
     Local,
@@ -107,7 +104,6 @@ pub enum VariableKind {
     Static,
     Constant,
 }
-
 
 /// The destination of a computation
 ///
@@ -118,9 +114,8 @@ pub enum VariableKind {
 #[derive(Clone, Copy, Debug)]
 pub enum Dest {
     Store(Register),
-    Ignore
+    Ignore,
 }
-
 
 /// The AST -> IR translator
 pub struct Translator {
@@ -179,20 +174,31 @@ impl Translator {
             Dest::Store(r) => {
                 // For debugging: make sure the destination actually exists
                 match r {
-                    Register::Stack(id) => assert!(self.fcx().stack_slots.contains(&id), "Unregistered stack slot: {}", id),
-                    Register::Local(id) => assert!(self.fcx().registers.contains_key(&id), "Unregistered register: {}", id)
+                    Register::Stack(id) => assert!(
+                        self.fcx().stack_slots.contains(&id),
+                        "Unregistered stack slot: {}",
+                        id
+                    ),
+                    Register::Local(id) => assert!(
+                        self.fcx().registers.contains_key(&id),
+                        "Unregistered register: {}",
+                        id
+                    ),
                 }
 
                 r
-            },
-            Dest::Ignore => self.next_free_register()
+            }
+            Dest::Ignore => self.next_free_register(),
         }
     }
 
-    fn with_first_block<F>(&mut self, current: &mut ir::Block, f: F) where F: Fn(&mut ir::Block) -> () {
+    fn with_first_block<F>(&mut self, current: &mut ir::Block, f: F)
+    where
+        F: Fn(&mut ir::Block) -> (),
+    {
         match self.fcx().body.first_mut() {
             Some(first) => f(first),
-            None => f(current)
+            None => f(current),
         };
     }
 
@@ -229,15 +235,21 @@ impl Translator {
         let mut id_mangled = id;
         let mut i = 1;
 
-        while self.fcx().registers.values().any(|r| *r == Register::Local(id_mangled)) {
+        while self.fcx()
+            .registers
+            .values()
+            .any(|r| *r == Register::Local(id_mangled))
+        {
             id_mangled = Ident::from_str(&format!("{}{}", id, i));
             i += 1;
-        };
+        }
 
         // Register the variable
         let register = Register::Local(id_mangled);
         self.fcx().registers.insert(id, register);
-        session().symbol_table.set_register(self.fcx().scope, &id, register);
+        session()
+            .symbol_table
+            .set_register(self.fcx().scope, &id, register);
 
         register
     }
@@ -251,23 +263,28 @@ impl Translator {
         while self.fcx().stack_slots.contains(&id_mangled) {
             id_mangled = Ident::from_str(&format!("{}{}", id, i));
             i += 1;
-        };
+        }
 
         // Register the variable
         self.fcx().stack_slots.insert(id_mangled);
-        session().symbol_table.set_slot(self.fcx().scope, &id, Register::Stack(id_mangled));
+        session()
+            .symbol_table
+            .set_slot(self.fcx().scope, &id, Register::Stack(id_mangled));
 
         Register::Stack(id_mangled)
     }
 
     /// Look up the alternative name we assigned in case of variable shadowing
     fn lookup_register(&mut self, reg: Register) -> Register {
-        let var = session().symbol_table.resolve_variable(self.fcx().scope, &reg.ident())
+        let var = session()
+            .symbol_table
+            .resolve_variable(self.fcx().scope, &reg.ident())
             .expect(&format!("variable {} not yet declared", reg));
 
         match reg {
             Register::Local(_) => var.reg.expect(&format!("No register assigned to {}", reg)),
-            Register::Stack(_) => var.slot.expect(&format!("No stack slot assigned to {}", reg)),
+            Register::Stack(_) => var.slot
+                .expect(&format!("No stack slot assigned to {}", reg)),
         }
     }
 
@@ -281,17 +298,19 @@ impl Translator {
             match session().symbol_table.lookup_symbol(name) {
                 Some(ast::Symbol::Static { .. }) => VariableKind::Static,
                 Some(ast::Symbol::Constant { .. }) => VariableKind::Constant,
-                _ => panic!("{} is not a variable", name)
+                _ => panic!("{} is not a variable", name),
             }
         }
     }
 
     /// Translate a function
-    fn trans_fn(&mut self,
-                name: Ident,
-                bindings: &[ast::Binding],
-                ret_ty: ast::Type,
-                body: &ast::Node<ast::Block>) {
+    fn trans_fn(
+        &mut self,
+        name: Ident,
+        bindings: &[ast::Binding],
+        ret_ty: ast::Type,
+        body: &ast::Node<ast::Block>,
+    ) {
         let is_void = ret_ty == ast::Type::Unit;
 
         // Prepare function context
@@ -302,7 +321,7 @@ impl Translator {
             return_slot: None,
             scope: body.id,
             next_register: 0,
-            loop_exit: None
+            loop_exit: None,
         });
 
         // Prepare ast block
@@ -318,7 +337,7 @@ impl Translator {
         // (only use stack for non-register arguments)
         for binding in bindings.iter().rev() {
             self.register_stack_slot(*binding.name);
-        };
+        }
 
         // Translate ast block
         if is_void {
@@ -336,7 +355,10 @@ impl Translator {
             if !block.finalized() {
                 // If the block contains a 'return' expr, it already stores the result in the
                 // return slot, so we don't have to do
-                block.store(ir::Value::Register(ret_value), ir::Value::Register(ret_slot));
+                block.store(
+                    ir::Value::Register(ret_value),
+                    ir::Value::Register(ret_slot),
+                );
             };
         };
 
@@ -375,10 +397,7 @@ impl Translator {
     }
 
     /// Translate an AST code block
-    fn trans_block(&mut self,
-                   b: &ast::Node<ast::Block>,
-                   block: &mut ir::Block,
-                   dest: Dest) {
+    fn trans_block(&mut self, b: &ast::Node<ast::Block>, block: &mut ir::Block, dest: Dest) {
         with_reset!(self.fcx().scope, b.id, {
             for stmt in &b.stmts {
                 self.trans_stmt(stmt, block);
@@ -389,11 +408,12 @@ impl Translator {
     }
 
     /// Translate a statement
-    fn trans_stmt(&mut self,
-                  stmt: &ast::Statement,
-                  block: &mut ir::Block) {
+    fn trans_stmt(&mut self, stmt: &ast::Statement, block: &mut ir::Block) {
         match *stmt {
-            ast::Statement::Declaration { ref binding, ref value } => {
+            ast::Statement::Declaration {
+                ref binding,
+                ref value,
+            } => {
                 // Allocate memory on stack for the binding
                 let dst = self.register_stack_slot(*binding.name);
                 self.with_first_block(block, |block| block.alloc(dst));
@@ -401,7 +421,7 @@ impl Translator {
                 // Store the expression in the new slot
                 let value = self.trans_expr_to_value(value, block);
                 block.store_reg(value, dst);
-            },
+            }
             ast::Statement::Expression { ref val } => {
                 // We don't care where the value of the expression is stored,
                 // thus `Dest::Ignore`.
@@ -411,20 +431,27 @@ impl Translator {
     }
 }
 
-
 impl<'v> Visitor<'v> for Translator {
     fn visit_symbol(&mut self, s: &'v ast::Node<ast::Symbol>) {
         match **s {
-            ast::Symbol::Static { ref binding, ref value } => {
+            ast::Symbol::Static {
+                ref binding,
+                ref value,
+            } => {
                 self.ir.emit(ir::Symbol::Global {
                     name: *binding.name,
-                    value: ir::Immediate(value.unwrap_literal().as_u32())
+                    value: ir::Immediate(value.unwrap_literal().as_u32()),
                 });
-            },
+            }
             ast::Symbol::Constant { .. } => {
                 // Will be inlined on usage
-            },
-            ast::Symbol::Function { ref name, ref bindings, ref ret_ty, ref body } => {
+            }
+            ast::Symbol::Function {
+                ref name,
+                ref bindings,
+                ref ret_ty,
+                ref body,
+            } => {
                 // Get the Binding out of the Node<Binding>
                 let bindings: Vec<_> = bindings.iter().map(|b| **b).collect();
 
@@ -433,7 +460,6 @@ impl<'v> Visitor<'v> for Translator {
         }
     }
 }
-
 
 pub fn translate(ast: &[ast::Node<ast::Symbol>]) -> ir::Program {
     let mut visitor = Translator::new();

@@ -4,15 +4,14 @@
 //       is called every now and then.
 // IDEA: Show the source line and underline the offending token
 
-use std::env;
-use std::io::{self, Write};
-use std::process;
 use ansi_term::Colour::Red;
-use term;
 use driver;
 use driver::codemap::{BytePos, Loc};
 use front::ast::{Node, Span};
-
+use std::env;
+use std::io::{self, Write};
+use std::process;
+use term;
 
 pub trait HasSourceLocation {
     fn loc(&self) -> Loc;
@@ -36,7 +35,6 @@ impl HasSourceLocation for Loc {
     }
 }
 
-
 fn colors_enabled() -> bool {
     if env::var_os("COLORED_OUTPUT").and_then(|s| s.into_string().ok()) == Some("off".into()) {
         return false;
@@ -44,16 +42,14 @@ fn colors_enabled() -> bool {
 
     term::stderr().map_or(false, |t| {
         t.supports_attr(term::Attr::ForegroundColor(term::color::RED))
-        && t.supports_attr(term::Attr::ForegroundColor(term::color::YELLOW))
+            && t.supports_attr(term::Attr::ForegroundColor(term::color::YELLOW))
     })
 }
-
 
 /// Abort compilation
 pub fn abort() -> ! {
     process::exit(1)
 }
-
 
 /// Helper for printing the `Error` string
 /// If stderr is not redirected, the string will be colored
@@ -73,15 +69,19 @@ pub fn fatal<S: AsRef<str>>(msg: S) {
     writeln!(&mut stderr, ": {}", msg.as_ref()).ok();
 }
 
-
 /// Report a fatal error at a source location
 pub fn fatal_at<S: AsRef<str>>(msg: S, source: Loc) {
     let mut stderr = io::stderr();
 
     print_error(&mut stderr);
-    writeln!(&mut stderr, " in line {}:{}: {}", source.line, source.col, msg.as_ref()).ok();
+    writeln!(
+        &mut stderr,
+        " in line {}:{}: {}",
+        source.line,
+        source.col,
+        msg.as_ref()
+    ).ok();
 }
-
 
 /*
 /// Helper for printing the `Warning` string

@@ -3,7 +3,6 @@
 use front::ast::*;
 use front::{Lexer, Parser};
 
-
 macro_rules! parser(
     ($source:expr) => (
         Parser::new(Lexer::new($source, "<test>"))
@@ -20,7 +19,6 @@ macro_rules! ast_assert(
     )
 );
 
-
 #[test]
 fn operator_precedence_call_prefix() {
     let ast = parser!("!a()").parse_expression();
@@ -35,7 +33,6 @@ fn operator_precedence_call_prefix() {
     assert_eq!(&***name, "a");
 }
 
-
 #[test]
 fn operator_precedence_prefix_exponent() {
     let ast = parser!("-1 ** 2").parse_expression();
@@ -46,7 +43,6 @@ fn operator_precedence_prefix_exponent() {
     let (op, _, _) = ast_assert!(Expression::Infix { op, lhs, rhs } == ***item);
     assert_eq!(*op, BinOp::Pow);
 }
-
 
 #[test]
 fn operator_precedence_exponent_product() {
@@ -59,7 +55,6 @@ fn operator_precedence_exponent_product() {
     assert_eq!(*op, BinOp::Pow);
 }
 
-
 #[test]
 fn operator_precedence_product_sum() {
     let ast = parser!("1 + 2 * 3").parse_expression();
@@ -70,7 +65,6 @@ fn operator_precedence_product_sum() {
     let (op, _, _) = ast_assert!(Expression::Infix { op, lhs, rhs } == ***rhs);
     assert_eq!(*op, BinOp::Mul);
 }
-
 
 #[test]
 fn operator_precedence_sum_shift() {
@@ -83,7 +77,6 @@ fn operator_precedence_sum_shift() {
     assert_eq!(*op, BinOp::Add);
 }
 
-
 #[test]
 fn operator_precedence_shift_bitand() {
     let ast = parser!("1 & 2 << 3").parse_expression();
@@ -94,7 +87,6 @@ fn operator_precedence_shift_bitand() {
     let (op, _, _) = ast_assert!(Expression::Infix { op, lhs, rhs } == ***rhs);
     assert_eq!(*op, BinOp::Shl);
 }
-
 
 #[test]
 fn operator_precedence_bitand_bitxor() {
@@ -107,7 +99,6 @@ fn operator_precedence_bitand_bitxor() {
     assert_eq!(*op, BinOp::BitAnd);
 }
 
-
 #[test]
 fn operator_precedence_bitxor_bitor() {
     let ast = parser!("1 | 2 ^ 3").parse_expression();
@@ -118,7 +109,6 @@ fn operator_precedence_bitxor_bitor() {
     let (op, _, _) = ast_assert!(Expression::Infix { op, lhs, rhs } == ***rhs);
     assert_eq!(*op, BinOp::BitXor);
 }
-
 
 #[test]
 fn operator_precedence_bitor_compare() {
@@ -131,7 +121,6 @@ fn operator_precedence_bitor_compare() {
     assert_eq!(*op, BinOp::BitOr);
 }
 
-
 #[test]
 fn operator_precedence_compare_and() {
     let ast = parser!("1 && 2 == 3").parse_expression();
@@ -143,7 +132,6 @@ fn operator_precedence_compare_and() {
     assert_eq!(*op, BinOp::EqEq);
 }
 
-
 #[test]
 fn operator_precedence_and_or() {
     let ast = parser!("1 || 2 && 3").parse_expression();
@@ -154,7 +142,6 @@ fn operator_precedence_and_or() {
     let (op, _, _) = ast_assert!(Expression::Infix { op, lhs, rhs } == ***rhs);
     assert_eq!(*op, BinOp::And);
 }
-
 
 #[test]
 fn operator_precedence_or_assignment() {

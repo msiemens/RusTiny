@@ -10,17 +10,14 @@
 // TODO: Implement constant folding
 // TODO: How are phi nodes handeled?
 
-use driver::interner::Ident;
 use back::machine::{asm, MachineRegister};
+use driver::interner::Ident;
 use middle::ir;
-
 
 pub use self::rulecomp::compile_rules;
 
-
-mod rules; // TODO: Include rule compilation in build.rs
 mod rulecomp;
-
+mod rules; // TODO: Include rule compilation in build.rs
 
 struct InstructionSelector<'a> {
     ir: &'a ir::Program,
@@ -65,17 +62,23 @@ impl<'a> InstructionSelector<'a> {
                 asm_block.emit_directive(format!("{}:", name));
                 asm_block.emit_instruction(asm::Instruction::new(
                     Ident::from_str("push"),
-                    vec![asm::Argument::Register(asm::Register::Machine(MachineRegister::RBP))]
+                    vec![asm::Argument::Register(asm::Register::Machine(
+                        MachineRegister::RBP,
+                    ))],
                 ));
                 asm_block.emit_instruction(asm::Instruction::new(
                     Ident::from_str("mov"),
-                    vec![asm::Argument::Register(asm::Register::Machine(MachineRegister::RBP)),
-                         asm::Argument::Register(asm::Register::Machine(MachineRegister::RSP))]
+                    vec![
+                        asm::Argument::Register(asm::Register::Machine(MachineRegister::RBP)),
+                        asm::Argument::Register(asm::Register::Machine(MachineRegister::RSP)),
+                    ],
                 ));
                 asm_block.emit_instruction(asm::Instruction::new(
                     Ident::from_str("sub"),
-                    vec![asm::Argument::Register(asm::Register::Machine(MachineRegister::RSP)),
-                         asm::Argument::Immediate(8 * stack_usage)]  // FIXME: Use this function's stack usage here
+                    vec![
+                        asm::Argument::Register(asm::Register::Machine(MachineRegister::RSP)),
+                        asm::Argument::Immediate(8 * stack_usage),
+                    ], // FIXME: Use this function's stack usage here
                 ));
 
                 // NOT VALID FOR NOW: (Don't emit the label of the first block (usually "entry-block"))
@@ -83,7 +86,6 @@ impl<'a> InstructionSelector<'a> {
             }
 
             asm_block.emit_directive(format!("{}:", ir_block.label));
-
 
             // Pass Phi instructionos
             asm_block.set_phis(ir_block.phis.to_vec());
@@ -94,7 +96,8 @@ impl<'a> InstructionSelector<'a> {
             let mut processed_last = false;
 
             while idx < instructions.len() {
-                let (count, _processed_last) = rules::trans_instr(&instructions[idx..], &ir_block.last, &mut asm_block);
+                let (count, _processed_last) =
+                    rules::trans_instr(&instructions[idx..], &ir_block.last, &mut asm_block);
                 idx += count;
                 processed_last = _processed_last;
             }
@@ -124,7 +127,12 @@ impl<'a> InstructionSelector<'a> {
 
         // Translate all functions
         for symbol in self.ir {
-            if let ir::Symbol::Function { name, ref body, ref args } = *symbol {
+            if let ir::Symbol::Function {
+                name,
+                ref body,
+                ref args,
+            } = *symbol
+            {
                 self.trans_fn(name, body, args);
             }
         }
@@ -132,7 +140,6 @@ impl<'a> InstructionSelector<'a> {
         self.code
     }
 }
-
 
 pub fn select_instructions(ir: &ir::Program) -> asm::Assembly {
     let is = InstructionSelector::new(ir);

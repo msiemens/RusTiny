@@ -1,10 +1,9 @@
 //! File I/O related helpers
 
+use driver::session;
 use std::fs::File;
 use std::io::{Read, Write};
 use std::path::Path;
-use driver::session;
-
 
 /// Read a file and return it's contents
 pub fn read_file(input_path: &str) -> String {
@@ -19,7 +18,7 @@ pub fn read_file(input_path: &str) -> String {
     let mut bytes = Vec::new();
 
     match file.read_to_end(&mut bytes) {
-        Ok(..) => {},
+        Ok(..) => {}
         Err(_) => {
             fatal!("Can't read {}", input_path);
             session().abort()
@@ -35,7 +34,6 @@ pub fn read_file(input_path: &str) -> String {
     };
 }
 
-
 pub fn write_file(output_path: &str, contents: &str) {
     let mut file = match File::create(&Path::new(output_path)) {
         Ok(f) => f,
@@ -46,7 +44,7 @@ pub fn write_file(output_path: &str, contents: &str) {
     };
 
     match file.write_all(contents.as_bytes()) {
-        Ok(..) => {},
+        Ok(..) => {}
         Err(_) => {
             fatal!("Can't write {}", output_path);
             session().abort()
