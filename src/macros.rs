@@ -14,12 +14,12 @@ macro_rules! fatal(
 #[macro_export]
 macro_rules! fatal_at(
     ($msg:expr, $($arg:expr),*; $loc:expr) => (
-        $crate::driver::session().span_err(format!($msg, $($arg),*), $loc)
+        $crate::driver::session().span_err(format!($msg, $($arg),*), &$loc)
     );
 
     ($msg:expr; $loc:expr) => (
         {
-            $crate::driver::session().span_err($msg, $loc)
+            $crate::driver::session().span_err($msg, &$loc)
         }
     );
 );

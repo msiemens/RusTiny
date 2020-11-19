@@ -52,7 +52,6 @@ enum IrLine<'a> {{
 }}
 
 #[allow(non_shorthand_field_patterns)]
-#[allow(match_same_arms)]
 #[allow(unused_variables)]
 pub fn trans_instr(instr: &[&ir::Instruction],
                    last: &ir::ControlFlowInstruction,

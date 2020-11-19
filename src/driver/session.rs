@@ -33,7 +33,7 @@ pub struct Session {
 
 impl Session {
     /// Print an error with a source location
-    pub fn span_err<T: HasSourceLocation, S: AsRef<str>>(&self, msg: S, loc: T) {
+    pub fn span_err<T: HasSourceLocation, S: AsRef<str>>(&self, msg: S, loc: &T) {
         error::fatal_at(msg, loc.loc());
         *self.errors.borrow_mut() = true;
     }

@@ -1,7 +1,6 @@
+//#![feature(nll)]
 #![feature(plugin)]
-#![feature(slice_patterns)]
 #![feature(specialization)]
-#![plugin(clippy)]
 #![deny(unused_features)]
 #![deny(deprecated)]
 #![warn(unused_variables)]
@@ -9,10 +8,6 @@
 #![warn(dead_code)]
 #![warn(missing_copy_implementations)]
 //#![warn(missing_docs)]
-#![allow(doc_markdown)]
-#![allow(new_without_default)]
-#![allow(new_without_default_derive)]
-#![allow(needless_return)] // Overly strict
 
 extern crate ansi_term;
 extern crate term;

@@ -15,7 +15,6 @@ pub use middle::ir::trans::translate;
 pub struct Label(pub Ident);
 
 impl Label {
-    #[allow(should_implement_trait)]
     pub fn from_str(name: &str) -> Label {
         Label(Ident::from_str(name))
     }
@@ -58,7 +57,6 @@ pub enum Register {
 }
 
 impl Register {
-    #[allow(should_implement_trait)]
     pub fn local(name: &str) -> Register {
         Register::Local(Ident::from_str(name))
     }
@@ -90,12 +88,10 @@ impl Program {
         self.0.push(s);
     }
 
-    #[allow(needless_lifetimes)] // Actually not so needless it seems
     pub fn iter<'a>(&'a self) -> slice::Iter<'a, Symbol> {
         self.0.iter()
     }
 
-    #[allow(needless_lifetimes)] // Actually not so needless it seems
     pub fn iter_mut<'a>(&'a mut self) -> slice::IterMut<'a, Symbol> {
         self.0.iter_mut()
     }
@@ -520,7 +516,7 @@ impl fmt::Display for Immediate {
 impl fmt::Display for Program {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         for symb in self {
-            try!(write!(f, "{}", symb));
+            write!(f, "{}", symb)?;
         }
 
         Ok(())
@@ -534,25 +530,25 @@ impl fmt::Display for Symbol {
                 ref name,
                 ref value,
             } => {
-                try!(writeln!(f, "static {} = {}", name, value));
-                try!(writeln!(f));
+                writeln!(f, "static {} = {}", name, value)?;
+                writeln!(f)?;
             }
             Symbol::Function {
                 ref name,
                 ref body,
                 ref args,
             } => {
-                try!(writeln!(
+                writeln!(
                     f,
                     "fn {}({}) {{",
                     name,
                     connect!(args, "{}", ", ")
-                ));
+                )?;
                 for block in body {
-                    try!(write!(f, "{}", block));
+                    write!(f, "{}", block)?;
                 }
-                try!(writeln!(f, "}}"));
-                try!(writeln!(f));
+                writeln!(f, "}}")?;
+                writeln!(f)?;
             }
         }
 
@@ -562,10 +558,10 @@ impl fmt::Display for Symbol {
 
 impl fmt::Display for Block {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        try!(writeln!(f, "{}:", self.label));
+        writeln!(f, "{}:", self.label)?;
 
         for phi in &self.phis {
-            try!(writeln!(
+            writeln!(
                 f,
                 "    {} = phi {}",
                 phi.dst,
@@ -574,14 +570,14 @@ impl fmt::Display for Block {
                     .map(|src| format!("[ {}, {} ]", src.0, src.1))
                     .collect::<Vec<_>>()
                     .join(" ")
-            ))
+            )?
         }
 
         for inst in &self.inst {
-            try!(writeln!(f, "    {}", inst));
+            writeln!(f, "    {}", inst)?;
         }
 
-        try!(writeln!(f, "    {}", self.last));
+        writeln!(f, "    {}", self.last)?;
 
         Ok(())
     }

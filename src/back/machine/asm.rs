@@ -332,7 +332,6 @@ impl fmt::Display for Instruction {
 }
 
 impl fmt::Display for Argument {
-    #[allow(useless_format)]
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match *self {
             Argument::Immediate(ref val) => write!(f, "{}", val),

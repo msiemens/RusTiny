@@ -39,13 +39,14 @@ impl Precedence {
 ///
 /// It's a global mutable static, because making it a member of the Parse struct
 /// would introduce borrowing issues.
+#[allow(unused_doc_comments)]
 lazy_static! {
     pub static ref PARSELET_MANAGER: ParseletManager = ParseletManager::new();
 }
 
 pub struct ParseletManager {
-    prefix: HashMap<TokenType, Box<PrefixParselet + Sync>>,
-    infix: HashMap<TokenType, Box<InfixParselet + Sync>>,
+    prefix: HashMap<TokenType, Box<dyn PrefixParselet + Sync>>,
+    infix: HashMap<TokenType, Box<dyn InfixParselet + Sync>>,
 }
 
 impl ParseletManager {
@@ -57,12 +58,12 @@ impl ParseletManager {
     }
 
     /// Look up the prefix parselet for a token
-    pub fn lookup_prefix(&self, token: Token) -> Option<&(PrefixParselet + Sync)> {
+    pub fn lookup_prefix(&self, token: Token) -> Option<&(dyn PrefixParselet + Sync)> {
         self.prefix.get(&token.ty()).map(|p| &**p)
     }
 
     /// Look up the infix parselet for a token
-    pub fn lookup_infix(&self, token: Token) -> Option<&(InfixParselet + Sync)> {
+    pub fn lookup_infix(&self, token: Token) -> Option<&(dyn InfixParselet + Sync)> {
         self.infix.get(&token.ty()).map(|p| &**p)
     }
 
