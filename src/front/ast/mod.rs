@@ -224,7 +224,7 @@ impl<T> Node<T> {
     }
 
     fn get_next_id() -> u32 {
-        thread_local!{
+        thread_local! {
             static CURRENT_NODE_ID: Cell<u32> = Cell::new(0)
         };
 

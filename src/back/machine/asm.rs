@@ -359,9 +359,10 @@ impl fmt::Display for Argument {
                     base.map(|r| format!("{}", r)),
                     index.map(|(idx, k)| format!("{} * {}", idx, k)),
                     disp.map(|r| format!("{}", r)),
-                ].into_iter()
-                    .filter_map(|o| o)
-                    .collect();
+                ]
+                .into_iter()
+                .filter_map(|o| o)
+                .collect();
 
                 write!(f, "{}]", connect!(parts, "{}", " + "))
             }

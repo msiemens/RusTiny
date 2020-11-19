@@ -223,155 +223,167 @@ fn translate_ir_pattern(ir_pattern: &IrPattern) -> String {
                     translate_ir_arg(arg1),
                     translate_ir_arg(arg2),
                     translate_ir_register(dest))
-        },
+        }
         IrPattern::Sub(ref dest, ref arg1, ref arg2) => {
             format!("IrLine::Instruction(&ir::Instruction::BinOp {{ op: ir::InfixOp::Sub, lhs: {}, rhs: {}, dst: {} }})",
                     translate_ir_arg(arg1),
                     translate_ir_arg(arg2),
                     translate_ir_register(dest))
-        },
+        }
         IrPattern::Mul(ref dest, ref arg1, ref arg2) => {
             format!("IrLine::Instruction(&ir::Instruction::BinOp {{ op: ir::InfixOp::Mul, lhs: {}, rhs: {}, dst: {} }})",
                     translate_ir_arg(arg1),
                     translate_ir_arg(arg2),
                     translate_ir_register(dest))
-        },
+        }
         IrPattern::Div(ref dest, ref arg1, ref arg2) => {
             format!("IrLine::Instruction(&ir::Instruction::BinOp {{ op: ir::InfixOp::Div, lhs: {}, rhs: {}, dst: {} }})",
                     translate_ir_arg(arg1),
                     translate_ir_arg(arg2),
                     translate_ir_register(dest))
-        },
+        }
         IrPattern::Pow(ref dest, ref arg1, ref arg2) => {
             format!("IrLine::Instruction(&ir::Instruction::BinOp {{ op: ir::InfixOp::Pow, lhs: {}, rhs: {}, dst: {} }})",
                     translate_ir_arg(arg1),
                     translate_ir_arg(arg2),
                     translate_ir_register(dest))
-        },
+        }
         IrPattern::Mod(ref dest, ref arg1, ref arg2) => {
             format!("IrLine::Instruction(&ir::Instruction::BinOp {{ op: ir::InfixOp::Mod, lhs: {}, rhs: {}, dst: {} }})",
                     translate_ir_arg(arg1),
                     translate_ir_arg(arg2),
                     translate_ir_register(dest))
-        },
+        }
         IrPattern::Shl(ref dest, ref arg1, ref arg2) => {
             format!("IrLine::Instruction(&ir::Instruction::BinOp {{ op: ir::InfixOp::Shl, lhs: {}, rhs: {}, dst: {} }})",
                     translate_ir_arg(arg1),
                     translate_ir_arg(arg2),
                     translate_ir_register(dest))
-        },
+        }
         IrPattern::Shr(ref dest, ref arg1, ref arg2) => {
             format!("IrLine::Instruction(&ir::Instruction::BinOp {{ op: ir::InfixOp::Shr, lhs: {}, rhs: {}, dst: {} }})",
                     translate_ir_arg(arg1),
                     translate_ir_arg(arg2),
                     translate_ir_register(dest))
-        },
+        }
         IrPattern::And(ref dest, ref arg1, ref arg2) => {
             format!("IrLine::Instruction(&ir::Instruction::BinOp {{ op: ir::InfixOp::And, lhs: {}, rhs: {}, dst: {} }})",
                     translate_ir_arg(arg1),
                     translate_ir_arg(arg2),
                     translate_ir_register(dest))
-        },
+        }
         IrPattern::Or(ref dest, ref arg1, ref arg2) => {
             format!("IrLine::Instruction(&ir::Instruction::BinOp {{ op: ir::InfixOp::Or, lhs: {}, rhs: {}, dst: {} }})",
                     translate_ir_arg(arg1),
                     translate_ir_arg(arg2),
                     translate_ir_register(dest))
-        },
+        }
         IrPattern::Xor(ref dest, ref arg1, ref arg2) => {
             format!("IrLine::Instruction(&ir::Instruction::BinOp {{ op: ir::InfixOp::Xor, lhs: {}, rhs: {}, dst: {} }})",
                     translate_ir_arg(arg1),
                     translate_ir_arg(arg2),
                     translate_ir_register(dest))
-        },
+        }
         IrPattern::Neg(ref dest, ref arg) => {
             format!("IrLine::Instruction(&ir::Instruction::UnOp {{ op: ir::PrefixOp::Neg, item: {}, dst: {} }})",
                     translate_ir_arg(arg),
                     translate_ir_register(dest))
-        },
+        }
         IrPattern::Not(ref dest, ref arg) => {
             format!("IrLine::Instruction(&ir::Instruction::UnOp {{ op: ir::PrefixOp::Not, item: {}, dst: {} }})",
                     translate_ir_arg(arg),
                     translate_ir_register(dest))
-        },
+        }
         IrPattern::CmpLt(ref dest, ref arg1, ref arg2) => {
             format!("IrLine::Instruction(&ir::Instruction::Cmp {{ cmp: ir::CmpOp::Lt, lhs: {}, rhs: {}, dst: {} }})",
                     translate_ir_arg(arg1),
                     translate_ir_arg(arg2),
                     translate_ir_register(dest))
-        },
+        }
         IrPattern::CmpLe(ref dest, ref arg1, ref arg2) => {
             format!("IrLine::Instruction(&ir::Instruction::Cmp {{ cmp: ir::CmpOp::Le, lhs: {}, rhs: {}, dst: {} }})",
                     translate_ir_arg(arg1),
                     translate_ir_arg(arg2),
                     translate_ir_register(dest))
-        },
+        }
         IrPattern::CmpEq(ref dest, ref arg1, ref arg2) => {
             format!("IrLine::Instruction(&ir::Instruction::Cmp {{ cmp: ir::CmpOp::Eq, lhs: {}, rhs: {}, dst: {} }})",
                     translate_ir_arg(arg1),
                     translate_ir_arg(arg2),
                     translate_ir_register(dest))
-        },
+        }
         IrPattern::CmpNe(ref dest, ref arg1, ref arg2) => {
             format!("IrLine::Instruction(&ir::Instruction::Cmp {{ cmp: ir::CmpOp::Ne, lhs: {}, rhs: {}, dst: {} }})",
                     translate_ir_arg(arg1),
                     translate_ir_arg(arg2),
                     translate_ir_register(dest))
-        },
+        }
         IrPattern::CmpGe(ref dest, ref arg1, ref arg2) => {
             format!("IrLine::Instruction(&ir::Instruction::Cmp {{ cmp: ir::CmpOp::Ge, lhs: {}, rhs: {}, dst: {} }})",
                     translate_ir_arg(arg1),
                     translate_ir_arg(arg2),
                     translate_ir_register(dest))
-        },
+        }
         IrPattern::CmpGt(ref dest, ref arg1, ref arg2) => {
             format!("IrLine::Instruction(&ir::Instruction::Cmp {{ cmp: ir::CmpOp::Gt, lhs: {}, rhs: {}, dst: {} }})",
                     translate_ir_arg(arg1),
                     translate_ir_arg(arg2),
                     translate_ir_register(dest))
-        },
+        }
         IrPattern::Alloca(ref dest) => {
-            format!("IrLine::Instruction(&ir::Instruction::Alloca {{ dst: {} }})",
-                    translate_ir_register(dest))
-        },
+            format!(
+                "IrLine::Instruction(&ir::Instruction::Alloca {{ dst: {} }})",
+                translate_ir_register(dest)
+            )
+        }
         IrPattern::Load(ref dest, ref value) => {
-            format!("IrLine::Instruction(&ir::Instruction::Load {{ src: {}, dst: {} }})",
-                    translate_ir_arg(value),
-                    translate_ir_register(dest))
-        },
+            format!(
+                "IrLine::Instruction(&ir::Instruction::Load {{ src: {}, dst: {} }})",
+                translate_ir_arg(value),
+                translate_ir_register(dest)
+            )
+        }
         IrPattern::Store(ref value, ref dest) => {
-            format!("IrLine::Instruction(&ir::Instruction::Store {{ src: {}, dst: {} }})",
-                    translate_ir_arg(value),
-                    translate_ir_arg(dest))
-        },
+            format!(
+                "IrLine::Instruction(&ir::Instruction::Store {{ src: {}, dst: {} }})",
+                translate_ir_arg(value),
+                translate_ir_arg(dest)
+            )
+        }
         IrPattern::Call(ref dest, ref name, ref args) => {
-            format!("IrLine::Instruction(&ir::Instruction::Call {{ name: {}, args: ref {}, dst: {} }})",
-                    name,
-                    args,
-                    translate_ir_register(dest))
-        },
+            format!(
+                "IrLine::Instruction(&ir::Instruction::Call {{ name: {}, args: ref {}, dst: {} }})",
+                name,
+                args,
+                translate_ir_register(dest)
+            )
+        }
     }
 }
 
 fn translate_ir_pattern_last(ir_pattern_last: &IrPatternLast) -> String {
     match *ir_pattern_last {
         IrPatternLast::Ret(Some(ref val)) => {
-            format!("IrLine::CFInstruction(&ir::ControlFlowInstruction::Return {{ value: Some({}) }})",
-                    translate_ir_arg(val))
-        },
+            format!(
+                "IrLine::CFInstruction(&ir::ControlFlowInstruction::Return {{ value: Some({}) }})",
+                translate_ir_arg(val)
+            )
+        }
         IrPatternLast::Ret(None) => {
             "IrLine::CFInstruction(&ir::ControlFlowInstruction::Return { value: None })".into()
-        },
+        }
         IrPatternLast::Br(ref cond, ref conseq, ref altern) => {
             format!("IrLine::CFInstruction(&ir::ControlFlowInstruction::Branch {{ cond: {}, conseq: {}, altern: {} }})",
                     translate_ir_arg(cond),
                     translate_ir_label(conseq),
                     translate_ir_label(altern))
-        },
+        }
         IrPatternLast::Jmp(ref dest) => {
-            format!("IrLine::CFInstruction(&ir::ControlFlowInstruction::Jump {{ dest: {} }})",
-                    translate_ir_label(dest))
-        },
+            format!(
+                "IrLine::CFInstruction(&ir::ControlFlowInstruction::Jump {{ dest: {} }})",
+                translate_ir_label(dest)
+            )
+        }
     }
 }
 
@@ -474,11 +486,11 @@ fn translate_asm_arg(arg: &AsmArg, types: &HashMap<Ident, IrArg>) -> String {
             "asm::Argument::Indirect {{ size: {}, base: {}, index: {}, disp: {} }}",
             translate_option(size.map(|s| format!("asm::OperandSize::{:?}", s))),
             translate_option(base.clone().map(|b| translate_asm_arg_register(&b))),
-            translate_option(
-                index
-                    .clone()
-                    .map(|(i, f)| format!("({}, {})", translate_asm_arg_register(&i), f)),
-            ),
+            translate_option(index.clone().map(|(i, f)| format!(
+                "({}, {})",
+                translate_asm_arg_register(&i),
+                f
+            )),),
             translate_option(*disp)
         ),
     }

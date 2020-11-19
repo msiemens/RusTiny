@@ -80,7 +80,8 @@ impl<'a> SymbolTable {
                 reg: None,
                 slot: None,
             },
-        ).map_err(|()| "the variable already exists")
+        )
+        .map_err(|()| "the variable already exists")
     }
 
     /// Look up the type of a variable

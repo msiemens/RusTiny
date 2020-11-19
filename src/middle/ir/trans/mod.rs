@@ -235,7 +235,8 @@ impl Translator {
         let mut id_mangled = id;
         let mut i = 1;
 
-        while self.fcx()
+        while self
+            .fcx()
             .registers
             .values()
             .any(|r| *r == Register::Local(id_mangled))
@@ -283,7 +284,8 @@ impl Translator {
 
         match reg {
             Register::Local(_) => var.reg.expect(&format!("No register assigned to {}", reg)),
-            Register::Stack(_) => var.slot
+            Register::Stack(_) => var
+                .slot
                 .expect(&format!("No stack slot assigned to {}", reg)),
         }
     }

@@ -18,7 +18,8 @@ impl<'a, W: Write> PrettyPrinter<'a, W> {
             indent: 0,
             program,
             out,
-        }.print_program();
+        }
+        .print_program();
     }
 
     fn print_indent(&mut self) {
@@ -82,7 +83,8 @@ impl<'a, W: Write> PrettyPrinter<'a, W> {
                 .collect::<Vec<_>>()
                 .join(", "),
             ret_ty
-        ).ok();
+        )
+        .ok();
         self.print_block(body)
     }
 

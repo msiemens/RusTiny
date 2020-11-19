@@ -27,7 +27,8 @@ impl<'a> ScopeTableBuilder<'a> {
 
         {
             // Get the function's arguments
-            let symbol = self.sytbl
+            let symbol = self
+                .sytbl
                 .lookup_symbol(&current_symbol)
                 .expect("current symbol is not registered");
 
@@ -74,7 +75,8 @@ impl<'a> ScopeTableBuilder<'a> {
     }
 
     fn resolve_variable(&self, name: &Node<Ident>) {
-        let current_scope = self.current_scope
+        let current_scope = self
+            .current_scope
             .expect("resolving a variable without a containing scope");
 
         match self.sytbl.resolve_variable(current_scope, name) {
@@ -84,7 +86,8 @@ impl<'a> ScopeTableBuilder<'a> {
     }
 
     fn resolve_declaration(&mut self, binding: &Node<Binding>) {
-        let scope = self.current_scope
+        let scope = self
+            .current_scope
             .expect("resolving a declaration without a containing scope");
 
         match self.sytbl.register_variable(scope, binding) {

@@ -35,12 +35,11 @@ impl Precedence {
     }
 }
 
-/// The global parselet manager
-///
-/// It's a global mutable static, because making it a member of the Parse struct
-/// would introduce borrowing issues.
-#[allow(unused_doc_comments)]
 lazy_static! {
+    /// The global parselet manager
+    ///
+    /// It's a global mutable static, because making it a member of the Parse struct
+    /// would introduce borrowing issues.
     pub static ref PARSELET_MANAGER: ParseletManager = ParseletManager::new();
 }
 
@@ -54,7 +53,8 @@ impl ParseletManager {
         ParseletManager {
             prefix: HashMap::new(),
             infix: HashMap::new(),
-        }.init()
+        }
+        .init()
     }
 
     /// Look up the prefix parselet for a token
@@ -245,10 +245,11 @@ impl InfixParselet for BinaryOperatorParselet {
             _ => parser.unexpected_token(Some("a binary operator")),
         };
 
-        let precedence = self.preced - match self.assoc {
-            Left => 0,
-            Right => 1,
-        };
+        let precedence = self.preced
+            - match self.assoc {
+                Left => 0,
+                Right => 1,
+            };
 
         if parser.token == Token::Eq && op != BinOp::And && op != BinOp::Or {
             parser.bump();

@@ -179,7 +179,8 @@ impl Translator {
         block: &mut ir::Block,
         dest: Dest,
     ) {
-        let translated_args: Vec<_> = args.iter()
+        let translated_args: Vec<_> = args
+            .iter()
             .map(|expr| self.trans_expr_to_value(expr, block))
             .collect();
 

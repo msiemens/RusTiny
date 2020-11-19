@@ -90,7 +90,8 @@ impl<'a> TypeCheck<'a> {
                 ref binding,
                 ref value,
             } => {
-                let var = self.sytbl
+                let var = self
+                    .sytbl
                     .resolve_variable(self.scope, &binding.name)
                     .unwrap();
                 self.check_expression(value, Some(var.ty));

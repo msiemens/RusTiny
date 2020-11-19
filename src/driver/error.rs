@@ -80,7 +80,8 @@ pub fn fatal_at<S: AsRef<str>>(msg: S, source: Loc) {
         source.line,
         source.col,
         msg.as_ref()
-    ).ok();
+    )
+    .ok();
 }
 
 /*

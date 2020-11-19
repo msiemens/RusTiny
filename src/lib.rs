@@ -1,6 +1,3 @@
-//#![feature(nll)]
-#![feature(plugin)]
-#![feature(specialization)]
 #![deny(unused_features)]
 #![deny(deprecated)]
 #![warn(unused_variables)]

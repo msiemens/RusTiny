@@ -12,7 +12,6 @@ enum IrLine<'a> {
 }
 
 #[allow(non_shorthand_field_patterns)]
-#[allow(match_same_arms)]
 #[allow(unused_variables)]
 pub fn trans_instr(
     instr: &[&ir::Instruction],
@@ -28,7 +27,7 @@ pub fn trans_instr(
             lhs: ir::Value::Register(ir::Register::Local(lhs)),
             rhs: ir::Value::Register(ir::Register::Local(rhs)),
             dst: ir::Register::Local(dst),
-        }), _..] => {
+        }), ..] => {
             code.emit_instruction(asm::Instruction::new(
                 Ident::from_str("mov"),
                 vec![
@@ -50,7 +49,7 @@ pub fn trans_instr(
             lhs: ir::Value::Register(ir::Register::Local(lhs)),
             rhs: ir::Value::Immediate(ir::Immediate(rhs)),
             dst: ir::Register::Local(dst),
-        }), _..] => {
+        }), ..] => {
             code.emit_instruction(asm::Instruction::new(
                 Ident::from_str("mov"),
                 vec![
@@ -72,7 +71,7 @@ pub fn trans_instr(
             lhs: ir::Value::Immediate(ir::Immediate(lhs)),
             rhs: ir::Value::Register(ir::Register::Local(rhs)),
             dst: ir::Register::Local(dst),
-        }), _..] => {
+        }), ..] => {
             code.emit_instruction(asm::Instruction::new(
                 Ident::from_str("mov"),
                 vec![
@@ -94,7 +93,7 @@ pub fn trans_instr(
             lhs: ir::Value::Immediate(ir::Immediate(lhs)),
             rhs: ir::Value::Immediate(ir::Immediate(rhs)),
             dst: ir::Register::Local(dst),
-        }), _..] => {
+        }), ..] => {
             code.emit_instruction(asm::Instruction::new(
                 Ident::from_str("mov"),
                 vec![
@@ -116,7 +115,7 @@ pub fn trans_instr(
             lhs: ir::Value::Register(ir::Register::Local(lhs)),
             rhs: ir::Value::Register(ir::Register::Local(rhs)),
             dst: ir::Register::Local(dst),
-        }), _..] => {
+        }), ..] => {
             code.emit_instruction(asm::Instruction::new(
                 Ident::from_str("mov"),
                 vec![
@@ -138,7 +137,7 @@ pub fn trans_instr(
             lhs: ir::Value::Register(ir::Register::Local(lhs)),
             rhs: ir::Value::Immediate(ir::Immediate(rhs)),
             dst: ir::Register::Local(dst),
-        }), _..] => {
+        }), ..] => {
             code.emit_instruction(asm::Instruction::new(
                 Ident::from_str("mov"),
                 vec![
@@ -160,7 +159,7 @@ pub fn trans_instr(
             lhs: ir::Value::Immediate(ir::Immediate(lhs)),
             rhs: ir::Value::Register(ir::Register::Local(rhs)),
             dst: ir::Register::Local(dst),
-        }), _..] => {
+        }), ..] => {
             code.emit_instruction(asm::Instruction::new(
                 Ident::from_str("mov"),
                 vec![
@@ -182,7 +181,7 @@ pub fn trans_instr(
             lhs: ir::Value::Immediate(ir::Immediate(lhs)),
             rhs: ir::Value::Immediate(ir::Immediate(rhs)),
             dst: ir::Register::Local(dst),
-        }), _..] => {
+        }), ..] => {
             code.emit_instruction(asm::Instruction::new(
                 Ident::from_str("mov"),
                 vec![
@@ -204,7 +203,7 @@ pub fn trans_instr(
             lhs: ir::Value::Register(ir::Register::Local(lhs)),
             rhs: ir::Value::Register(ir::Register::Local(rhs)),
             dst: ir::Register::Local(dst),
-        }), _..] => {
+        }), ..] => {
             code.emit_instruction(asm::Instruction::new(
                 Ident::from_str("mov"),
                 vec![
@@ -226,7 +225,7 @@ pub fn trans_instr(
             lhs: ir::Value::Register(ir::Register::Local(lhs)),
             rhs: ir::Value::Immediate(ir::Immediate(rhs)),
             dst: ir::Register::Local(dst),
-        }), _..] => {
+        }), ..] => {
             code.emit_instruction(asm::Instruction::new(
                 Ident::from_str("imul"),
                 vec![
@@ -242,7 +241,7 @@ pub fn trans_instr(
             lhs: ir::Value::Immediate(ir::Immediate(lhs)),
             rhs: ir::Value::Register(ir::Register::Local(rhs)),
             dst: ir::Register::Local(dst),
-        }), _..] => {
+        }), ..] => {
             code.emit_instruction(asm::Instruction::new(
                 Ident::from_str("imul"),
                 vec![
@@ -258,7 +257,7 @@ pub fn trans_instr(
             lhs: ir::Value::Immediate(ir::Immediate(lhs)),
             rhs: ir::Value::Immediate(ir::Immediate(rhs)),
             dst: ir::Register::Local(dst),
-        }), _..] => {
+        }), ..] => {
             code.emit_instruction(asm::Instruction::new(
                 Ident::from_str("mov"),
                 vec![
@@ -280,7 +279,7 @@ pub fn trans_instr(
             lhs: ir::Value::Register(ir::Register::Local(lhs)),
             rhs: ir::Value::Register(ir::Register::Local(rhs)),
             dst: ir::Register::Local(dst),
-        }), _..] => {
+        }), ..] => {
             code.emit_instruction(asm::Instruction::new(
                 Ident::from_str("xor"),
                 vec![
@@ -313,7 +312,7 @@ pub fn trans_instr(
             lhs: ir::Value::Register(ir::Register::Local(lhs)),
             rhs: ir::Value::Immediate(ir::Immediate(rhs)),
             dst: ir::Register::Local(dst),
-        }), _..] => {
+        }), ..] => {
             let tmp = Ident::from_str("tmp");
             code.emit_instruction(asm::Instruction::new(
                 Ident::from_str("mov"),
@@ -354,7 +353,7 @@ pub fn trans_instr(
             lhs: ir::Value::Immediate(ir::Immediate(lhs)),
             rhs: ir::Value::Register(ir::Register::Local(rhs)),
             dst: ir::Register::Local(dst),
-        }), _..] => {
+        }), ..] => {
             code.emit_instruction(asm::Instruction::new(
                 Ident::from_str("xor"),
                 vec![
@@ -387,7 +386,7 @@ pub fn trans_instr(
             lhs: ir::Value::Immediate(ir::Immediate(lhs)),
             rhs: ir::Value::Immediate(ir::Immediate(rhs)),
             dst: ir::Register::Local(dst),
-        }), _..] => {
+        }), ..] => {
             let tmp = Ident::from_str("tmp");
             code.emit_instruction(asm::Instruction::new(
                 Ident::from_str("mov"),
@@ -428,7 +427,7 @@ pub fn trans_instr(
             lhs: ir::Value::Register(ir::Register::Local(lhs)),
             rhs: ir::Value::Register(ir::Register::Local(rhs)),
             dst: ir::Register::Local(dst),
-        }), _..] => {
+        }), ..] => {
             code.emit_instruction(asm::Instruction::new(
                 Ident::from_str("xor"),
                 vec![
@@ -461,7 +460,7 @@ pub fn trans_instr(
             lhs: ir::Value::Register(ir::Register::Local(lhs)),
             rhs: ir::Value::Immediate(ir::Immediate(rhs)),
             dst: ir::Register::Local(dst),
-        }), _..] => {
+        }), ..] => {
             let tmp = Ident::from_str("tmp");
             code.emit_instruction(asm::Instruction::new(
                 Ident::from_str("mov"),
@@ -502,7 +501,7 @@ pub fn trans_instr(
             lhs: ir::Value::Immediate(ir::Immediate(lhs)),
             rhs: ir::Value::Register(ir::Register::Local(rhs)),
             dst: ir::Register::Local(dst),
-        }), _..] => {
+        }), ..] => {
             code.emit_instruction(asm::Instruction::new(
                 Ident::from_str("xor"),
                 vec![
@@ -535,7 +534,7 @@ pub fn trans_instr(
             lhs: ir::Value::Immediate(ir::Immediate(lhs)),
             rhs: ir::Value::Immediate(ir::Immediate(rhs)),
             dst: ir::Register::Local(dst),
-        }), _..] => {
+        }), ..] => {
             let tmp = Ident::from_str("tmp");
             code.emit_instruction(asm::Instruction::new(
                 Ident::from_str("mov"),
@@ -576,7 +575,7 @@ pub fn trans_instr(
             lhs: ir::Value::Register(ir::Register::Local(lhs)),
             rhs: ir::Value::Register(ir::Register::Local(rhs)),
             dst: ir::Register::Local(dst),
-        }), _..] => {
+        }), ..] => {
             code.emit_instruction(asm::Instruction::new(
                 Ident::from_str("mov"),
                 vec![
@@ -605,7 +604,7 @@ pub fn trans_instr(
             lhs: ir::Value::Register(ir::Register::Local(lhs)),
             rhs: ir::Value::Immediate(ir::Immediate(rhs)),
             dst: ir::Register::Local(dst),
-        }), _..] => {
+        }), ..] => {
             code.emit_instruction(asm::Instruction::new(
                 Ident::from_str("mov"),
                 vec![
@@ -627,7 +626,7 @@ pub fn trans_instr(
             lhs: ir::Value::Immediate(ir::Immediate(lhs)),
             rhs: ir::Value::Register(ir::Register::Local(rhs)),
             dst: ir::Register::Local(dst),
-        }), _..] => {
+        }), ..] => {
             code.emit_instruction(asm::Instruction::new(
                 Ident::from_str("mov"),
                 vec![
@@ -656,7 +655,7 @@ pub fn trans_instr(
             lhs: ir::Value::Immediate(ir::Immediate(lhs)),
             rhs: ir::Value::Immediate(ir::Immediate(rhs)),
             dst: ir::Register::Local(dst),
-        }), _..] => {
+        }), ..] => {
             code.emit_instruction(asm::Instruction::new(
                 Ident::from_str("mov"),
                 vec![
@@ -678,7 +677,7 @@ pub fn trans_instr(
             lhs: ir::Value::Register(ir::Register::Local(lhs)),
             rhs: ir::Value::Register(ir::Register::Local(rhs)),
             dst: ir::Register::Local(dst),
-        }), _..] => {
+        }), ..] => {
             code.emit_instruction(asm::Instruction::new(
                 Ident::from_str("mov"),
                 vec![
@@ -707,7 +706,7 @@ pub fn trans_instr(
             lhs: ir::Value::Register(ir::Register::Local(lhs)),
             rhs: ir::Value::Immediate(ir::Immediate(rhs)),
             dst: ir::Register::Local(dst),
-        }), _..] => {
+        }), ..] => {
             code.emit_instruction(asm::Instruction::new(
                 Ident::from_str("mov"),
                 vec![
@@ -729,7 +728,7 @@ pub fn trans_instr(
             lhs: ir::Value::Immediate(ir::Immediate(lhs)),
             rhs: ir::Value::Register(ir::Register::Local(rhs)),
             dst: ir::Register::Local(dst),
-        }), _..] => {
+        }), ..] => {
             code.emit_instruction(asm::Instruction::new(
                 Ident::from_str("mov"),
                 vec![
@@ -758,7 +757,7 @@ pub fn trans_instr(
             lhs: ir::Value::Immediate(ir::Immediate(lhs)),
             rhs: ir::Value::Immediate(ir::Immediate(rhs)),
             dst: ir::Register::Local(dst),
-        }), _..] => {
+        }), ..] => {
             code.emit_instruction(asm::Instruction::new(
                 Ident::from_str("mov"),
                 vec![
@@ -780,7 +779,7 @@ pub fn trans_instr(
             lhs: ir::Value::Register(ir::Register::Local(lhs)),
             rhs: ir::Value::Register(ir::Register::Local(rhs)),
             dst: ir::Register::Local(dst),
-        }), _..] => {
+        }), ..] => {
             code.emit_instruction(asm::Instruction::new(
                 Ident::from_str("mov"),
                 vec![
@@ -802,7 +801,7 @@ pub fn trans_instr(
             lhs: ir::Value::Register(ir::Register::Local(lhs)),
             rhs: ir::Value::Immediate(ir::Immediate(rhs)),
             dst: ir::Register::Local(dst),
-        }), _..] => {
+        }), ..] => {
             code.emit_instruction(asm::Instruction::new(
                 Ident::from_str("mov"),
                 vec![
@@ -824,7 +823,7 @@ pub fn trans_instr(
             lhs: ir::Value::Immediate(ir::Immediate(lhs)),
             rhs: ir::Value::Register(ir::Register::Local(rhs)),
             dst: ir::Register::Local(dst),
-        }), _..] => {
+        }), ..] => {
             code.emit_instruction(asm::Instruction::new(
                 Ident::from_str("mov"),
                 vec![
@@ -846,7 +845,7 @@ pub fn trans_instr(
             lhs: ir::Value::Immediate(ir::Immediate(lhs)),
             rhs: ir::Value::Immediate(ir::Immediate(rhs)),
             dst: ir::Register::Local(dst),
-        }), _..] => {
+        }), ..] => {
             code.emit_instruction(asm::Instruction::new(
                 Ident::from_str("mov"),
                 vec![
@@ -868,7 +867,7 @@ pub fn trans_instr(
             lhs: ir::Value::Register(ir::Register::Local(lhs)),
             rhs: ir::Value::Register(ir::Register::Local(rhs)),
             dst: ir::Register::Local(dst),
-        }), _..] => {
+        }), ..] => {
             code.emit_instruction(asm::Instruction::new(
                 Ident::from_str("mov"),
                 vec![
@@ -890,7 +889,7 @@ pub fn trans_instr(
             lhs: ir::Value::Register(ir::Register::Local(lhs)),
             rhs: ir::Value::Immediate(ir::Immediate(rhs)),
             dst: ir::Register::Local(dst),
-        }), _..] => {
+        }), ..] => {
             code.emit_instruction(asm::Instruction::new(
                 Ident::from_str("mov"),
                 vec![
@@ -912,7 +911,7 @@ pub fn trans_instr(
             lhs: ir::Value::Immediate(ir::Immediate(lhs)),
             rhs: ir::Value::Register(ir::Register::Local(rhs)),
             dst: ir::Register::Local(dst),
-        }), _..] => {
+        }), ..] => {
             code.emit_instruction(asm::Instruction::new(
                 Ident::from_str("mov"),
                 vec![
@@ -934,7 +933,7 @@ pub fn trans_instr(
             lhs: ir::Value::Immediate(ir::Immediate(lhs)),
             rhs: ir::Value::Immediate(ir::Immediate(rhs)),
             dst: ir::Register::Local(dst),
-        }), _..] => {
+        }), ..] => {
             code.emit_instruction(asm::Instruction::new(
                 Ident::from_str("mov"),
                 vec![
@@ -956,7 +955,7 @@ pub fn trans_instr(
             lhs: ir::Value::Register(ir::Register::Local(lhs)),
             rhs: ir::Value::Register(ir::Register::Local(rhs)),
             dst: ir::Register::Local(dst),
-        }), _..] => {
+        }), ..] => {
             code.emit_instruction(asm::Instruction::new(
                 Ident::from_str("mov"),
                 vec![
@@ -978,7 +977,7 @@ pub fn trans_instr(
             lhs: ir::Value::Register(ir::Register::Local(lhs)),
             rhs: ir::Value::Immediate(ir::Immediate(rhs)),
             dst: ir::Register::Local(dst),
-        }), _..] => {
+        }), ..] => {
             code.emit_instruction(asm::Instruction::new(
                 Ident::from_str("mov"),
                 vec![
@@ -1000,7 +999,7 @@ pub fn trans_instr(
             lhs: ir::Value::Immediate(ir::Immediate(lhs)),
             rhs: ir::Value::Register(ir::Register::Local(rhs)),
             dst: ir::Register::Local(dst),
-        }), _..] => {
+        }), ..] => {
             code.emit_instruction(asm::Instruction::new(
                 Ident::from_str("mov"),
                 vec![
@@ -1022,7 +1021,7 @@ pub fn trans_instr(
             lhs: ir::Value::Immediate(ir::Immediate(lhs)),
             rhs: ir::Value::Immediate(ir::Immediate(rhs)),
             dst: ir::Register::Local(dst),
-        }), _..] => {
+        }), ..] => {
             code.emit_instruction(asm::Instruction::new(
                 Ident::from_str("mov"),
                 vec![
@@ -1043,7 +1042,7 @@ pub fn trans_instr(
             op: ir::PrefixOp::Neg,
             item: ir::Value::Register(ir::Register::Local(item)),
             dst: ir::Register::Local(dst),
-        }), _..] => {
+        }), ..] => {
             code.emit_instruction(asm::Instruction::new(
                 Ident::from_str("mov"),
                 vec![
@@ -1061,7 +1060,7 @@ pub fn trans_instr(
             op: ir::PrefixOp::Neg,
             item: ir::Value::Immediate(ir::Immediate(item)),
             dst: ir::Register::Local(dst),
-        }), _..] => {
+        }), ..] => {
             code.emit_instruction(asm::Instruction::new(
                 Ident::from_str("mov"),
                 vec![
@@ -1079,7 +1078,7 @@ pub fn trans_instr(
             op: ir::PrefixOp::Not,
             item: ir::Value::Register(ir::Register::Local(item)),
             dst: ir::Register::Local(dst),
-        }), _..] => {
+        }), ..] => {
             code.emit_instruction(asm::Instruction::new(
                 Ident::from_str("mov"),
                 vec![
@@ -1097,7 +1096,7 @@ pub fn trans_instr(
             op: ir::PrefixOp::Not,
             item: ir::Value::Immediate(ir::Immediate(item)),
             dst: ir::Register::Local(dst),
-        }), _..] => {
+        }), ..] => {
             code.emit_instruction(asm::Instruction::new(
                 Ident::from_str("mov"),
                 vec![
@@ -1120,8 +1119,7 @@ pub fn trans_instr(
             cond: ir::Value::Register(ir::Register::Local(cond)),
             conseq: ir::Label(conseq),
             altern: ir::Label(altern),
-        })] if dst == cond =>
-        {
+        })] if dst == cond => {
             code.emit_instruction(asm::Instruction::new(
                 Ident::from_str("cmp"),
                 vec![
@@ -1148,8 +1146,7 @@ pub fn trans_instr(
             cond: ir::Value::Register(ir::Register::Local(cond)),
             conseq: ir::Label(conseq),
             altern: ir::Label(altern),
-        })] if dst == cond =>
-        {
+        })] if dst == cond => {
             code.emit_instruction(asm::Instruction::new(
                 Ident::from_str("cmp"),
                 vec![
@@ -1176,8 +1173,7 @@ pub fn trans_instr(
             cond: ir::Value::Register(ir::Register::Local(cond)),
             conseq: ir::Label(conseq),
             altern: ir::Label(altern),
-        })] if dst == cond =>
-        {
+        })] if dst == cond => {
             code.emit_instruction(asm::Instruction::new(
                 Ident::from_str("cmp"),
                 vec![
@@ -1200,7 +1196,7 @@ pub fn trans_instr(
             lhs: ir::Value::Register(ir::Register::Local(lhs)),
             rhs: ir::Value::Register(ir::Register::Local(rhs)),
             dst: ir::Register::Local(dst),
-        }), _..] => {
+        }), ..] => {
             code.emit_instruction(asm::Instruction::new(
                 Ident::from_str("cmp"),
                 vec![
@@ -1235,7 +1231,7 @@ pub fn trans_instr(
             lhs: ir::Value::Register(ir::Register::Local(lhs)),
             rhs: ir::Value::Immediate(ir::Immediate(rhs)),
             dst: ir::Register::Local(dst),
-        }), _..] => {
+        }), ..] => {
             code.emit_instruction(asm::Instruction::new(
                 Ident::from_str("cmp"),
                 vec![
@@ -1270,7 +1266,7 @@ pub fn trans_instr(
             lhs: ir::Value::Immediate(ir::Immediate(lhs)),
             rhs: ir::Value::Register(ir::Register::Local(rhs)),
             dst: ir::Register::Local(dst),
-        }), _..] => {
+        }), ..] => {
             code.emit_instruction(asm::Instruction::new(
                 Ident::from_str("cmp"),
                 vec![
@@ -1309,8 +1305,7 @@ pub fn trans_instr(
             cond: ir::Value::Register(ir::Register::Local(cond)),
             conseq: ir::Label(conseq),
             altern: ir::Label(altern),
-        })] if dst == cond =>
-        {
+        })] if dst == cond => {
             code.emit_instruction(asm::Instruction::new(
                 Ident::from_str("cmp"),
                 vec![
@@ -1337,8 +1332,7 @@ pub fn trans_instr(
             cond: ir::Value::Register(ir::Register::Local(cond)),
             conseq: ir::Label(conseq),
             altern: ir::Label(altern),
-        })] if dst == cond =>
-        {
+        })] if dst == cond => {
             code.emit_instruction(asm::Instruction::new(
                 Ident::from_str("cmp"),
                 vec![
@@ -1365,8 +1359,7 @@ pub fn trans_instr(
             cond: ir::Value::Register(ir::Register::Local(cond)),
             conseq: ir::Label(conseq),
             altern: ir::Label(altern),
-        })] if dst == cond =>
-        {
+        })] if dst == cond => {
             code.emit_instruction(asm::Instruction::new(
                 Ident::from_str("cmp"),
                 vec![
@@ -1389,7 +1382,7 @@ pub fn trans_instr(
             lhs: ir::Value::Register(ir::Register::Local(lhs)),
             rhs: ir::Value::Register(ir::Register::Local(rhs)),
             dst: ir::Register::Local(dst),
-        }), _..] => {
+        }), ..] => {
             code.emit_instruction(asm::Instruction::new(
                 Ident::from_str("cmp"),
                 vec![
@@ -1424,7 +1417,7 @@ pub fn trans_instr(
             lhs: ir::Value::Register(ir::Register::Local(lhs)),
             rhs: ir::Value::Immediate(ir::Immediate(rhs)),
             dst: ir::Register::Local(dst),
-        }), _..] => {
+        }), ..] => {
             code.emit_instruction(asm::Instruction::new(
                 Ident::from_str("cmp"),
                 vec![
@@ -1459,7 +1452,7 @@ pub fn trans_instr(
             lhs: ir::Value::Immediate(ir::Immediate(lhs)),
             rhs: ir::Value::Register(ir::Register::Local(rhs)),
             dst: ir::Register::Local(dst),
-        }), _..] => {
+        }), ..] => {
             code.emit_instruction(asm::Instruction::new(
                 Ident::from_str("cmp"),
                 vec![
@@ -1498,8 +1491,7 @@ pub fn trans_instr(
             cond: ir::Value::Register(ir::Register::Local(cond)),
             conseq: ir::Label(conseq),
             altern: ir::Label(altern),
-        })] if dst == cond =>
-        {
+        })] if dst == cond => {
             code.emit_instruction(asm::Instruction::new(
                 Ident::from_str("cmp"),
                 vec![
@@ -1526,8 +1518,7 @@ pub fn trans_instr(
             cond: ir::Value::Register(ir::Register::Local(cond)),
             conseq: ir::Label(conseq),
             altern: ir::Label(altern),
-        })] if dst == cond =>
-        {
+        })] if dst == cond => {
             code.emit_instruction(asm::Instruction::new(
                 Ident::from_str("cmp"),
                 vec![
@@ -1554,8 +1545,7 @@ pub fn trans_instr(
             cond: ir::Value::Register(ir::Register::Local(cond)),
             conseq: ir::Label(conseq),
             altern: ir::Label(altern),
-        })] if dst == cond =>
-        {
+        })] if dst == cond => {
             code.emit_instruction(asm::Instruction::new(
                 Ident::from_str("cmp"),
                 vec![
@@ -1578,7 +1568,7 @@ pub fn trans_instr(
             lhs: ir::Value::Register(ir::Register::Local(lhs)),
             rhs: ir::Value::Register(ir::Register::Local(rhs)),
             dst: ir::Register::Local(dst),
-        }), _..] => {
+        }), ..] => {
             code.emit_instruction(asm::Instruction::new(
                 Ident::from_str("cmp"),
                 vec![
@@ -1613,7 +1603,7 @@ pub fn trans_instr(
             lhs: ir::Value::Register(ir::Register::Local(lhs)),
             rhs: ir::Value::Immediate(ir::Immediate(rhs)),
             dst: ir::Register::Local(dst),
-        }), _..] => {
+        }), ..] => {
             code.emit_instruction(asm::Instruction::new(
                 Ident::from_str("cmp"),
                 vec![
@@ -1648,7 +1638,7 @@ pub fn trans_instr(
             lhs: ir::Value::Immediate(ir::Immediate(lhs)),
             rhs: ir::Value::Register(ir::Register::Local(rhs)),
             dst: ir::Register::Local(dst),
-        }), _..] => {
+        }), ..] => {
             code.emit_instruction(asm::Instruction::new(
                 Ident::from_str("cmp"),
                 vec![
@@ -1687,8 +1677,7 @@ pub fn trans_instr(
             cond: ir::Value::Register(ir::Register::Local(cond)),
             conseq: ir::Label(conseq),
             altern: ir::Label(altern),
-        })] if dst == cond =>
-        {
+        })] if dst == cond => {
             code.emit_instruction(asm::Instruction::new(
                 Ident::from_str("cmp"),
                 vec![
@@ -1715,8 +1704,7 @@ pub fn trans_instr(
             cond: ir::Value::Register(ir::Register::Local(cond)),
             conseq: ir::Label(conseq),
             altern: ir::Label(altern),
-        })] if dst == cond =>
-        {
+        })] if dst == cond => {
             code.emit_instruction(asm::Instruction::new(
                 Ident::from_str("cmp"),
                 vec![
@@ -1743,8 +1731,7 @@ pub fn trans_instr(
             cond: ir::Value::Register(ir::Register::Local(cond)),
             conseq: ir::Label(conseq),
             altern: ir::Label(altern),
-        })] if dst == cond =>
-        {
+        })] if dst == cond => {
             code.emit_instruction(asm::Instruction::new(
                 Ident::from_str("cmp"),
                 vec![
@@ -1767,7 +1754,7 @@ pub fn trans_instr(
             lhs: ir::Value::Register(ir::Register::Local(lhs)),
             rhs: ir::Value::Register(ir::Register::Local(rhs)),
             dst: ir::Register::Local(dst),
-        }), _..] => {
+        }), ..] => {
             code.emit_instruction(asm::Instruction::new(
                 Ident::from_str("cmp"),
                 vec![
@@ -1802,7 +1789,7 @@ pub fn trans_instr(
             lhs: ir::Value::Register(ir::Register::Local(lhs)),
             rhs: ir::Value::Immediate(ir::Immediate(rhs)),
             dst: ir::Register::Local(dst),
-        }), _..] => {
+        }), ..] => {
             code.emit_instruction(asm::Instruction::new(
                 Ident::from_str("cmp"),
                 vec![
@@ -1837,7 +1824,7 @@ pub fn trans_instr(
             lhs: ir::Value::Immediate(ir::Immediate(lhs)),
             rhs: ir::Value::Register(ir::Register::Local(rhs)),
             dst: ir::Register::Local(dst),
-        }), _..] => {
+        }), ..] => {
             code.emit_instruction(asm::Instruction::new(
                 Ident::from_str("cmp"),
                 vec![
@@ -1876,8 +1863,7 @@ pub fn trans_instr(
             cond: ir::Value::Register(ir::Register::Local(cond)),
             conseq: ir::Label(conseq),
             altern: ir::Label(altern),
-        })] if dst == cond =>
-        {
+        })] if dst == cond => {
             code.emit_instruction(asm::Instruction::new(
                 Ident::from_str("cmp"),
                 vec![
@@ -1904,8 +1890,7 @@ pub fn trans_instr(
             cond: ir::Value::Register(ir::Register::Local(cond)),
             conseq: ir::Label(conseq),
             altern: ir::Label(altern),
-        })] if dst == cond =>
-        {
+        })] if dst == cond => {
             code.emit_instruction(asm::Instruction::new(
                 Ident::from_str("cmp"),
                 vec![
@@ -1932,8 +1917,7 @@ pub fn trans_instr(
             cond: ir::Value::Register(ir::Register::Local(cond)),
             conseq: ir::Label(conseq),
             altern: ir::Label(altern),
-        })] if dst == cond =>
-        {
+        })] if dst == cond => {
             code.emit_instruction(asm::Instruction::new(
                 Ident::from_str("cmp"),
                 vec![
@@ -1956,7 +1940,7 @@ pub fn trans_instr(
             lhs: ir::Value::Register(ir::Register::Local(lhs)),
             rhs: ir::Value::Register(ir::Register::Local(rhs)),
             dst: ir::Register::Local(dst),
-        }), _..] => {
+        }), ..] => {
             code.emit_instruction(asm::Instruction::new(
                 Ident::from_str("cmp"),
                 vec![
@@ -1991,7 +1975,7 @@ pub fn trans_instr(
             lhs: ir::Value::Register(ir::Register::Local(lhs)),
             rhs: ir::Value::Immediate(ir::Immediate(rhs)),
             dst: ir::Register::Local(dst),
-        }), _..] => {
+        }), ..] => {
             code.emit_instruction(asm::Instruction::new(
                 Ident::from_str("cmp"),
                 vec![
@@ -2026,7 +2010,7 @@ pub fn trans_instr(
             lhs: ir::Value::Immediate(ir::Immediate(lhs)),
             rhs: ir::Value::Register(ir::Register::Local(rhs)),
             dst: ir::Register::Local(dst),
-        }), _..] => {
+        }), ..] => {
             code.emit_instruction(asm::Instruction::new(
                 Ident::from_str("cmp"),
                 vec![
@@ -2065,8 +2049,7 @@ pub fn trans_instr(
             cond: ir::Value::Register(ir::Register::Local(cond)),
             conseq: ir::Label(conseq),
             altern: ir::Label(altern),
-        })] if dst == cond =>
-        {
+        })] if dst == cond => {
             code.emit_instruction(asm::Instruction::new(
                 Ident::from_str("cmp"),
                 vec![
@@ -2093,8 +2076,7 @@ pub fn trans_instr(
             cond: ir::Value::Register(ir::Register::Local(cond)),
             conseq: ir::Label(conseq),
             altern: ir::Label(altern),
-        })] if dst == cond =>
-        {
+        })] if dst == cond => {
             code.emit_instruction(asm::Instruction::new(
                 Ident::from_str("cmp"),
                 vec![
@@ -2121,8 +2103,7 @@ pub fn trans_instr(
             cond: ir::Value::Register(ir::Register::Local(cond)),
             conseq: ir::Label(conseq),
             altern: ir::Label(altern),
-        })] if dst == cond =>
-        {
+        })] if dst == cond => {
             code.emit_instruction(asm::Instruction::new(
                 Ident::from_str("cmp"),
                 vec![
@@ -2145,7 +2126,7 @@ pub fn trans_instr(
             lhs: ir::Value::Register(ir::Register::Local(lhs)),
             rhs: ir::Value::Register(ir::Register::Local(rhs)),
             dst: ir::Register::Local(dst),
-        }), _..] => {
+        }), ..] => {
             code.emit_instruction(asm::Instruction::new(
                 Ident::from_str("cmp"),
                 vec![
@@ -2180,7 +2161,7 @@ pub fn trans_instr(
             lhs: ir::Value::Register(ir::Register::Local(lhs)),
             rhs: ir::Value::Immediate(ir::Immediate(rhs)),
             dst: ir::Register::Local(dst),
-        }), _..] => {
+        }), ..] => {
             code.emit_instruction(asm::Instruction::new(
                 Ident::from_str("cmp"),
                 vec![
@@ -2215,7 +2196,7 @@ pub fn trans_instr(
             lhs: ir::Value::Immediate(ir::Immediate(lhs)),
             rhs: ir::Value::Register(ir::Register::Local(rhs)),
             dst: ir::Register::Local(dst),
-        }), _..] => {
+        }), ..] => {
             code.emit_instruction(asm::Instruction::new(
                 Ident::from_str("cmp"),
                 vec![
@@ -2247,11 +2228,11 @@ pub fn trans_instr(
         }
         [IrLine::Instruction(&ir::Instruction::Alloca {
             dst: ir::Register::Stack(dst),
-        }), _..] => (1, false),
+        }), ..] => (1, false),
         [IrLine::Instruction(&ir::Instruction::Load {
             src: ir::Value::Register(ir::Register::Stack(src)),
             dst: ir::Register::Local(dst),
-        }), _..] => {
+        }), ..] => {
             code.emit_instruction(asm::Instruction::new(
                 Ident::from_str("mov"),
                 vec![
@@ -2264,7 +2245,7 @@ pub fn trans_instr(
         [IrLine::Instruction(&ir::Instruction::Load {
             src: ir::Value::Static(src),
             dst: ir::Register::Local(dst),
-        }), _..] => {
+        }), ..] => {
             code.emit_instruction(asm::Instruction::new(
                 Ident::from_str("mov"),
                 vec![
@@ -2277,7 +2258,7 @@ pub fn trans_instr(
         [IrLine::Instruction(&ir::Instruction::Store {
             src: ir::Value::Register(ir::Register::Local(val)),
             dst: ir::Value::Register(ir::Register::Stack(dst)),
-        }), _..] => {
+        }), ..] => {
             code.emit_instruction(asm::Instruction::new(
                 Ident::from_str("mov"),
                 vec![
@@ -2290,7 +2271,7 @@ pub fn trans_instr(
         [IrLine::Instruction(&ir::Instruction::Store {
             src: ir::Value::Immediate(ir::Immediate(val)),
             dst: ir::Value::Register(ir::Register::Stack(dst)),
-        }), _..] => {
+        }), ..] => {
             code.emit_instruction(asm::Instruction::new(
                 Ident::from_str("mov"),
                 vec![
@@ -2303,7 +2284,7 @@ pub fn trans_instr(
         [IrLine::Instruction(&ir::Instruction::Store {
             src: ir::Value::Register(ir::Register::Local(val)),
             dst: ir::Value::Register(ir::Register::Local(dst)),
-        }), _..] => {
+        }), ..] => {
             code.emit_instruction(asm::Instruction::new(
                 Ident::from_str("mov"),
                 vec![
@@ -2316,7 +2297,7 @@ pub fn trans_instr(
         [IrLine::Instruction(&ir::Instruction::Store {
             src: ir::Value::Immediate(ir::Immediate(val)),
             dst: ir::Value::Register(ir::Register::Local(dst)),
-        }), _..] => {
+        }), ..] => {
             code.emit_instruction(asm::Instruction::new(
                 Ident::from_str("mov"),
                 vec![
@@ -2330,7 +2311,7 @@ pub fn trans_instr(
             name: callee,
             args: ref args,
             dst: ir::Register::Local(dst),
-        }), _..] => {
+        }), ..] => {
             // Note: This is Rust code, not assembler
             cconv::translate_call(code, callee, args, dst);
             (1, false)
