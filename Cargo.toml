@@ -19,14 +19,14 @@ opt-level = 3
 lto = true
 
 [dependencies]
-ansi_term = "*"
+ansi_term = "^0.12.1"
 clippy = "*"
-clap = "*"
-env_logger = "*"
-lazy_static = "*"
-log = "*"
-rustc-serialize = "*"
-term = "*"
+clap = "^2.33.3"
+env_logger = "^0.8.2"
+lazy_static = "^1.4.0"
+log = "^0.4.11"
+term = "^0.6.1"
+itertools = "0.10.3"
 
 [dev-dependencies]
 pretty_assertions = "0.3.4"

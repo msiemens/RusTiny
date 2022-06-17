@@ -15,7 +15,7 @@ extern crate log;
 #[cfg(test)]
 #[macro_use]
 extern crate pretty_assertions;
-extern crate rustc_serialize;
+extern crate itertools;
 
 #[macro_use]
 pub mod macros;
